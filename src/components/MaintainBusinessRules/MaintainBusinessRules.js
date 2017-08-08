@@ -27,6 +27,7 @@ import _ from 'lodash';
 import { BASE_URL } from '../../Constant/constant';
 import axios from 'axios';
 import ShowToggleColumns from './ShowToggleColumns';
+import RuleAssist from './RuleAssist';
 require('react-datagrid/dist/index.css');
 require('./MaintainBusinessRules.css');
 
@@ -35,7 +36,7 @@ class MaintainBusinessRules extends Component {
     super(props);
     this.cols = [];
     this.data = [];
-    this.selectedViewColumns=[];
+    this.selectedViewColumns = [];
     this.newItem = {
       "business_or_validation": "",
       "business_rule": "",
@@ -70,7 +71,8 @@ class MaintainBusinessRules extends Component {
     this.state = {
       isModalOpen: false,
       showAuditModal: false,
-      showToggleColumns: false
+      showToggleColumns: false,
+      showRuleAssist: false
     };
 
     this.msg = "";
@@ -85,11 +87,12 @@ class MaintainBusinessRules extends Component {
     this.operationName = "";
     this.auditInfo = {};
     this.updateInfo = null;
-    this.viewOnly=_.find(this.props.privileges,{permission:"View Business Rules"})?true:false;
-    this.writeOnly=_.find(this.props.privileges,{permission:"Edit Business Rules"})?true:false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Business Rules" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Business Rules" }) ? true : false;
 
     this.handleToggle = this.handleToggle.bind(this);
     this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
+    this.toggleRuleAssist = this.toggleRuleAssist.bind(this);
   }
 
   componentWillMount() {
@@ -98,7 +101,15 @@ class MaintainBusinessRules extends Component {
 
   handleToggle() {
     let toggleValue = this.state.showToggleColumns;
-    this.setState({ showToggleColumns: !toggleValue });
+    if (!toggleValue) {
+      this.setState({
+        showToggleColumns: true,
+        showRuleAssist: false
+      });
+    }
+    else {
+      this.setState({ showToggleColumns: false });
+    }
   }
 
   displaySelectedColumns(columns) {
@@ -111,15 +122,26 @@ class MaintainBusinessRules extends Component {
     console.log(selectedColumns);
     console.log(this.selectedViewColumns);
     this.setState({ showToggleColumns: false });
+  }
 
-    // The commented part is apparently not working need to look into it
+  toggleRuleAssist() {
+    let isOpen = this.state.showRuleAssist;
+    if (!isOpen) {
+      this.setState({
+        showToggleColumns: false,
+        showRuleAssist: true
+      });
+    }
+    else {
+      this.setState({ showRuleAssist: false });
+    }
   }
 
   render() {
-    console.log("Inside render MaintianBusinessRule........",this.props.login_details);
+    console.log("Inside render MaintianBusinessRule........", this.props.login_details);
     if (this.props.business_rules.length) {
       this.cols = this.props.business_rules[0].cols;
-      if (!this.selectedViewColumns.length){
+      if (!this.selectedViewColumns.length) {
         this.selectedViewColumns = this.cols;
       }
       this.data = this.props.business_rules[0].rows;
@@ -132,332 +154,353 @@ class MaintainBusinessRules extends Component {
         this.linkageData = this.props.audit_list;
       }
       console.log("Linkage data ", this.linkageData);
-        return (
-          <div className="maintain_business_rules_container">
-            <Breadcrumbs
-              routes={this.props.routes}
-              params={this.props.params}
-              wrapperClass="breadcrumb"
-            />
-            <h1>Maintain Business Rules</h1>
-            <div className="ops_icons">
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Refresh"
-                      className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
-                      onClick={
-                        (event) => {
-                          this.selectedRows = this.flatGrid.deSelectAll();
-                          this.selectedRowItem = null;
-                          this.selectedRow = null;
-                          //this.currentPage = 0;
-                          this.props.fetchBusinesRules(this.currentPage);
-                          if (this.writeOnly){
-                            $("button[title='Delete']").prop('disabled',false);
-                            $("button[title='Update']").prop('disabled',false);
-                            $("button[title='Duplicate']").prop('disabled',false);
-                          }
-                        }
-                      }
-                    >
-                      <i className="fa fa-refresh"></i>
-                    </button>
-                </div>
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Insert"
-                      onClick={
-                        this.handleInsertClick.bind(this)
-                      }
-                      className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
-                      disabled={!this.writeOnly}
-                    >
-                      <i className="fa fa-plus"></i>
-                    </button>
-                </div>
-
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Duplicate"
-                      onClick={
-                        this.handleDuplicateClick.bind(this)
-                      }
-                      className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
-                      disabled={!this.writeOnly}
-                    >
-                      <i className="fa fa-copy"></i>
-                    </button>
-                </div>
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Update"
-                      onClick={
-                        this.handleUpdateClick.bind(this)
-                      }
-                      className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
-                      disabled={!this.writeOnly}
-                    >
-                      <i className="fa fa-pencil"></i>
-                    </button>
-                </div>
-
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Delete"
-                      onClick={
-                        this.handleDeleteClick.bind(this)
-                      }
-                      className="btn btn-circle btn-warning business_rules_ops_buttons btn-xs"
-                      disabled={!this.writeOnly}
-                    >
-                      <i className="fa fa-remove"></i>
-                    </button>
-                </div>
-
-
-                <div className="btn-group">
-                    <button data-toggle="tooltip" data-placement="top" title="First" onClick={(event) => {
-                      this.currentPage = 0;
-                      this.props.fetchBusinesRules(this.currentPage, this.orderBy);
-                      this.forceUpdate();
-                    }}
-                      className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
-                      <i className="fa fa-fast-backward"></i>
-                    </button>
-                </div>
-
-                <div className="btn-group">
-                    <button data-toggle="tooltip" data-placement="top" title="Prev" onClick={(event) => {
-                      if(this.currentPage > 0){
-                        this.currentPage--;
-                        this.props.fetchBusinesRules(this.currentPage, this.orderBy);
-                        this.forceUpdate();
-                      }
-
-                    }}
-                     className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
-                      <i className="fa fa-chevron-left"></i>
-                    </button>
-                </div>
-
-
-                <div className="btn-group reg_flat_grid_page_input">
-                    <input
-                      onChange={
-                        (event) => {
-                          this.currentPage = event.target.value;
-                          this.forceUpdate();
-                        }
-                      }
-                      onKeyPress={
-                        (event) => {
-                          if(event.key == "Enter"){
-                            if(this.isInt(event.target.value)){
-                              if(event.target.value > this.pages){
-                                this.modalInstance.open("Page does not exists");
-                              } else {
-                                this.props.fetchBusinesRules(this.currentPage);
-                              }
-                            } else {
-                              this.modalInstance.open("Please Enter a valid integer value");
-                            }
-                          }
-                        }
-                      }
-                      type="text"
-                      value={this.currentPage}
-                      className="form-control" />
-                </div>
-
-                <div className="btn-group">
-                    <button data-toggle="tooltip" data-placement="top" title="Next" onClick={(event) => {
-                      if(this.currentPage < this.pages - 1){
-                        this.currentPage++;
-                        this.props.fetchBusinesRules(this.currentPage, this.orderBy);
-                        this.forceUpdate();
-                      }
-                    }} className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
-                      <i className="fa fa-chevron-right"></i>
-                    </button>
-                </div>
-
-
-                <div className="btn-group">
-                    <button data-toggle="tooltip" data-placement="top" title="End" onClick={(event) => {
-                      this.currentPage = this.pages - 1;
-                      this.props.fetchBusinesRules(this.currentPage, this.orderBy);
-                      this.forceUpdate();
-                    }} className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
-                      <i className="fa fa-fast-forward"></i>
-                    </button>
-                </div>
-
-
-                <div className="btn-group">
-                    <button
-                      onClick={this.showLinkage.bind(this)}
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Report Link"
-                      className="btn btn-circle btn-info business_rules_ops_buttons btn-xs"
-                      disabled={!this.viewOnly}
-                    >
-                      <i className="fa fa-link"></i>
-                    </button>
-                </div>
-
-
-                <div className="btn-group">
-                    <button
-                      onClick={this.showHistory.bind(this)}
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="History"
-                      className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
-                      disabled={!this.viewOnly}
-                    >
-                      <i className="fa fa-history"></i>
-                    </button>
-                </div>
-
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Export CSV"
-                      className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
-                      disabled={!this.viewOnly}
-                      onClick={
-                        (event) => {
-                            axios.get(`${BASE_URL}business-rule/export_to_csv`)
-                            .then(function(response){
-                              console.log("export csv",response);
-                              window.location.href = BASE_URL + "../../static/" + response.data.file_name;
-                            })
-                            .catch(function (error) {
-                              console.log(error);
-                            });
-                        }
-                      }
-                    >
-                      <i className="fa fa-table"></i>
-                    </button>
-                </div>
-
-                <div className="btn-group">
-                    <button
-                      data-toggle="tooltip"
-                      data-placement="top"
-                      title="Deselect All"
-                      className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
-                      disabled={!this.viewOnly}
-                      onClick={
-                        (event) => {
-                          this.selectedRows = this.flatGrid.deSelectAll();
-                          this.selectedRowItem = null;
-                          this.selectedRow = null;
-                          if (this.writeOnly){
-                            $("button[title='Delete']").prop('disabled',false);
-                            $("button[title='Update']").prop('disabled',false);
-                            $("button[title='Duplicate']").prop('disabled',false);
-                          }
-                        }
-                      }
-                    >
-                      <i className="fa fa-window-maximize"></i>
-                    </button>
-                </div>
-
-                <div className="btn-group">
-                  <button
-                    data-toggle="tooltip"
-                    data-placement="top"
-                    title="Select Dsiplay Columns"
-                    className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
-                    onClick={this.handleToggle}
-                  >
-                    <i className="fa fa-th-large"></i>
-                  </button>
-                </div>
+      return (
+        <div className="maintain_business_rules_container">
+          <Breadcrumbs
+            routes={this.props.routes}
+            params={this.props.params}
+            wrapperClass="breadcrumb"
+          />
+          <h1>Maintain Business Rules</h1>
+          <div className="ops_icons">
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Refresh"
+                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                onClick={
+                  (event) => {
+                    this.selectedRows = this.flatGrid.deSelectAll();
+                    this.selectedRowItem = null;
+                    this.selectedRow = null;
+                    //this.currentPage = 0;
+                    this.props.fetchBusinesRules(this.currentPage);
+                    if (this.writeOnly) {
+                      $("button[title='Delete']").prop('disabled', false);
+                      $("button[title='Update']").prop('disabled', false);
+                      $("button[title='Duplicate']").prop('disabled', false);
+                    }
+                  }
+                }
+              >
+                <i className="fa fa-refresh"></i>
+              </button>
             </div>
-            {
-              this.state.showToggleColumns ?
-                <ShowToggleColumns
-                  columns={this.cols}
-                  saveSelection={this.displaySelectedColumns}
-                  selectedViewColumns={this.selectedViewColumns}
-                /> :
-                <RegOpzFlatGrid
-                  columns={this.selectedViewColumns}
-                  dataSource={this.data}
-                  onSelectRow={this.handleSelectRow.bind(this)}
-                  onUpdateRow={this.handleUpdateRow.bind(this)}
-                  onSort={this.handleSort.bind(this)}
-                  onFilter={this.handleFilter.bind(this)}
-                  onFullSelect={this.handleFullSelect.bind(this)}
-                  readOnly={!this.writeOnly}
-                  ref={(flatGrid) => { this.flatGrid = flatGrid }}
-                />
-            }
-            <ModalAlert
-              onClickOkay={
-                () => {
-                  if (this.operationName == "DELETE") {
-                    this.setState({ showAuditModal: true });
-                  }
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Insert"
+                onClick={
+                  this.handleInsertClick.bind(this)
+                }
+                className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                disabled={!this.writeOnly}
+              >
+                <i className="fa fa-plus"></i>
+              </button>
+            </div>
 
-                  if (this.operationName == "INSERT") {
-                    console.log("this.operationName........Inside if condition........", this.operationName);
-                    this.setState({ showAuditModal: true });
-                  }
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Duplicate"
+                onClick={
+                  this.handleDuplicateClick.bind(this)
                 }
-              }
-              onClickDiscard={
-                () => {
-                  //  TODO:
+                className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                disabled={!this.writeOnly}
+              >
+                <i className="fa fa-copy"></i>
+              </button>
+            </div>
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Update"
+                onClick={
+                  this.handleUpdateClick.bind(this)
                 }
-              }
-              ref={
-                (modal) => {
-                  this.modalInstance = modal
+                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                disabled={!this.writeOnly}
+              >
+                <i className="fa fa-pencil"></i>
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Delete"
+                onClick={
+                  this.handleDeleteClick.bind(this)
                 }
-              }
-            />
-            <Modal
-              show={this.state.isModalOpen}
-              container={this}
-              onHide={(event) => {
-                this.setState({ isModalOpen: false });
+                className="btn btn-circle btn-warning business_rules_ops_buttons btn-xs"
+                disabled={!this.writeOnly}
+              >
+                <i className="fa fa-remove"></i>
+              </button>
+            </div>
+
+
+            <div className="btn-group">
+              <button data-toggle="tooltip" data-placement="top" title="First" onClick={(event) => {
+                this.currentPage = 0;
+                this.props.fetchBusinesRules(this.currentPage, this.orderBy);
+                this.forceUpdate();
               }}
-            >
-              <Modal.Header closeButton>
-                <Modal.Title>{this.modalType} for <h6>{this.selectedRulesAsString}</h6></Modal.Title>
-              </Modal.Header>
+                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+                <i className="fa fa-fast-backward"></i>
+              </button>
+            </div>
 
-              <Modal.Body>
-                {this.renderModalBody(this.modalType, this.linkageData, this.selectedRulesAsString)}
-              </Modal.Body>
+            <div className="btn-group">
+              <button data-toggle="tooltip" data-placement="top" title="Prev" onClick={(event) => {
+                if (this.currentPage > 0) {
+                  this.currentPage--;
+                  this.props.fetchBusinesRules(this.currentPage, this.orderBy);
+                  this.forceUpdate();
+                }
 
-              <Modal.Footer>
-                <Button onClick={(event) => {
-                  this.setState({ isModalOpen: false })
-                }}>Ok</Button>
-              </Modal.Footer>
-            </Modal>
+              }}
+                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+                <i className="fa fa-chevron-left"></i>
+              </button>
+            </div>
 
-            < AuditModal showModal={this.state.showAuditModal}
-              onClickOkay={this.handleAuditOkayClick.bind(this)}
+
+            <div className="btn-group reg_flat_grid_page_input">
+              <input
+                onChange={
+                  (event) => {
+                    this.currentPage = event.target.value;
+                    this.forceUpdate();
+                  }
+                }
+                onKeyPress={
+                  (event) => {
+                    if (event.key == "Enter") {
+                      if (this.isInt(event.target.value)) {
+                        if (event.target.value > this.pages) {
+                          this.modalInstance.open("Page does not exists");
+                        } else {
+                          this.props.fetchBusinesRules(this.currentPage);
+                        }
+                      } else {
+                        this.modalInstance.open("Please Enter a valid integer value");
+                      }
+                    }
+                  }
+                }
+                type="text"
+                value={this.currentPage}
+                className="form-control" />
+            </div>
+
+            <div className="btn-group">
+              <button data-toggle="tooltip" data-placement="top" title="Next" onClick={(event) => {
+                if (this.currentPage < this.pages - 1) {
+                  this.currentPage++;
+                  this.props.fetchBusinesRules(this.currentPage, this.orderBy);
+                  this.forceUpdate();
+                }
+              }} className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+                <i className="fa fa-chevron-right"></i>
+              </button>
+            </div>
+
+
+            <div className="btn-group">
+              <button data-toggle="tooltip" data-placement="top" title="End" onClick={(event) => {
+                this.currentPage = this.pages - 1;
+                this.props.fetchBusinesRules(this.currentPage, this.orderBy);
+                this.forceUpdate();
+              }} className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+                <i className="fa fa-fast-forward"></i>
+              </button>
+            </div>
+
+
+            <div className="btn-group">
+              <button
+                onClick={this.showLinkage.bind(this)}
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Report Link"
+                className="btn btn-circle btn-info business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+              >
+                <i className="fa fa-link"></i>
+              </button>
+            </div>
+
+
+            <div className="btn-group">
+              <button
+                onClick={this.showHistory.bind(this)}
+                data-toggle="tooltip"
+                data-placement="top"
+                title="History"
+                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+              >
+                <i className="fa fa-history"></i>
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Export CSV"
+                className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+                onClick={
+                  (event) => {
+                    axios.get(`${BASE_URL}business-rule/export_to_csv`)
+                      .then(function (response) {
+                        console.log("export csv", response);
+                        window.location.href = BASE_URL + "../../static/" + response.data.file_name;
+                      })
+                      .catch(function (error) {
+                        console.log(error);
+                      });
+                  }
+                }
+              >
+                <i className="fa fa-table"></i>
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Deselect All"
+                className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+                onClick={
+                  (event) => {
+                    this.selectedRows = this.flatGrid.deSelectAll();
+                    this.selectedRowItem = null;
+                    this.selectedRow = null;
+                    if (this.writeOnly) {
+                      $("button[title='Delete']").prop('disabled', false);
+                      $("button[title='Update']").prop('disabled', false);
+                      $("button[title='Duplicate']").prop('disabled', false);
+                    }
+                  }
+                }
+              >
+                <i className="fa fa-window-maximize"></i>
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Select Dsiplay Columns"
+                className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
+                onClick={this.handleToggle}
+              >
+                <i className="fa fa-th-large"></i>
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Toggle Rule Assist"
+                className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
+                onClick={this.toggleRuleAssist}
+              >
+                <i className="fa fa-superscript"></i>
+              </button>
+            </div>
+
+          </div>
+          {
+            this.state.showToggleColumns && !this.state.showRuleAssist &&
+              <ShowToggleColumns
+                columns={this.cols}
+                saveSelection={this.displaySelectedColumns}
+              />
+          }
+          {
+            this.state.showRuleAssist && !this.state.showToggleColumns &&
+              <RuleAssist
+                columns={this.cols}
+              />
+          }
+          {
+            !this.state.showRuleAssist && !this.state.showToggleColumns &&
+            <RegOpzFlatGrid
+              columns={this.selectedViewColumns}
+              dataSource={this.data}
+              onSelectRow={this.handleSelectRow.bind(this)}
+              onUpdateRow={this.handleUpdateRow.bind(this)}
+              onSort={this.handleSort.bind(this)}
+              onFilter={this.handleFilter.bind(this)}
+              onFullSelect={this.handleFullSelect.bind(this)}
+              readOnly={!this.writeOnly}
+              ref={(flatGrid) => { this.flatGrid = flatGrid }}
             />
+          }
+          <ModalAlert
+            onClickOkay={
+              () => {
+                if (this.operationName == "DELETE") {
+                  this.setState({ showAuditModal: true });
+                }
+
+                if (this.operationName == "INSERT") {
+                  console.log("this.operationName........Inside if condition........", this.operationName);
+                  this.setState({ showAuditModal: true });
+                }
+              }
+            }
+            onClickDiscard={
+              () => {
+                //  TODO:
+              }
+            }
+            ref={
+              (modal) => {
+                this.modalInstance = modal
+              }
+            }
+          />
+          <Modal
+            show={this.state.isModalOpen}
+            container={this}
+            onHide={(event) => {
+              this.setState({ isModalOpen: false });
+            }}
+          >
+            <Modal.Header closeButton>
+              <Modal.Title>{this.modalType} for <h6>{this.selectedRulesAsString}</h6></Modal.Title>
+            </Modal.Header>
+
+            <Modal.Body>
+              {this.renderModalBody(this.modalType, this.linkageData, this.selectedRulesAsString)}
+            </Modal.Body>
+
+            <Modal.Footer>
+              <Button onClick={(event) => {
+                this.setState({ isModalOpen: false })
+              }}>Ok</Button>
+            </Modal.Footer>
+          </Modal>
+
+          < AuditModal showModal={this.state.showAuditModal}
+            onClickOkay={this.handleAuditOkayClick.bind(this)}
+          />
         </div>
       )
     } else {
@@ -562,100 +605,100 @@ class MaintainBusinessRules extends Component {
                     <div className="block">
                       <div className="block_content">
                         <h2 className="title"></h2>
-                          <Media>
-                            <Media.Left>
-                              <h3>{moment(item.date_of_change?item.date_of_change:"20170624T203000").format('DD')}</h3>
-                              <h6>{moment(item.date_of_change?item.date_of_change:"20170624").format('MMM')},
-                              <small>{moment(item.date_of_change?item.date_of_change:"20170624").format('YYYY')}</small></h6>
-                            </Media.Left>
-                            <Media.Body>
-                              <Media.Heading>Buisness Rule Change for id: {item.id} <small>[{item.change_reference}]</small></Media.Heading>
-                                <h6>
-                                  <Badge>{item.change_type}</Badge> by {item.maker} on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}
-                                </h6>
-                              <p>{item.maker_comment}</p>
-                                <div><h5>Change Summary</h5>
+                        <Media>
+                          <Media.Left>
+                            <h3>{moment(item.date_of_change ? item.date_of_change : "20170624T203000").format('DD')}</h3>
+                            <h6>{moment(item.date_of_change ? item.date_of_change : "20170624").format('MMM')},
+                              <small>{moment(item.date_of_change ? item.date_of_change : "20170624").format('YYYY')}</small></h6>
+                          </Media.Left>
+                          <Media.Body>
+                            <Media.Heading>Buisness Rule Change for id: {item.id} <small>[{item.change_reference}]</small></Media.Heading>
+                            <h6>
+                              <Badge>{item.change_type}</Badge> by {item.maker} on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}
+                            </h6>
+                            <p>{item.maker_comment}</p>
+                            <div><h5>Change Summary</h5>
 
-                                    {((item)=>{
-                                        if (item.change_type=="UPDATE"){
-                                            console.log("Update Info........",item.update_info);
-                                            const update_list=item.update_info.map((uitem,uindex)=>{
-                                                console.log("Uitem.....",uitem);
-                                                return (
-                                                       <tr>
-                                                          <th scope="row">{uindex + 1}</th>
-                                                          <td><h6><Label bsStyle="warning">{uitem.field_name}</Label></h6></td>
-                                                          <td>{uitem.new_val}</td>
-                                                          <td>{uitem.old_val}</td>
-                                                       </tr>
-                                                     );
-                                            });
-                                            return(
-                                              <table className="table table-hover table-content-wrap">
-                                                <thead>
-                                                  <tr>
-                                                    <th>#</th>
-                                                    <th>Column</th>
-                                                    <th>New Value</th>
-                                                    <th>Old Value</th>
-                                                  </tr>
-                                                </thead>
-                                                <tbody>
-                                                  {update_list}
-                                                </tbody>
-                                              </table>
-                                            );
-                                        } else {
-                                          return (<table className="table table-hover table-content-wrap">
-                                                    <thead>
-                                                      <tr>
-                                                      </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr><td>This is a {item.change_type} request</td></tr>
-                                                    </tbody>
-                                                  </table>
-                                              )
-                                        }
-                                    })(item)}
+                              {((item) => {
+                                if (item.change_type == "UPDATE") {
+                                  console.log("Update Info........", item.update_info);
+                                  const update_list = item.update_info.map((uitem, uindex) => {
+                                    console.log("Uitem.....", uitem);
+                                    return (
+                                      <tr>
+                                        <th scope="row">{uindex + 1}</th>
+                                        <td><h6><Label bsStyle="warning">{uitem.field_name}</Label></h6></td>
+                                        <td>{uitem.new_val}</td>
+                                        <td>{uitem.old_val}</td>
+                                      </tr>
+                                    );
+                                  });
+                                  return (
+                                    <table className="table table-hover table-content-wrap">
+                                      <thead>
+                                        <tr>
+                                          <th>#</th>
+                                          <th>Column</th>
+                                          <th>New Value</th>
+                                          <th>Old Value</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {update_list}
+                                      </tbody>
+                                    </table>
+                                  );
+                                } else {
+                                  return (<table className="table table-hover table-content-wrap">
+                                    <thead>
+                                      <tr>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      <tr><td>This is a {item.change_type} request</td></tr>
+                                    </tbody>
+                                  </table>
+                                  )
+                                }
+                              })(item)}
 
-                                </div>
-                                <div className="clearfix" />
-                                <Media>
-                                  <Media.Left>
-                                    {
-                                      ((status)=>{
-                                        if(status=="PENDING"){
-                                          return(<Label bsStyle="primary">{status}</Label>)
-                                        } else if (status=="REJECTED"){
-                                          return(<Label bsStyle="warning">{status}</Label>)
-                                        } else if(status=="APPROVED"){
-                                          return(<Label bsStyle="success">{status}</Label>)
-                                        } else {
-                                          return(<Label>{status}</Label>)
-                                        }
-                                      }
-                                    )(item.status)}
-                                  </Media.Left>
-                                  <Media.Body>
-                                    <Media.Heading>Verification details</Media.Heading>
-                                      {
-                                        ((status)=>{
-                                          if(status!="PENDING"){
-                                            return(
-                                              <h6>
-                                                by {item.checker} on {moment(item.date_of_checking).format('ll')} {moment(item.date_of_checking).format('LTS')}
-                                              </h6>
-                                            )
-                                          }
-                                        }
-                                      )(item.status)}
-                                    <p>{item.checker_comment}</p>
-                                  </Media.Body>
-                                </Media>
-                            </Media.Body>
-                          </Media>
-                        </div>
+                            </div>
+                            <div className="clearfix" />
+                            <Media>
+                              <Media.Left>
+                                {
+                                  ((status) => {
+                                    if (status == "PENDING") {
+                                      return (<Label bsStyle="primary">{status}</Label>)
+                                    } else if (status == "REJECTED") {
+                                      return (<Label bsStyle="warning">{status}</Label>)
+                                    } else if (status == "APPROVED") {
+                                      return (<Label bsStyle="success">{status}</Label>)
+                                    } else {
+                                      return (<Label>{status}</Label>)
+                                    }
+                                  }
+                                  )(item.status)}
+                              </Media.Left>
+                              <Media.Body>
+                                <Media.Heading>Verification details</Media.Heading>
+                                {
+                                  ((status) => {
+                                    if (status != "PENDING") {
+                                      return (
+                                        <h6>
+                                          by {item.checker} on {moment(item.date_of_checking).format('ll')} {moment(item.date_of_checking).format('LTS')}
+                                        </h6>
+                                      )
+                                    }
+                                  }
+                                  )(item.status)}
+                                <p>{item.checker_comment}</p>
+                              </Media.Body>
+                            </Media>
+                          </Media.Body>
+                        </Media>
+                      </div>
                     </div>
                   </li>
                 )
@@ -697,7 +740,7 @@ class MaintainBusinessRules extends Component {
         $("button[title='Duplicate']").prop('disabled', true);
       }
       else {
-        if (this.writeOnly){
+        if (this.writeOnly) {
           $("button[title='Delete']").prop('disabled', false);
           $("button[title='Update']").prop('disabled', false);
           $("button[title='Duplicate']").prop('disabled', false);
@@ -848,7 +891,7 @@ class MaintainBusinessRules extends Component {
         $("button[title='Duplicate']").prop('disabled', true);
       }
       else {
-        if (this.writeOnly){
+        if (this.writeOnly) {
           $("button[title='Delete']").prop('disabled', false);
           $("button[title='Update']").prop('disabled', false);
           $("button[title='Duplicate']").prop('disabled', false);
@@ -863,62 +906,62 @@ class MaintainBusinessRules extends Component {
       !isNaN(parseInt(value, 10));
   }
 
-   handleAuditOkayClick(auditInfo){
-     let data={};
-     data["change_type"]=this.operationName;
-     data["table_name"]="business_rules";
+  handleAuditOkayClick(auditInfo) {
+    let data = {};
+    data["change_type"] = this.operationName;
+    data["table_name"] = "business_rules";
 
-     if(this.operationName == "DELETE"){
-       this.auditInfo={
-         table_name:data["table_name"],
-         id:this.selectedRowItem["id"],
-         change_type:this.operationName,
-         change_reference:`Rule: ${this.selectedRowItem["business_rule"]} of Source: ${this.selectedRowItem["source_id"]}`,
-         maker:this.props.login_details.user
-       };
-       Object.assign(this.auditInfo,auditInfo);
-       data["audit_info"]=this.auditInfo;
+    if (this.operationName == "DELETE") {
+      this.auditInfo = {
+        table_name: data["table_name"],
+        id: this.selectedRowItem["id"],
+        change_type: this.operationName,
+        change_reference: `Rule: ${this.selectedRowItem["business_rule"]} of Source: ${this.selectedRowItem["source_id"]}`,
+        maker: this.props.login_details.user
+      };
+      Object.assign(this.auditInfo, auditInfo);
+      data["audit_info"] = this.auditInfo;
 
-       this.props.deleteBusinessRule(data,this.selectedRowItem['id'], this.selectedRow);
-       this.selectedRowItem = null;
-       this.selectedRow = null;
-       this.setState({showAuditModal:false});
-     }
+      this.props.deleteBusinessRule(data, this.selectedRowItem['id'], this.selectedRow);
+      this.selectedRowItem = null;
+      this.selectedRow = null;
+      this.setState({ showAuditModal: false });
+    }
 
-     if(this.operationName == "UPDATE"){
-       this.auditInfo={
-         table_name:data["table_name"],
-         id:this.updateInfo["id"],
-         change_type:this.operationName,
-         change_reference:`Rule: ${this.updateInfo["business_rule"]} of Source: ${this.updateInfo["source_id"]}`,
-          maker:this.props.login_details.user
-       };
-       Object.assign(this.auditInfo,auditInfo);
-       data["audit_info"]=this.auditInfo;
-       data["update_info"]=this.updateInfo;
+    if (this.operationName == "UPDATE") {
+      this.auditInfo = {
+        table_name: data["table_name"],
+        id: this.updateInfo["id"],
+        change_type: this.operationName,
+        change_reference: `Rule: ${this.updateInfo["business_rule"]} of Source: ${this.updateInfo["source_id"]}`,
+        maker: this.props.login_details.user
+      };
+      Object.assign(this.auditInfo, auditInfo);
+      data["audit_info"] = this.auditInfo;
+      data["update_info"] = this.updateInfo;
 
-       this.props.updateBusinessRule(data);
-       this.setState({showAuditModal:false});
-     }
+      this.props.updateBusinessRule(data);
+      this.setState({ showAuditModal: false });
+    }
 
-     if(this.operationName == "INSERT"){
-       this.auditInfo={
-         table_name:data["table_name"],
-         id:null,
-         change_type:this.operationName,
-         change_reference:`Duplicate of Rule: ${this.selectedRowItem["business_rule"]} of Source: ${this.selectedRowItem["source_id"]}`,
-          maker:this.props.login_details.user
-       };
-       Object.assign(this.auditInfo,auditInfo);
-       data["audit_info"]=this.auditInfo;
-       data["update_info"]=this.updateInfo;
+    if (this.operationName == "INSERT") {
+      this.auditInfo = {
+        table_name: data["table_name"],
+        id: null,
+        change_type: this.operationName,
+        change_reference: `Duplicate of Rule: ${this.selectedRowItem["business_rule"]} of Source: ${this.selectedRowItem["source_id"]}`,
+        maker: this.props.login_details.user
+      };
+      Object.assign(this.auditInfo, auditInfo);
+      data["audit_info"] = this.auditInfo;
+      data["update_info"] = this.updateInfo;
 
-       this.props.insertBusinessRule(data, this.selectedRow);
-       this.setState({showAuditModal:false});
-     }
+      this.props.insertBusinessRule(data, this.selectedRow);
+      this.setState({ showAuditModal: false });
+    }
 
 
-   }
+  }
 }
 
 const mapDispatchToProps = (dispatch) => {
@@ -950,7 +993,7 @@ function mapStateToProps(state) {
     business_rules: state.business_rules,
     report_linkage: state.report_linkage,
     audit_list: state.def_change_store.audit_list,
-    login_details:state.login_store
+    login_details: state.login_store
   }
 }
 

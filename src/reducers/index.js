@@ -14,6 +14,7 @@ import UsersReducer from './UsersReducer';
 import LoginReducer from './LoginReducer';
 import DefChangeReducer from './DefChangeReducer';
 import RolesReducer from './RolesReducer';
+import RuleAssistReducer from './RuleAssistReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -30,7 +31,8 @@ const rootReducer = combineReducers({
   login_store: LoginReducer,
   def_change_store: DefChangeReducer,
   role_management: RolesReducer,
-  form: formReducer
+  form: formReducer,
+  rule_assist: RuleAssistReducer
 });
 
 export default rootReducer;
