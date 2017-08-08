@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import Breadcrumbs from 'react-breadcrumbs';
+import { hashHistory } from 'react-router';
 import _ from 'lodash';
 import {
   actionFetchDates,
@@ -14,7 +15,9 @@ import {
   actionFetchReportLinkage,
   actionInsertSourceData,
   actionUpdateSourceData,
-  actionDeleteFromSourceData
+  actionDeleteFromSourceData,
+  actionSetDisplayData,
+  actionSetDisplayCols
 } from '../../actions/ViewDataAction';
 import DatePicker from 'react-datepicker';
 import { BASE_URL } from '../../Constant/constant';
@@ -230,20 +233,23 @@ class ViewDataComponent extends Component {
                       title="Insert"
                       onClick={
                         (event) => {
-                          var blank = {};
-                          console.log("cols from source table",this.sourceTableCols);
-                          this.sourceTableCols.map((item,index) => {
-                            blank[item] = null;
-                          })
-                          let data = {
-                            table_name:this.sourceTableName,
-                            update_info:blank,
-                            business_date:this.currentBusinessDate
-                          }
-                          console.log("Black object ", blank);
-                          this.props.insertSourceData(data,this.selectedIndexOfGrid);
-                          this.forceUpdate();
+                        //   var blank = {};
+                        //   console.log("cols from source table",this.sourceTableCols);
+                        //   this.sourceTableCols.map((item,index) => {
+                        //     blank[item] = null;
+                        //   })
+                        //   let data = {
+                        //     table_name:this.sourceTableName,
+                        //     update_info:blank,
+                        //     business_date:this.currentBusinessDate
+                        //   }
+                        //   console.log("Black object ", blank);
+                        //   this.props.insertSourceData(data,this.selectedIndexOfGrid);
+                        //   this.forceUpdate();
+                          this.props.setDisplayCols(this.props.report[0].cols);
+                          hashHistory.push('/dashboard/view-data/add-data?request=add');
                         }
+
                       }
                       className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
                     >
@@ -283,7 +289,10 @@ class ViewDataComponent extends Component {
                       data-placement="top"
                       title="Update"
                       onClick={
-                        () => {console.log("Update call");}
+                        () => {
+                          this.props.setDisplayCols(this.props.report[0].cols);
+                          hashHistory.push('/dashboard/view-data/add-data?request=update');
+                        }
                       }
                       className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
                     >
@@ -503,11 +512,12 @@ class ViewDataComponent extends Component {
                    dataSource={this.props.report[0].rows}
                    onSelectRow={
                      (indexOfGrid) => {
+                       console.log("Inside Single select....",this.selectedItems.length);
                        if(this.selectedItems.length == 1){
                          this.selectedIndexOfGrid = indexOfGrid;
                          console.log("Inside Single select ", indexOfGrid);
                        }
-                       console.log("Single select ", indexOfGrid);
+                       console.log("Single select ", this.selectedIndexOfGrid);
                      }
                    }
                    onUpdateRow = {
@@ -529,6 +539,8 @@ class ViewDataComponent extends Component {
                        if(this.selectedItems.length==0 || (this.selectedItems[0].id != items[0].id)) {
                          console.log("Inside Selected Items ", items);
                          this.selectedItems = items;
+                         this.props.setDisplayCols(this.props.report[0].cols);
+                         this.props.setDisplayData(this.selectedItems);
                        } else {
                          this.selectedItems = this.flatGrid.deSelectAll();
                        }
@@ -662,6 +674,12 @@ const mapDispatchToProps = (dispatch) => {
     },
     deleteFromSourceData:(id,business_date,table_name, at) => {
       dispatch(actionDeleteFromSourceData(id,business_date,table_name, at));
+    },
+    setDisplayData:(selectedItem)=>{
+      dispatch(actionSetDisplayData(selectedItem));
+    },
+    setDisplayCols:(cols)=>{
+      dispatch(actionSetDisplayCols(cols));
     }
   }
 }

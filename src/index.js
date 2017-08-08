@@ -44,6 +44,7 @@ import ManageUsers from './components/ManageUsers/ManageUsers';
 import EditUsers from './components/ManageUsers/ModifyUser/ModifyUser';
 import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
+import AddData from './components/ViewData/AddData';
 
 
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware)(createStore);
@@ -110,6 +111,7 @@ ReactDOM.render(
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
                     <Route path="maintain-business-rules/add-business-rule" component={AddBusinessRule} />
                     <Route path="view-data" name="View Data" component={ViewDataComponentV2} />
+                    <Route path="view-data/add-data" name="Add Data" component={AddData} />
                     <Route path="view-data-on-grid" name="View Data Grid" component={ViewDataComponent} />
                     <Route path="view-report" name="View Report" component={ViewReport} />
                     <Route path="create-report" name="Create Report" component={CreateReport} />

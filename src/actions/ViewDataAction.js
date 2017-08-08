@@ -14,6 +14,8 @@ export let UPDATE_SOURCE_DATA = "UPDATE_SOURCE_DATA";
 export let DELETE_SOURCE_ROW = "DELETE_SOURCE_ROW";
 export let GENERATE_REPORT = "GENERATE_REPORT";
 export let APPLY_RULES = "APPLY_RULES";
+export let SET_FORM_DISPLAY_DATA="SET_FORM_DISPLAY_DATA";
+export let SET_FORM_DISPLAY_COLS="SET_FORM_DISPLAY_COLS";
 
 // TODO:
 export function actionFetchDates(startDate='19000101',endDate='39991231', table_name) {
@@ -114,5 +116,19 @@ export function actionApplyRules(source_info) {
   return {
     type: APPLY_RULES,
     payload: axios.post(BASE_URL+`view-data/apply-rules`,source_info)
+  }
+}
+
+export function actionSetDisplayData(selectedItem){
+  return{
+    type:SET_FORM_DISPLAY_DATA,
+    payload:selectedItem
+  }
+}
+
+export function actionSetDisplayCols(cols){
+  return {
+    type:SET_FORM_DISPLAY_COLS,
+    payload:cols
   }
 }
