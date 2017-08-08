@@ -1,6 +1,7 @@
 import React,{ Component } from 'react';
 import { Field,reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
+import {hashHistory} from 'react-router';
 import {
   actionFetchDates,
   actionFetchReportFromDate,
@@ -38,26 +39,28 @@ class AddData extends Component {
   constructor(props){
     super(props);
     this.requestType=this.props.location.query['request'];
+    //this.shouldUpdate=true;
   }
 
   componentWillMount(){
     if(this.requestType=='update'){
-      console.log("Inside componentWillMount.....",this.props.form_data);
-      this.props.initialize(this.props.form_data);
+        this.props.initialize(this.props.form_data);
     }
   }
 
   componentWillUpdate(){
 
-    if(this.requestType=='update'){
-      console.log("Inside componentWillUpdate.....",this.props.form_data);
-      this.props.initialize(this.props.form_data);
-    }
-
+    // if(this.requestType=='update' && this.shouldUpdate){
+    //   console.log("Inside componentWillUpdate.....",this.props.form_data);
+    //   this.props.initialize(this.props.form_data);
+    //   this.shouldUpdate=false;
+    // }
   }
 
   render(){
    const { handleSubmit, pristine, dirty, submitting } = this.props;
+
+   console.log("Inside render AddData...",this.props.table_name);
 
     return (
             <div className="row form-container">
@@ -90,14 +93,19 @@ class AddData extends Component {
 
   handleFormSubmit(data){
 
+    console.log("Inside handleFormSubmit......",data);
+
   }
 
   handleCancel(){
-
+    hashHistory.push('/dashboard/view-data');
   }
 
   renderFields(colsList){
     let fieldArray=[];
+    if(!colsList){
+      return null;
+    }
     colsList.map((item,index)=>{
       fieldArray.push(
           <Field
@@ -120,7 +128,8 @@ class AddData extends Component {
 function mapStateToProps(state){
   return {
     form_data:state.view_data_store.form_data,
-    form_cols:state.view_data_store.form_cols
+    form_cols:state.view_data_store.form_cols,
+    table_name:state.view_data_store.table_name
   }
 }
 

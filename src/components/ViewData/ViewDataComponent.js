@@ -246,7 +246,7 @@ class ViewDataComponent extends Component {
                         //   console.log("Black object ", blank);
                         //   this.props.insertSourceData(data,this.selectedIndexOfGrid);
                         //   this.forceUpdate();
-                          this.props.setDisplayCols(this.props.report[0].cols);
+                          this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
                           hashHistory.push('/dashboard/view-data/add-data?request=add');
                         }
 
@@ -290,7 +290,7 @@ class ViewDataComponent extends Component {
                       title="Update"
                       onClick={
                         () => {
-                          this.props.setDisplayCols(this.props.report[0].cols);
+                          this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
                           hashHistory.push('/dashboard/view-data/add-data?request=update');
                         }
                       }
@@ -539,8 +539,8 @@ class ViewDataComponent extends Component {
                        if(this.selectedItems.length==0 || (this.selectedItems[0].id != items[0].id)) {
                          console.log("Inside Selected Items ", items);
                          this.selectedItems = items;
-                         this.props.setDisplayCols(this.props.report[0].cols);
-                         this.props.setDisplayData(this.selectedItems);
+                         this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
+                         this.props.setDisplayData(this.selectedItems[0]);
                        } else {
                          this.selectedItems = this.flatGrid.deSelectAll();
                        }
@@ -678,8 +678,8 @@ const mapDispatchToProps = (dispatch) => {
     setDisplayData:(selectedItem)=>{
       dispatch(actionSetDisplayData(selectedItem));
     },
-    setDisplayCols:(cols)=>{
-      dispatch(actionSetDisplayCols(cols));
+    setDisplayCols:(cols,table_name)=>{
+      dispatch(actionSetDisplayCols(cols,table_name));
     }
   }
 }

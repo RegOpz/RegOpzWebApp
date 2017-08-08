@@ -23,7 +23,7 @@ export default function(state=[], action) {
       });
     case SET_FORM_DISPLAY_COLS:
       return Object.assign({},state,{
-        form_cols:action.payload
+        form_cols:action.payload.cols,table_name:action.payload.table_name
       });
 
     default:

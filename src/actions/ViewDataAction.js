@@ -126,9 +126,9 @@ export function actionSetDisplayData(selectedItem){
   }
 }
 
-export function actionSetDisplayCols(cols){
+export function actionSetDisplayCols(cols,table_name){
   return {
     type:SET_FORM_DISPLAY_COLS,
-    payload:cols
+    payload:{'cols':cols,'table_name':table_name}
   }
 }
