@@ -15,6 +15,9 @@ import {
   actionUpdateBusinessRule,
   actionFetchReportLinkage
 } from '../../actions/BusinessRulesAction';
+import {
+  actionFetchSources
+} from '../../actions/MaintainReportRuleAction';
 import { actionFetchAuditList } from '../../actions/DefChangeAction';
 import RightSlidePanel from '../RightSlidePanel/RightSlidePanel';
 import ModalAlert from '../ModalAlert/ModalAlert';
@@ -81,6 +84,7 @@ class MaintainBusinessRules extends Component {
     this.flatGrid = null;
     this.filterConditions = {};
     this.selectedRows = [];
+    this.source_table = null;
     this.selectedRulesAsString = null;
     this.selectedRulesIdAsString = null;
     this.modalType = "";
@@ -96,6 +100,7 @@ class MaintainBusinessRules extends Component {
   }
 
   componentWillMount() {
+    this.props.fetchSources();
     this.props.fetchBusinesRules(this.currentPage);
   }
 
@@ -126,15 +131,26 @@ class MaintainBusinessRules extends Component {
 
   toggleRuleAssist() {
     let isOpen = this.state.showRuleAssist;
-    if (!isOpen) {
-      this.setState({
-        showToggleColumns: false,
-        showRuleAssist: true
-      });
+    if (!this.selectedRowItem) {
+      this.modalInstance.isDiscardToBeShown = false;
+      this.modalInstance.open("Please select a row");
+      this.operationName = "";
+    } else if (this.selectedRows.length > 1) {
+      this.modalInstance.open("Please select only one row");
+    } else if ($("button[title='Rule Assist']").prop('disabled')) {
+      // do nothing;
+    } else {
+      if (!isOpen) {
+        this.setState({
+          showToggleColumns: false,
+          showRuleAssist: true
+        });
+      }
+      else {
+        this.setState({ showRuleAssist: false });
+      }
     }
-    else {
-      this.setState({ showRuleAssist: false });
-    }
+
   }
 
   render() {
@@ -416,7 +432,7 @@ class MaintainBusinessRules extends Component {
               <button
                 data-toggle="tooltip"
                 data-placement="top"
-                title="Toggle Rule Assist"
+                title="Rule Assist"
                 className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
                 onClick={this.toggleRuleAssist}
               >
@@ -435,7 +451,8 @@ class MaintainBusinessRules extends Component {
           {
             this.state.showRuleAssist && !this.state.showToggleColumns &&
               <RuleAssist
-                columns={this.cols}
+                rule={this.selectedRowItem}                
+                sourceTable={this.source_table[0]}
               />
           }
           {
@@ -718,6 +735,10 @@ class MaintainBusinessRules extends Component {
       console.log("I am called at ", item, rownum);
       this.selectedRow = rownum;
       this.selectedRowItem = item;
+      this.source_table = this.props.sources.source_suggestion.filter((element) => {
+          return (element.source_id == this.selectedRowItem['source_id']);
+      })
+      console.log("table_name",this.source_table);
     }
     else {
       console.log("I am called at ", item, rownum);
@@ -983,7 +1004,10 @@ const mapDispatchToProps = (dispatch) => {
     },
     fetchAuditList: (idList, tableName) => {
       dispatch(actionFetchAuditList(idList, tableName));
-    }
+    },
+    fetchSources:(sourceId) => {
+      dispatch(actionFetchSources(sourceId));
+    },
 
   }
 }
@@ -993,7 +1017,8 @@ function mapStateToProps(state) {
     business_rules: state.business_rules,
     report_linkage: state.report_linkage,
     audit_list: state.def_change_store.audit_list,
-    login_details: state.login_store
+    login_details: state.login_store,
+    sources: state.maintain_report_rules_store.sources,
   }
 }
 

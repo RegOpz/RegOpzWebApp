@@ -6,7 +6,8 @@ import {
     ListGroup,
     ListGroupItem,
     Button,
-    Well
+    Well,
+    Label
 } from 'react-bootstrap';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
@@ -19,13 +20,15 @@ class RuleAssist extends Component {
         super(props);
 
         this.state = {
-            currentFormula: '',
+            rule: this.props.rule,
+            currentFormula: this.props.rule['python_implementation'],
             regex: /\[(.*?)\]/g,
-            columns: [],
+            columns: this.props.rule['data_fields_list'].split(','),
             businessDate: moment(),
             epochTimeStamp: moment().unix(),
-            tableName: '',
-            sampleSize: 3000,
+            tableName: this.props.sourceTable['source_table_name'],
+            sourceId: this.props.sourceTable['source_id'],
+            sampleSize: 300,
             result: 'Result Will Be Shown Here After Validation'
         };
 
@@ -46,25 +49,24 @@ class RuleAssist extends Component {
 
     handleClick(element) {
         let currentFormula = this.state.currentFormula;
-        currentFormula += '[' + element + ']';
+        currentFormula += ' [' + element + '] ';
 
-        let currentColumns = [];
-        let match = this.state.regex.exec(currentFormula);
-        while (match !== null) {
-            currentColumns.push(match[1]);
-            match = this.state.regex.exec(currentFormula);
-        }
-        let indexOfId = currentColumns.indexOf('id');
-        if (indexOfId === -1)
-            currentColumns.push('id');
-        let indexOfBusinessDate = currentColumns.indexOf('business_date');
-        if (indexOfBusinessDate === -1)
-            currentColumns.push('business_date');
-
-
+        // let currentColumns = this.state.columns;
+        // let match = this.state.regex.exec(currentFormula);
+        // while (match !== null) {
+        //     currentColumns.push(match[1]);
+        //     match = this.state.regex.exec(currentFormula);
+        // }
+        // let indexOfId = currentColumns.indexOf('id');
+        // if (indexOfId === -1)
+        //     currentColumns.push('id');
+        // let indexOfBusinessDate = currentColumns.indexOf('business_date');
+        // if (indexOfBusinessDate === -1)
+        //     currentColumns.push('business_date');
+        //
+        //
         this.setState({
-            currentFormula: currentFormula,
-            columns: currentColumns
+            currentFormula: currentFormula
         });
     }
 
@@ -72,22 +74,21 @@ class RuleAssist extends Component {
         let value = event.target.value;
         let currentFormula = value;
 
-        let currentColumns = [];
-        let match = this.state.regex.exec(currentFormula);
-        while (match !== null) {
-            currentColumns.push(match[1]);
-            match = this.state.regex.exec(currentFormula);
-        }
-        let indexOfId = currentColumns.indexOf('id');
-        if (indexOfId === -1)
-            currentColumns.push('id');
-        let indexOfBusinessDate = currentColumns.indexOf('business_date');
-        if (indexOfBusinessDate === -1)
-            currentColumns.push('business_date');
+        // let currentColumns = [];
+        // let match = this.state.regex.exec(currentFormula);
+        // while (match !== null) {
+        //     currentColumns.push(match[1]);
+        //     match = this.state.regex.exec(currentFormula);
+        // }
+        // let indexOfId = currentColumns.indexOf('id');
+        // if (indexOfId === -1)
+        //     currentColumns.push('id');
+        // let indexOfBusinessDate = currentColumns.indexOf('business_date');
+        // if (indexOfBusinessDate === -1)
+        //     currentColumns.push('business_date');
 
         this.setState({
-            currentFormula: currentFormula,
-            columns: currentColumns
+            currentFormula: currentFormula
         });
     }
 
@@ -112,6 +113,17 @@ class RuleAssist extends Component {
 
     handleValidationClick() {
         console.log('State Columns: ', this.state.columns);
+        let currentColumns = this.state.columns;
+        let indexOfId = currentColumns.indexOf('id');
+        if (indexOfId === -1)
+            currentColumns.push('id');
+        let indexOfBusinessDate = currentColumns.indexOf('business_date');
+        if (indexOfBusinessDate === -1)
+            currentColumns.push('business_date');
+
+        this.setState({
+            columns: currentColumns
+        });
         this.props.validateExp(
             this.state.tableName,
             this.state.epochTimeStamp,
@@ -124,99 +136,203 @@ class RuleAssist extends Component {
     render() {
         return (
             <div>
-                <Row>
-                    <Col xs={12} md={6}>
-                        <h1 style={{ textAlign: 'center' }}>Data Attributes Fields</h1>
-                        <ListGroup>
-                            {
-                                this.props.columns.map(element => {
-                                    return (
-                                        <ListGroupItem
-                                            style={{ textAlign: 'center' }}
-                                            onClick={() => { this.handleClick(element); }}
-                                            key={element}
-                                        >
-                                            {element}
-                                        </ListGroupItem>
-                                    );
-                                })
-                            }
-                        </ListGroup>
-                    </Col>
-                    <Col xs={12} md={6}>
-                        <h1 style={{ textAlign: 'center' }}>Enter a formula below:</h1>
-                        <Well bsSize='small'>{this.state.currentFormula}</Well>
-                        <FormControl
-                            type='text'
-                            value={this.state.currentFormula}
-                            onChange={this.updateFormula}
-                            placeholder='Enter a formula here...'
-                        />
-                        <Row style={{ margin: '14px 0' }}>
-                            <Col xs={6} style={{ textAlign: 'center' }}>
-                                <h2>Table Name:</h2>
-                            </Col>
-                            <Col xs={6} style={{ textAlign: 'center' }}>
-                                <FormControl
-                                    type='text'
-                                    value={this.state.tableName}
-                                    onChange={this.handleTableNameChange}
-                                    placeholder='Enter a table name to run validation on'
-                                />
-                            </Col>
-                        </Row>
-                        <Row style={{ margin: '14px 0' }}>
-                            <Col xs={6} style={{ textAlign: 'center' }}>
-                                <h2>Sample Size:</h2>
-                            </Col>
-                            <Col xs={6} style={{ textAlign: 'center' }}>
+              <div className="row form-container">
+                  <div className="col col-lg-12">
+                      <div className="x_title">
+                          <h2>Business Rule Management <small>Edit business rule</small></h2>
+                          <div className="clearfix"></div>
+                      </div>
+
+                      <div className="col-md-12 col-sm-12 col-xs-12">
+                          {
+                            this.renderAvailableFields()
+                          }
+                      </div>
+                      <div className="col-md-12 col-sm-12 col-xs-12">
+                          {
+                            this.renderPythonLogic()
+                          }
+                      </div>
+                      <div className="x_content">
+
+                        <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                          <button type="button"
+                          className="btn btn-primary"
+                          onClick={console.log("this.handleCancel")}>
+                            Cancel
+                          </button>
+                          <button type="submit"
+                          className="btn btn-success"
+                          disabled="">
+                            Submit
+                          </button>
+                          <button type="button"
+                          className="btn btn-warning"
+                          disabled=""
+                          onClick={this.handleValidationClick}>
+                            Validate
+                          </button>
+                        </div>
+                      </div>
+                      <div className="col-md-5 col-sm-5 col-xs-12">
+                        <div className="x_panel">
+                          <div className="x_title">
+                            <h2>Sampling Option<Label bsStyle="">{this.state.tableName}</Label>
+                              <small> Using Data</small>
+                            </h2>
+                            <div className="clearfix"></div>
+                          </div>
+                          <div className="x_content">
+
+                              <div className="row">
+                                <label className="control-label col-md-4 col-sm-4 col-xs-4" htmlFor="first-name">Sample Size <span className="required">*</span></label>
                                 <FormControl
                                     type='number'
+                                    bsClass="col-md-3 col-sm-3 col-xs-3"
                                     value={this.state.sampleSize}
                                     onChange={this.handleSampleSizeChange}
                                     placeholder='Enter the sample size'
                                 />
-                            </Col>
-                        </Row>
-                        <Row style={{ margin: '14px 0' }}>
-                            <Col xs={6} style={{ textAlign: 'center' }}>
-                                <h2>Business Date:</h2>
-                            </Col>
-                            <Col xs={6} style={{ textAlign: 'center' }}>
+                              </div>
+                              <div className="row">
+                              <label className="control-label col-md-4 col-sm-4 col-xs-4" htmlFor="first-name">Business Date <span className="required">*</span></label>
                                 <DatePicker
-                                    className='form-control'
+                                    className='col-md-7 col-sm-7 col-xs-7'
+                                    dateFormat="DD-MMM-YYYY"
                                     placeholderText='Select a date'
                                     onChange={this.handleDateChange}
                                     selected={this.state.businessDate}
                                 />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col xs={12} style={{ textAlign: 'center' }}>
-                                <Button
-                                    bsStyle="primary"
-                                    style={{ margin: '14px' }}
-                                    onClick={this.handleValidationClick}
-                                >
-                                    Validate</Button>
-                                <Button
-                                    bsStyle="success"
-                                    style={{ margin: '14px' }}
-                                >
-                                    Submit</Button>
-                            </Col>
-                        </Row>
-                        <Row style={{ margin: '14px 0' }}>
-                            <Col xs={12}>
-                                <Well style={{ textAlign: 'center' }}>
-                                    {this.state.result}
-                                </Well>
-                            </Col>
-                        </Row>
-                    </Col>
-                </Row>
+                              </div>
+                            </div>
+                          </div>
+
+                      </div>
+                      <div className="col-md-7 col-sm-7 col-xs-12">
+                        <div className="x_panel">
+                          <div className="x_title">
+                            <h2>Data Fields Value Option<Label bsStyle="">{this.state.tableName}</Label>
+                              <small> User Data</small>
+                            </h2>
+                            <div className="clearfix"></div>
+                          </div>
+                          <div className="x_content">
+                          {
+                              this.state.columns.map((item, index) => {
+                                  return(
+                                    <div className="row">
+                                      <label className="control-label col-md-3 col-sm-3 col-xs-12" >{item}</label>
+                                      <div className="col-md-6 col-sm-6 col-xs-12">
+                                        <input
+                                          name={item}
+                                          placeholder={item}
+                                          value={ item }
+                                          type="text"
+                                          id={item}
+                                          className="col-md-7 col-xs-12"
+                                          onChange={ console.log("Testing only") }
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                              })
+                          }
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                  <Well>
+                      {this.state.result}
+                  </Well>
             </div >
         );
+    }
+
+    renderAvailableFields() {
+        if (this.state.columns != null) {
+          //let columns = ['buy','sell','nothing','colum2','column4','column6','loooooooong column','another long column'];
+            return(
+            <div className="x_panel">
+              <div className="x_title">
+                <h2>Source <Label bsStyle="">{this.state.tableName}</Label>
+                  <small> Available Fields</small>
+                </h2>
+                <div className="clearfix"></div>
+              </div>
+              <div className="x_content">
+              {
+                  this.state.columns.map((item, index) => {
+                      return(
+                              <button type="button"
+                              name={ item }
+                              className="btn btn-default btn-sm"
+                              onClick={ () => { this.handleClick(item); } }>
+                                  {item}
+                              </button>
+                      );
+                  })
+              }
+              </div>
+            </div>
+          );
+      } else {
+          return (
+            <div className="x_panel">
+              <div className="x_title">
+                <h2>Fields Available
+                  <small> for Rule Definition</small>
+                </h2>
+                <div className="clearfix"></div>
+              </div>
+              <div className="x_content">
+                <p>Ooops, No component available</p>
+              </div>
+            </div>
+          );
+        }
+    }
+
+    renderPythonLogic() {
+      let operators = ['equal','not equal','begins','ends','contains','>','<','>=','<=','(',')','+','-','/','DERIVED'];
+        return(
+        <div className="x_panel">
+          <div className="x_title">
+            <h2>Existing Logic
+              <small> for Rule </small>
+              <Label bsStyle="default">{this.state.rule['business_rule']}</Label>
+            </h2>
+            <div className="clearfix"></div>
+          </div>
+          <div className="x_content">
+            <h4><Label>Rule Description </Label></h4>
+            <p>{this.state.rule['rule_description']}. {this.state.rule['logical_condition']}.</p>
+            <Well>{this.state.rule['python_implementation']}</Well>
+            <h4><Label bsStyle="warning">Edited Logic .... </Label></h4>
+            <div className="clearfix"></div>
+            <button className="btn btn-info btn-xs" disabled><i className="fa fa-wrench"> </i></button>
+              {
+                  operators.map((item, index) => {
+                      return(
+                              <button type="button"
+                              name={ item }
+                              className="btn btn-default btn-xs"
+                              onClick={ () => { this.handleClick(item); } }>
+                                  {item}
+                              </button>
+                      );
+                  })
+              }
+            <FormControl
+                type='text'
+                value={this.state.currentFormula}
+                onChange={this.updateFormula}
+                placeholder='Enter a formula here...'
+            />
+          </div>
+        </div>
+      );
     }
 }
 
