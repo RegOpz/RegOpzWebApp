@@ -2,6 +2,7 @@ import {
   FETCH_DATES,
   VIEW_DATA_FETCH_REPORT_LINKAGE,
   SET_FORM_DISPLAY_DATA,
+  RESET_FORM_DISPLAY_DATA,
   SET_FORM_DISPLAY_COLS
 } from '../actions/ViewDataAction';
 
@@ -25,6 +26,8 @@ export default function(state=[], action) {
       return Object.assign({},state,{
         form_cols:action.payload.cols,table_name:action.payload.table_name
       });
+      case RESET_FORM_DISPLAY_DATA:
+        return Object.assign({},state,{form_data:action.payload});
 
     default:
     	return state;

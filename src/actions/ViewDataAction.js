@@ -15,6 +15,7 @@ export let DELETE_SOURCE_ROW = "DELETE_SOURCE_ROW";
 export let GENERATE_REPORT = "GENERATE_REPORT";
 export let APPLY_RULES = "APPLY_RULES";
 export let SET_FORM_DISPLAY_DATA="SET_FORM_DISPLAY_DATA";
+export let RESET_FORM_DISPLAY_DATA="RESET_FORM_DISPLAY_DATA";
 export let SET_FORM_DISPLAY_COLS="SET_FORM_DISPLAY_COLS";
 
 // TODO:
@@ -123,6 +124,13 @@ export function actionSetDisplayData(selectedItem){
   return{
     type:SET_FORM_DISPLAY_DATA,
     payload:selectedItem
+  }
+}
+
+export function actionResetDisplayData(){
+  return{
+    type:RESET_FORM_DISPLAY_DATA,
+    payload:{}
   }
 }
 

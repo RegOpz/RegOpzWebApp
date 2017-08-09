@@ -12,7 +12,8 @@ import {
   actionFetchReportLinkage,
   actionInsertSourceData,
   actionUpdateSourceData,
-  actionDeleteFromSourceData
+  actionDeleteFromSourceData,
+  actionResetDisplayData
 } from '../../actions/ViewDataAction';
 
 require('./ViewDataComponentStyle.css');
@@ -118,6 +119,7 @@ class AddData extends Component {
         this.props.insertSourceData(data,0);
       }
       console.log("Inside handleFormSubmit......",data);
+      this.props.resetDisplayData();
       hashHistory.push('/dashboard/view-data');
 
 
@@ -125,6 +127,7 @@ class AddData extends Component {
   }
 
   handleCancel(){
+    this.props.resetDisplayData();
     hashHistory.push('/dashboard/view-data');
   }
 
@@ -194,6 +197,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     deleteFromSourceData:(id,business_date,table_name, at) => {
       dispatch(actionDeleteFromSourceData(id,business_date,table_name, at));
+    },
+    resetDisplayData:()=>{
+      dispatch(actionResetDisplayData());
     }
   }
 }
