@@ -39,12 +39,17 @@ class AddData extends Component {
   constructor(props){
     super(props);
     this.requestType=this.props.location.query['request'];
+    this.businessDate=this.props.location.query['business_date'];
     //this.shouldUpdate=true;
   }
 
-  componentWillMount(){
+  componentDidMount(){
     if(this.requestType=='update'){
         this.props.initialize(this.props.form_data);
+    }
+
+    if(this.requestType=='add'){
+      this.props.initialize({'business_date': this.businessDate});
     }
   }
 
@@ -91,9 +96,31 @@ class AddData extends Component {
     );
   }
 
-  handleFormSubmit(data){
+  handleFormSubmit(submitData){
+    let data={};
+    //update in sending all columns
+    if(this.requestType=='update'){
+        data['table_name']=this.props.table_name;
+        data['update_info']=submitData;
+        data['business_date']=submitData.business_date;
+        this.props.updateSourceData(data);
+    }
 
-    console.log("Inside handleFormSubmit......",data);
+    //insert is sending only changed column,so we need to expand for all columns
+    if(this.requestType=='add'){
+        data['table_name']=this.props.table_name;
+        data['update_info']={};
+
+        for (let col of this.props.form_cols){
+          data['update_info'][col]=submitData[col]?submitData[col]:"";
+        }
+        data['business_date']=data['update_info']['business_date'];
+        this.props.insertSourceData(data,0);
+      }
+      console.log("Inside handleFormSubmit......",data);
+      hashHistory.push('/dashboard/view-data');
+
+
 
   }
 
@@ -114,7 +141,7 @@ class AddData extends Component {
             type="text"
             component={renderField}
             label={ item }
-            readOnly={item == "id" }
+            readOnly={item == "id" || item=="business_date"}
           />
       );
     });

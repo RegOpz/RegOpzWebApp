@@ -247,7 +247,7 @@ class ViewDataComponent extends Component {
                         //   this.props.insertSourceData(data,this.selectedIndexOfGrid);
                         //   this.forceUpdate();
                           this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
-                          hashHistory.push('/dashboard/view-data/add-data?request=add');
+                          hashHistory.push(`/dashboard/view-data/add-data?request=add&business_date=${this.currentBusinessDate}`);
                         }
 
                       }
