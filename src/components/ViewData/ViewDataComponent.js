@@ -35,16 +35,6 @@ class ViewDataComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      drawerHandleStyle:{
-        display:"block"
-      },
-      menuPanelStyle:{
-        width:"280px",
-        padding:"5px"
-      },
-      menuPanelHolderStyle:{
-        width:"320px"
-      },
       startDate: null,
       endDate: null
     }
@@ -232,24 +222,11 @@ class ViewDataComponent extends Component {
                       data-placement="top"
                       title="Insert"
                       onClick={
-                        (event) => {
-                        //   var blank = {};
-                        //   console.log("cols from source table",this.sourceTableCols);
-                        //   this.sourceTableCols.map((item,index) => {
-                        //     blank[item] = null;
-                        //   })
-                        //   let data = {
-                        //     table_name:this.sourceTableName,
-                        //     update_info:blank,
-                        //     business_date:this.currentBusinessDate
-                        //   }
-                        //   console.log("Black object ", blank);
-                        //   this.props.insertSourceData(data,this.selectedIndexOfGrid);
-                        //   this.forceUpdate();
-                          this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
-                          hashHistory.push(`/dashboard/view-data/add-data?request=add&business_date=${this.currentBusinessDate}`);
-                        }
+                          (event) => {
 
+                                  this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
+                                  hashHistory.push(`/dashboard/view-data/add-data?request=add&business_date=${this.currentBusinessDate}`);
+                                }
                       }
                       className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
                     >
@@ -267,13 +244,9 @@ class ViewDataComponent extends Component {
                             this.modalAlert.open("Please select only one row")
                           } else {
 
-                            let data = {
-                              table_name:this.sourceTableName,
-                              update_info:{...this.selectedItems[0]},
-                              business_date:this.currentBusinessDate
-                            }
-                            data.update_info.id = null;
-                            this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
+                            this.modalAlert.isDiscardToBeShown = true;
+                            this.operationName = "INSERT";
+                            this.modalAlert.open(`Are you sure to duplicate this row (ID: ${this.selectedItems[0]['id']}) ?`)
 
                           }
                         }
@@ -290,8 +263,14 @@ class ViewDataComponent extends Component {
                       title="Update"
                       onClick={
                         () => {
-                          this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
-                          hashHistory.push('/dashboard/view-data/add-data?request=update');
+                            if(this.selectedItems.length==0){
+                                this.modalAlert.open("Please select a row")
+                            }else{
+                              this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
+                              hashHistory.push('/dashboard/view-data/add-data?request=update');
+
+                            }
+
                         }
                       }
                       className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
@@ -308,6 +287,7 @@ class ViewDataComponent extends Component {
                         (event) => {
                           if(this.selectedItems.length != 1){
                             this.modalAlert.open("Please select only one row")
+                            console.log("Inside OnClick delete ......",this.selectedItems);
                           } else {
                             this.modalAlert.isDiscardToBeShown = true;
                             this.operationName = "DELETE";
@@ -510,48 +490,16 @@ class ViewDataComponent extends Component {
                 <RegOpzFlatGrid
                    columns={this.selectedViewColumns}
                    dataSource={this.props.report[0].rows}
-                   onSelectRow={
-                     (indexOfGrid) => {
-                       console.log("Inside Single select....",this.selectedItems.length);
-                       if(this.selectedItems.length == 1){
-                         this.selectedIndexOfGrid = indexOfGrid;
-                         console.log("Inside Single select ", indexOfGrid);
-                       }
-                       console.log("Single select ", this.selectedIndexOfGrid);
-                     }
-                   }
-                   onUpdateRow = {
-                     (row) => {
-                       console.log("On update row ",row);
-                       let data = {
-                         table_name:this.sourceTableName,
-                         update_info:row,
-                         business_date:this.currentBusinessDate
-                       }
-                       this.props.updateSourceData(data);
-                     }
-                   }
-                   onSort = {() => {}}
-                   onFilter = {() => {}}
-                   onFullSelect = {
-                     (items) => {
-                       console.log("Selected Items ", items);
-                       if(this.selectedItems.length==0 || (this.selectedItems[0].id != items[0].id)) {
-                         console.log("Inside Selected Items ", items);
-                         this.selectedItems = items;
-                         this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
-                         this.props.setDisplayData(this.selectedItems[0]);
-                       } else {
-                         this.selectedItems = this.flatGrid.deSelectAll();
-                       }
-
-                     }
-                   }
+                   onSelectRow={this.handleSelectRow.bind(this)}
+                   onUpdateRow = {this.handleUpdateRow.bind(this)}
+                   onSort = {this.handleSort.bind(this)}
+                   onFilter = {this.handleFilter.bind(this)}
+                   onFullSelect = {this.handleFullSelect.bind(this)}
                    ref={
-                     (flatGrid) => {
-                       this.flatGrid = flatGrid;
-                     }
-                   }
+                         (flatGrid) => {
+                           this.flatGrid = flatGrid;
+                         }
+                       }
                 />
             }
           </div>
@@ -562,6 +510,46 @@ class ViewDataComponent extends Component {
         <h1>Loading...</h1>
       )
     }
+  }
+
+  handleSelectRow(indexOfGrid){
+    console.log("Inside Single select....",this.selectedItems.length);
+    if(this.selectedItems.length == 1){
+      this.selectedIndexOfGrid = indexOfGrid;
+      console.log("Inside Single select ", indexOfGrid);
+    }
+    console.log("Single select ", this.selectedIndexOfGrid);
+
+  }
+
+  handleUpdateRow(row){
+    console.log("On update row ",row);
+    let data = {
+      table_name:this.sourceTableName,
+      update_info:row,
+      business_date:this.currentBusinessDate
+    }
+    this.props.updateSourceData(data);
+  }
+
+  handleFullSelect(items){
+    console.log("Selected Items ", items);
+    if(this.selectedItems.length==0 || (this.selectedItems[0].id != items[0].id)) {
+      console.log("Inside Selected Items ", items);
+      this.selectedItems = items;
+      this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
+      this.props.setDisplayData(this.selectedItems[0]);
+    } else {
+      this.selectedItems = this.flatGrid.deSelectAll();
+    }
+  }
+
+  handleSort(){
+
+  }
+
+  handleFilter(){
+
   }
 
   isInt(value) {
@@ -586,17 +574,29 @@ class ViewDataComponent extends Component {
         </InfoModal>
         <ModalAlert
           ref={(modalAlert) => {this.modalAlert = modalAlert}}
-          onClickOkay={
-            () => {
-              if (this.selectedItems.length > 0){
-                this.props.deleteFromSourceData(this.selectedItems[0]['id'],this.currentBusinessDate, this.sourceTableName, this.selectedIndexOfGrid);
-              }
-
-            }
-          }
+          onClickOkay={this.handleModalOkayClick.bind(this)}
         />
       </div>
     )
+  }
+
+  handleModalOkayClick(){
+
+    if(this.selectedItems.length==1 && this.operationName=='INSERT'){
+      let data = {
+        table_name:this.sourceTableName,
+        update_info:{...this.selectedItems[0]},
+        business_date:this.currentBusinessDate
+      }
+      data.update_info.id = null;
+      this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
+
+    }
+
+    if (this.selectedItems.length==1 && this.operationName=='DELETE'){
+      this.props.deleteFromSourceData(this.selectedItems[0]['id'],this.currentBusinessDate, this.sourceTableName, this.selectedIndexOfGrid);
+    }
+
   }
 
   renderReportLinkageModal() {
