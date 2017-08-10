@@ -141,45 +141,6 @@ class ViewDataComponent extends Component {
     }
   }
 
-  renderBreadCrumb() {
-    if (this.origin == 'drilldown'){
-      if (this.cell_calc_ref){
-        this.lastRef = this.cell_calc_ref
-      }
-      if (this.rules){
-        this.lastRef = `${this.cell_calc_ref} Rules`
-      }
-      if (this.table == 'report_comp_agg_def'){
-        this.lastRef = `${this.cell_id} Comp Ref`
-      }
-      if (this.reporting_date == undefined || this.reporting_date == 'undefined') {
-        return(
-          <ol className="breadcrumb">
-            <li><a href={'#/dashboard/maintain-report-rules'}>Maintain Report Rules</a></li>
-            <li><a href={'#/dashboard/data-grid?report_id=' + this.report_id + '&reporting_date=' + this.reporting_date}>{`${this.report_id} (Manage Report Rules)`}</a></li>
-            <li><a href={'#/dashboard/drill-down?report_id=' + this.report_id + '&sheet=' + this.sheet_id + '&cell=' + this.cell_id + '&reporting_date=' + this.reporting_date} >{`${this.report_id} (${this.sheet_id})(${this.cell_id})`}</a></li>
-            <li><a href={window.location.href}>{`${this.lastRef}`}</a></li>
-          </ol>
-        )
-      }
-      return(
-        <ol className="breadcrumb">
-          <li><a href="#/dashboard/view-report">View Report</a></li>
-          <li><a href={'#/dashboard/data-grid?report_id=' + this.report_id + '&reporting_date=' + this.reporting_date} >{`${this.report_id} (${this.reporting_date})`}</a></li>
-          <li><a href={'#/dashboard/drill-down?report_id=' + this.report_id + '&sheet=' + this.sheet_id + '&cell=' + this.cell_id + '&reporting_date=' + this.reporting_date} >{`${this.report_id} (${this.sheet_id})(${this.cell_id})`}</a></li>
-          <li><a href={window.location.href}>{`${this.lastRef}`}</a></li>
-        </ol>
-      )
-    } else{
-      return(
-        <ol className="breadcrumb">
-          <li><a href="#/dashboard/view-data">View Data</a></li>
-          <li><a href={window.location.href}>{`${this.sourceTableName} (${this.currentBusinessDate})`}</a></li>
-        </ol>
-      )
-    }
-  }
-
   renderGridAtRightPane() {
     console.log(this.props.report.length, this.pages)
     if (this.props.report.length != 0 && this.pages != -1) {
@@ -472,7 +433,7 @@ class ViewDataComponent extends Component {
                   <button
                     data-toggle="tooltip"
                     data-placement="top"
-                    title="Select Dsiplay Columns"
+                    title="Select Display Columns"
                     className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
                     onClick={this.handleToggle}
                   >

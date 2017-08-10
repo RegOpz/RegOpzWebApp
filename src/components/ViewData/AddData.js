@@ -41,7 +41,9 @@ class AddData extends Component {
     super(props);
     this.requestType=this.props.location.query['request'];
     this.businessDate=this.props.location.query['business_date'];
-    //this.shouldUpdate=true;
+    this.state={
+      audit_form:{comment:null}
+    }
   }
 
   componentDidMount(){
@@ -78,6 +80,36 @@ class AddData extends Component {
               <div className="x_content">
                 <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit.bind(this)) }>
                   { this.renderFields(this.props.form_cols) }
+
+                  { this.props.form_cols &&
+                    //Create Audit form comment seperately to keep it seperate from update info columns,
+                    //so that not to pollute what to send to the backend for updating
+
+                    <div className="form-group">
+                      <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor={Comment}>
+                        Comment
+                        <span className="required">*</span>
+                      </label>
+                      <div className="col-md-5 col-sm-5 col-xs-12">
+                        <textarea
+                         value={this.state.audit_form.comment}
+                         minLength="20"
+                         maxLength="1000"
+                         placeholder="Please provide a comment"
+                         id="Comment"
+                         className="form-control col-md-4 col-xs-12"
+                         onChange={(event)=>{
+                            let audit_form={...this.state.audit_form};
+                            audit_form.comment=event.target.value;
+                            this.setState({audit_form});
+                            //console.log(this.state.audit_form.comment);
+                          }
+                        }
+                         />
+                      </div>
+                    </div>
+                  }
+
 
                   <div className="form-group">
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
