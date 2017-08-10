@@ -7,6 +7,11 @@ export const VALIDATE_EXP = 'VALIDATE_EXP';
 export function actionValidateExp(tableName, businessDate, sampleSize, columns, expression) {
     const url = BASE_URL + "business-rule/validate-python-expr";
     console.log(url);
+    console.log('Table Name: ', tableName);
+    console.log('Business Date: ', businessDate);
+    console.log('Sample Size: ', sampleSize);
+    console.log('Columns: ', columns);
+    console.log('Expression: ', expression);
     const resultFormat = {
         expr: expression,
         attr: {},

@@ -453,6 +453,8 @@ class MaintainBusinessRules extends Component {
               <RuleAssist
                 rule={this.selectedRowItem}                
                 sourceTable={this.source_table[0]}
+                cancelEditing={this.toggleRuleAssist}
+                displaySubmit={true}
               />
           }
           {

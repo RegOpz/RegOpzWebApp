@@ -5,7 +5,7 @@ export default function (state = [], action) {
     switch (action.type) {
         case VALIDATE_EXP:
             if (action.payload.data === undefined)
-                return 'Something happened at our end. Check back in a few moments';
+                return [];
             else
                 return action.payload.data;
         default:
