@@ -468,26 +468,31 @@ class AddBusinessRule extends Component {
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Rule Condition <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
-                    <ReactTags tags={rulesTags}
-                      suggestions={dataFieldsSuggestions}
-                      handleDelete={this.handleRuleRefDelete}
-                      handleAddition={this.handleRuleRefAddition}
-                      handleDrag={this.handleRuleRefDrag}
-                      classNames={{
-                        tagInput: 'tagInputClass',
-                        tagInputField: 'tagInputFieldClass form-control',
-                        suggestions: 'suggestionsClass',
-                      }}
+
+                    <textarea
                       placeholder="Enter actual rule logic using selected attributes"
+                      value={this.state.form.python_implementation}
+                      type="text"
                       required="required"
+                      disabled
+                      className="form-control col-md-7 col-xs-12"
+                      onChange={
+                        (event) => {
+                          let newState = { ...this.state };
+                          newState.form.python_implementation = event.target.value;
+                          this.setState(newState);
+                        }
+                      }
                     />
                   </div>
-                </div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12"></label>
-                  <div className="col-md-3 col-sm-3 col-xs-12">
-                    <Button onClick={this.handleRuleAssistClick}> Test Rule </Button>
-                  </div>
+                  <button
+                    type="button"
+                    disabled={ !this.state.dataFieldsTags.length }
+                    onClick={this.handleRuleAssistClick}
+                    className="btn btn-primary btn-xs"
+                  >
+                    Edit
+                  </button>
                 </div>
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="rounding-option">Business or Validation Rule<span className="required">*</span></label>

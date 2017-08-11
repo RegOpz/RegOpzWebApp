@@ -41,9 +41,10 @@ class RuleAssist extends Component {
             result: [],
             displayResult: [],
             activePage: 1,
-            totalItems: 0
+            totalItems: 0,
+            attr: {},
+            validationState: false
         };
-
         console.log(this.props);
 
         this.handleFormFieldClick = this.handleFormFieldClick.bind(this);
@@ -56,13 +57,43 @@ class RuleAssist extends Component {
         this.renderTableHeader = this.renderTableHeader.bind(this);
     }
 
+    componentWillMount() {
+        let attr = {};
+        attr["id"] = "";
+        attr["business_date"] = "";
+        if( this.state.columns != null){
+          this.state.columns.map((item, index) => {
+            attr[`${item}`] = "";
+          });
+        }
+        this.setState({
+            attr: attr
+        });
+
+    }
+
     componentWillReceiveProps(nextProps) {
         console.log('Next Props: ', nextProps);
+        let validationState = false;
         let slicedResults = nextProps.rule_assist.slice(0, 10);
+        let attr = {};
+        attr["id"] = "";
+        attr["business_date"] = "";
+        if( this.state.columns != null){
+          this.state.columns.map((item, index) => {
+            attr[`${item}`] = "";
+          });
+        }
+        if( ! _.find(nextProps.rule_assist,{status:"INVALID"})){
+            validationState = true;
+        }
         this.setState({
             result: nextProps.rule_assist,
-            displayResult: slicedResults
+            displayResult: slicedResults,
+            attr: attr,
+            validationState: validationState
         });
+
     }
 
     handleFormFieldClick(element) {
@@ -101,7 +132,7 @@ class RuleAssist extends Component {
     }
 
     handleValidationClick() {
-        console.log('State Columns: ', this.state.columns);
+        console.log('State Columns: ', this.state.columns,this.state.attr);
         let currentColumns = [...this.state.columns];
         let indexOfId = currentColumns.indexOf('id');
         if (indexOfId === -1)
@@ -110,20 +141,31 @@ class RuleAssist extends Component {
         if (indexOfBusinessDate === -1)
             currentColumns.push('business_date');
 
+        let validationState = false;
+        this.setState({
+            validationState: validationState
+        });
+
         this.props.validateExp(
             this.state.tableName,
-            this.state.epochTimeStamp,
+            this.state.businessDate.format("YYYYMMDD"),
             this.state.sampleSize,
-            this.state.columns,
-            this.state.currentFormula
+            currentColumns,
+            this.state.currentFormula,
+            this.state.attr
         );
+
     }
 
     activatePage(eventKey) {
         console.log('Event Key: ', eventKey);
+        let activePage = eventKey;
         eventKey = eventKey - 1;
         let slicedResults = this.state.result.slice(eventKey * 10, eventKey * 10 + 10);
-        this.setState({ displayResult: slicedResults });
+        this.setState({
+          displayResult: slicedResults,
+          activePage: activePage
+        });
     }
 
     renderResultTableRow(message, status, attributes) {
@@ -134,7 +176,15 @@ class RuleAssist extends Component {
         return (
             <tr>
                 <td>{status}</td>
-                <td>{message}</td>
+                <td>
+                  <pre>
+                  {
+                    message.map(element=>{
+                      return(<div>{element}</div>)
+                    })
+                  }
+                  </pre>
+                </td>
                 {
                     keys.map(element => {
                         return (
@@ -197,7 +247,7 @@ class RuleAssist extends Component {
                         <div className="col-md-5 col-sm-5 col-xs-12">
                             <div className="x_panel">
                                 <div className="x_title">
-                                    <h2>Sampling Option<Label>{this.state.tableName}</Label>
+                                    <h2>Sampling Option <Label>{this.state.tableName}</Label>
                                         <small> Using Data</small>
                                     </h2>
                                     <div className="clearfix"></div>
@@ -206,25 +256,25 @@ class RuleAssist extends Component {
 
                                     <div className="row">
                                         <FormGroup>
-                                            <ControlLabel>Sample Size <span className="required">*</span></ControlLabel>
+                                            <ControlLabel bsClass="col-md-4 col-sm-4 col-xs-4">Sample Size <span className="required">*</span></ControlLabel>
                                             <FormControl
                                                 type='number'
                                                 value={this.state.sampleSize}
                                                 onChange={this.handleSampleSizeChange}
+                                                bsClass="col-md-3 col-sm-3 col-xs-3"
                                                 placeholder='Enter the sample size'
                                             />
                                         </FormGroup>
                                     </div>
                                     <div className="row">
                                         <FormGroup>
-                                            <ControlLabel>Business Date <span className="required">*</span></ControlLabel>
-                                            <br />
+                                            <ControlLabel bsClass="control-label col-md-4 col-sm-4 col-xs-4">Business Date <span className="required">*</span></ControlLabel>
                                             <DatePicker
                                                 dateFormat="DD-MMM-YYYY"
+                                                className="col-md-7 col-sm-7 col-xs-7"
                                                 placeholderText='Select a date'
                                                 onChange={this.handleDateChange}
                                                 selected={this.state.businessDate}
-                                                className="form-control"
                                             />
                                         </FormGroup>
                                     </div>
@@ -235,7 +285,7 @@ class RuleAssist extends Component {
                         <div className="col-md-7 col-sm-7 col-xs-12">
                             <div className="x_panel">
                                 <div className="x_title">
-                                    <h2>Data Fields Value Option<Label>{this.state.tableName}</Label>
+                                    <h2>Data Fields Value Option
                                         <small> User Data</small>
                                     </h2>
                                     <div className="clearfix"></div>
@@ -248,21 +298,23 @@ class RuleAssist extends Component {
                                                     className="row"
                                                     key={item}
                                                 >
-                                                    <label
-                                                        className="control-label col-md-3 col-sm-3 col-xs-12"
-                                                        style={{ margin: '7px 0' }}
-                                                    >
-                                                        {item}
-                                                    </label>
-                                                    <div className="col-md-6 col-sm-6 col-xs-12">
+                                                    <FormGroup>
+                                                      <ControlLabel bsClass="control-label col-md-4 col-sm-4 col-xs-12">{item}</ControlLabel>
                                                         <FormControl
                                                             placeholder={'Enter ' + item.toUpperCase()}
-                                                            value=''
+                                                            value= {this.state.attr[item]}
                                                             type="text"
-                                                            className="col-md-7 col-xs-12"
-                                                            style={{ margin: '5px 0' }}
+                                                            bsClass="col-md-7 col-sm-7 col-xs-7"
+                                                            onChange={
+                                                              (event)=>{
+                                                                let attr = this.state.attr;
+                                                                attr[item] = event.target.value;
+                                                                console.log("Inside onchange attr",attr)
+                                                                this.setState({attr: attr});
+                                                              }
+                                                            }
                                                         />
-                                                    </div>
+                                                    </FormGroup>
                                                 </div>
                                             );
                                         })
@@ -273,31 +325,36 @@ class RuleAssist extends Component {
                         </div>
                     </div>
                 </div>
-                <div style={{ margin: '7px 0', textAlign: 'center' }}>
+
+                  <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
                     <button type="button"
                         className="btn btn-primary"
                         onClick={this.props.cancelEditing}>
                         Cancel
                     </button>
-                    {
-                        this.props.displaySubmit &&
-                        <button type="submit"
-                            className="btn btn-success"
-                            disabled="">
-                            Submit
-                        </button>
-                    }
+
+                    <button type="submit"
+                        className="btn btn-success"
+                        disabled={!this.state.validationState}
+                        onClick={this.props.handleSave}
+                    >
+                        Save
+                    </button>
+
                     <button type="button"
                         className="btn btn-warning"
                         disabled=""
                         onClick={this.handleValidationClick}>
                         Validate
                     </button>
-                </div>
+                  </div>
+
+                <div className="clearfix"></div>
+                <div>
                 {
                     this.state.result.length > 0 &&
-                    <Well style={{ textAlign: 'center' }}>
-                        <Table striped bordered condensed>
+                    <div>
+                        <Table className="table table-hover" striped bordered condensed>
                             {
                                 this.renderTableHeader(this.state.result[0].attr)
                             }
@@ -317,12 +374,13 @@ class RuleAssist extends Component {
                             ellipsis
                             boundaryLinks
                             maxButtons={5}
-                            items={this.state.result.length}
+                            items={Math.ceil(this.state.result.length/10)}
                             activePage={this.state.activePage}
                             onSelect={this.activatePage}
                         />
-                    </Well>
-                }
+                    </div>
+                  }
+                </div>
             </div >
         );
     }
@@ -425,8 +483,8 @@ function mapStateToProps(state) {
 
 const matchDispatchToProps = (dispatch) => {
     return {
-        validateExp: (tableName, businessDate, sampleSize, columns, expression) => {
-            dispatch(actionValidateExp(tableName, businessDate, sampleSize, columns, expression));
+        validateExp: (tableName, businessDate, sampleSize, columns, expression, attr) => {
+            dispatch(actionValidateExp(tableName, businessDate, sampleSize, columns, expression, attr));
         }
     };
 }
