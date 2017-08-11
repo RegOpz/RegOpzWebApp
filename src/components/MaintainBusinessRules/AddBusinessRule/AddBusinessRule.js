@@ -82,7 +82,7 @@ class AddBusinessRule extends Component {
   }
   componentDidUpdate() {
     //let table_name = document.getElementById("sourceId").options[this.state.form.source_id].getAttribute('target');
-    if (this.state.componentDidUpdateCount == 0) {
+    if (this.state.componentDidUpdateCount == 0 && this.state.form.source_id ) {
       let table_name = this.sourceId.options[this.state.form.source_id].getAttribute('target');
       //alert(table_name);
       this.props.fetchSourceColumnList(table_name);
@@ -208,49 +208,12 @@ class AddBusinessRule extends Component {
   }
 
   handleRuleAssistClick() {
-    let pythonImplementation = this.state.rulesTags[0];
-    if (!pythonImplementation) {
-      window.alert('No Rule Entered');
-      return;
-    }
-    pythonImplementation = pythonImplementation.text;
-
-    var sourceTable = null;
-    console.log(this.state.selectedSource);
-    if (!this.state.selectedSource) {
-      if (this.state.form.source_id) {
-        sourceTable = {
-          source_table_name: this.props.sources.source_suggestion[this.state.form.source_id - 1].source_table_name,
-          source_id: this.state.form.source_id
-        }
-      }
-    }
-    else {
-      sourceTable = {
-        source_table_name: this.state.selectedSource.tableName,
-        source_id: this.state.selectedSource.id
-      };
-    }
-    if (!sourceTable) {
-      window.alert('Please Select A Source Table');
-      return;
-    }
-
-    let dataFieldList = '';
-    for (let i = 0; i < this.state.dataFieldsTags.length; i++) {
-      if (i !== this.state.dataFieldsTags.length - 1)
-        dataFieldList += (this.state.dataFieldsTags[i].text + ',');
-      else
-        dataFieldList += (this.state.dataFieldsTags[i].text);
-    };
-    if (this.state.dataFieldsTags.length === 0) {
-      window.alert('No Data Tags Selected');
-      return;
-    }
-
+    this.flatenTags();
     let formCopy = { ...this.state.form };
-    formCopy.python_implementation = pythonImplementation;
-    formCopy.data_fields_list = dataFieldList;
+    let sourceTable = {
+      source_id: this.state.selectedSource.id,
+      source_table_name: this.state.selectedSource.tableName
+    }
     this.setState({
       showRuleAssist: true,
       ruleAssistProps: {
@@ -258,7 +221,7 @@ class AddBusinessRule extends Component {
         sourceTable: sourceTable
       }
     });
-    console.log('State Saved');
+    console.log('State Saved',this.state.ruleAssistProps);
   }
 
   render() {
@@ -292,7 +255,7 @@ class AddBusinessRule extends Component {
           cancelEditing={() => {
             this.setState({ showRuleAssist: false });
           }}
-          displaySubmit={false}
+          handleSaveEditing={this.handleSaveEditing.bind(this)}
         />
       );
     }
@@ -611,6 +574,12 @@ class AddBusinessRule extends Component {
   handleCancel(event) {
     console.log('inside cancel');
     hashHistory.push(`/dashboard/maintain-business-rules`);
+  }
+  handleSaveEditing(currentFormula){
+    console.log('inside saveEditing');
+    let formCopy = { ...this.state.form };
+    formCopy.python_implementation = currentFormula;
+    this.setState({ showRuleAssist: false, form: formCopy });
   }
   handleSubmit(event) {
     console.log('inside submit', this.state.form);

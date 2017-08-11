@@ -336,7 +336,7 @@ class RuleAssist extends Component {
                     <button type="submit"
                         className="btn btn-success"
                         disabled={!this.state.validationState}
-                        onClick={this.props.handleSave}
+                        onClick={()=>{this.props.handleSaveEditing(this.state.currentFormula)}}
                     >
                         Save
                     </button>

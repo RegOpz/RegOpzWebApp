@@ -451,10 +451,10 @@ class MaintainBusinessRules extends Component {
           {
             this.state.showRuleAssist && !this.state.showToggleColumns &&
               <RuleAssist
-                rule={this.selectedRowItem}                
+                rule={this.selectedRowItem}
                 sourceTable={this.source_table[0]}
                 cancelEditing={this.toggleRuleAssist}
-                displaySubmit={true}
+                handleSaveEditing={this.handleSaveEditing.bind(this)}
               />
           }
           {
@@ -481,6 +481,12 @@ class MaintainBusinessRules extends Component {
                 if (this.operationName == "INSERT") {
                   console.log("this.operationName........Inside if condition........", this.operationName);
                   this.setState({ showAuditModal: true });
+                }
+
+                if (this.operationName == "UPDATE") {
+                  console.log("this.operationName........Inside if condition........", this.operationName);
+                  this.setState({ showAuditModal: true });
+
                 }
               }
             }
@@ -826,6 +832,36 @@ class MaintainBusinessRules extends Component {
       hashHistory.push(`/dashboard/maintain-business-rules/add-business-rule?request=update&index=${this.selectedRow}`)
     }
   }
+  handleSaveEditing(currentFormula){
+    console.log('inside saveEditing');
+    this.setState({ showRuleAssist: false });
+    if(this.selectedRowItem.python_implementation != currentFormula){
+      this.updateInfo = this.selectedRowItem;
+      this.updateInfo.python_implementation = currentFormula;
+      this.operationName = "UPDATE";
+      this.modalInstance.isDiscardToBeShown = true;
+      this.modalInstance.open(
+        <div>
+          Are you sure to update the logic for: {this.selectedRowItem.business_rule}?
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>Old Logic</th>
+                <th>New Logic</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{this.selectedRowItem.python_implementation}</td>
+                <td>{currentFormula}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+  }
+
   handleUpdateRow(item) {
     console.log("The final value in MaintainBusinessRules component", item);
     this.operationName = "UPDATE";
