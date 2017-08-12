@@ -63,10 +63,11 @@ export function actionFetchTableData(table, filter, page) {
 }
 
 // TODO:
-export function actionDeleteFromSourceData(id, business_date, table_name, at) {
+export function actionDeleteFromSourceData(id,data,at) {
+  console.log("Inside actionDeleteFromSourceData.......",data);
   return {
     type: DELETE_SOURCE_ROW,
-    payload: axios.delete(BASE_URL + `view-data/report/${id}?table_name=${table_name}&business_date=${business_date}`),
+    payload: axios.put(BASE_URL + `view-data/report/${id}`,data),
     meta: { at:at }
   }
 }

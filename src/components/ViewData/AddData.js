@@ -1,15 +1,8 @@
 import React,{ Component } from 'react';
 import { Field,reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
-import {hashHistory} from 'react-router';
+import { hashHistory } from 'react-router';
 import {
-  actionFetchDates,
-  actionFetchReportFromDate,
-  actionFetchDrillDownReport,
-  actionFetchDrillDownRulesReport,
-  actionFetchTableData,
-  actionFetchSource,
-  actionFetchReportLinkage,
   actionInsertSourceData,
   actionUpdateSourceData,
   actionDeleteFromSourceData,
@@ -56,15 +49,6 @@ class AddData extends Component {
     }
   }
 
-  componentWillUpdate(){
-
-    // if(this.requestType=='update' && this.shouldUpdate){
-    //   console.log("Inside componentWillUpdate.....",this.props.form_data);
-    //   this.props.initialize(this.props.form_data);
-    //   this.shouldUpdate=false;
-    // }
-  }
-
   render(){
    const { handleSubmit, pristine, dirty, submitting } = this.props;
 
@@ -93,6 +77,7 @@ class AddData extends Component {
                       <div className="col-md-5 col-sm-5 col-xs-12">
                         <textarea
                          value={this.state.audit_form.comment}
+                         required={true}
                          minLength="20"
                          maxLength="1000"
                          placeholder="Please provide a comment"
@@ -131,9 +116,24 @@ class AddData extends Component {
 
   handleFormSubmit(submitData){
     let data={};
+    data['table_name']=this.props.table_name;
+    data['change_type']=this.requestType=='add'?'INSERT':'UPDATE';
+
+    let audit_info={
+      id:submitData.id,
+      table_name:data.table_name,
+      change_type:data.change_type,
+      change_reference:`Data: ${submitData.id} of Source: ${this.props.table_name}`,
+      maker:this.props.login_details.user,
+    };
+
+    Object.assign(audit_info,this.state.audit_form);
+
+    data['audit_info']=audit_info;
+
+
     //update in sending all columns
     if(this.requestType=='update'){
-        data['table_name']=this.props.table_name;
         data['update_info']=submitData;
         data['business_date']=submitData.business_date;
         this.props.updateSourceData(data);
@@ -141,7 +141,7 @@ class AddData extends Component {
 
     //insert is sending only changed column,so we need to expand for all columns
     if(this.requestType=='add'){
-        data['table_name']=this.props.table_name;
+
         data['update_info']={};
 
         for (let col of this.props.form_cols){
@@ -150,6 +150,8 @@ class AddData extends Component {
         data['business_date']=data['update_info']['business_date'];
         this.props.insertSourceData(data,0);
       }
+
+
       console.log("Inside handleFormSubmit......",data);
       this.props.resetDisplayData();
       hashHistory.push('/dashboard/view-data');
@@ -191,37 +193,14 @@ function mapStateToProps(state){
   return {
     form_data:state.view_data_store.form_data,
     form_cols:state.view_data_store.form_cols,
-    table_name:state.view_data_store.table_name
+    table_name:state.view_data_store.table_name,
+    login_details:state.login_store
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchDates:(startDate,endDate)=>{
-      dispatch(actionFetchDates(startDate,endDate))
-    },
-    fetchReportFromDate:(source_id,business_date,page)=>{
-      dispatch(actionFetchReportFromDate(source_id,business_date,page))
-    },
-    fetchDrillDownReport:(drill_info)=>{
-      console.log('Inside dispatch to props',drill_info)
-      dispatch(actionFetchDrillDownReport(drill_info))
-    },
-    fetchTableData:(table,filter,page)=>{
-      console.log('Inside dispatch to props',table,filter,page)
-      dispatch(actionFetchTableData(table,filter,page));
-    },
-    fetchDrillDownRulesReport:(rules,source_id,page)=>{
-      console.log('Inside dispatch to props',rules,source_id,page)
-      dispatch(actionFetchDrillDownRulesReport(rules,source_id,page))
-    },
-    fetchSource:(business_date) => {
-      dispatch(actionFetchSource(business_date))
-    },
-    fetchReportLinkage:(source_id,qualifying_key,business_date) => {
-      dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
-    },
-    insertSourceData:(data,at) => {
+   insertSourceData:(data,at) => {
       dispatch(actionInsertSourceData(data,at));
     },
     updateSourceData:(data) => {

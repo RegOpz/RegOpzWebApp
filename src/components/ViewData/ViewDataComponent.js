@@ -27,6 +27,7 @@ import RegOpzFlatGrid from '../RegOpzFlatGrid/RegOpzFlatGrid';
 import SourceTreeInfoComponent from './SourceTreeInfoComponent';
 import InfoModal from '../InfoModal/InfoModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
+import AuditModal from '../AuditModal/AuditModal';
 import ShowToggleColumns from '../MaintainBusinessRules/ShowToggleColumns';
 require('react-datepicker/dist/react-datepicker.css');
 require('./ViewDataComponentStyle.css');
@@ -36,7 +37,8 @@ class ViewDataComponent extends Component {
     super(props);
     this.state = {
       startDate: null,
-      endDate: null
+      endDate: null,
+      showAuditModal:false
     }
 
     this.isMenuPanelOpen = 0;
@@ -50,6 +52,8 @@ class ViewDataComponent extends Component {
     this.flatGrid = null;
     this.selectedIndexOfGrid = 0;
     this.sourceTableName = "";
+    this.operationName=null;
+    this.updateInfo = null;
     this.currentSourceId = this.props.location.query['source_id'];
     this.currentBusinessDate = this.props.location.query['business_date'];
     this.origin = this.props.location.query['origin'];
@@ -199,19 +203,7 @@ class ViewDataComponent extends Component {
                       data-toggle="tooltip"
                       data-placement="top"
                       title="Duplicate"
-                      onClick={
-                        (event) => {
-                          if(this.selectedItems.length != 1){
-                            this.modalAlert.open("Please select only one row")
-                          } else {
-
-                            this.modalAlert.isDiscardToBeShown = true;
-                            this.operationName = "INSERT";
-                            this.modalAlert.open(`Are you sure to duplicate this row (ID: ${this.selectedItems[0]['id']}) ?`)
-
-                          }
-                        }
-                      }
+                      onClick={ this.handleDuplicateClick.bind(this)}
                       className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
                     >
                       <i className="fa fa-copy"></i>
@@ -244,18 +236,7 @@ class ViewDataComponent extends Component {
                       data-toggle="tooltip"
                       data-placement="top"
                       title="Delete"
-                      onClick={
-                        (event) => {
-                          if(this.selectedItems.length != 1){
-                            this.modalAlert.open("Please select only one row")
-                            console.log("Inside OnClick delete ......",this.selectedItems);
-                          } else {
-                            this.modalAlert.isDiscardToBeShown = true;
-                            this.operationName = "DELETE";
-                            this.modalAlert.open(`Are you sure to delete this row (ID: ${this.selectedItems[0]['id']}) ?`)
-                          }
-                        }
-                      }
+                      onClick={ this.handleDeleteClick.bind(this) }
                       className="btn btn-circle btn-warning business_rules_ops_buttons btn-xs"
                     >
                       <i className="fa fa-remove"></i>
@@ -473,6 +454,28 @@ class ViewDataComponent extends Component {
     }
   }
 
+
+  handleDeleteClick(event){
+      if(this.selectedItems.length != 1){
+        this.modalAlert.open("Please select only one row")
+        console.log("Inside OnClick delete ......",this.selectedItems);
+      } else {
+        this.modalAlert.isDiscardToBeShown = true;
+        this.operationName = "DELETE";
+        this.modalAlert.open(`Are you sure to delete this row (ID: ${this.selectedItems[0]['id']}) ?`)
+      }
+    }
+
+  handleDuplicateClick(event){
+    if(this.selectedItems.length != 1){
+      this.modalAlert.open("Please select only one row")
+    } else {
+      this.modalAlert.isDiscardToBeShown = true;
+      this.operationName = "INSERT";
+      this.modalAlert.open(`Are you sure to duplicate this row (ID: ${this.selectedItems[0]['id']}) ?`)
+    }
+  }
+
   handleSelectRow(indexOfGrid){
     console.log("Inside Single select....",this.selectedItems.length);
     if(this.selectedItems.length == 1){
@@ -483,19 +486,16 @@ class ViewDataComponent extends Component {
 
   }
 
+
   handleUpdateRow(row){
-    console.log("On update row ",row);
-    let data = {
-      table_name:this.sourceTableName,
-      update_info:row,
-      business_date:this.currentBusinessDate
-    }
-    this.props.updateSourceData(data);
+    this.operationName = "UPDATE";
+    this.updateInfo = row;
+    this.setState({ showAuditModal: true });
   }
 
   handleFullSelect(items){
     console.log("Selected Items ", items);
-    if(this.selectedItems.length==0 || (this.selectedItems[0].id != items[0].id)) {
+    if(this.selectedItems.length==0) {
       console.log("Inside Selected Items ", items);
       this.selectedItems = items;
       this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
@@ -537,25 +537,74 @@ class ViewDataComponent extends Component {
           ref={(modalAlert) => {this.modalAlert = modalAlert}}
           onClickOkay={this.handleModalOkayClick.bind(this)}
         />
+
+        < AuditModal showModal={this.state.showAuditModal}
+          onClickOkay={this.handleAuditOkayClick.bind(this)}
+        />
       </div>
     )
   }
 
-  handleModalOkayClick(){
+  handleAuditOkayClick(auditInfo){
+    let data={};
+    data["change_type"]=this.operationName;
+    data["table_name"]=this.sourceTableName;
 
-    if(this.selectedItems.length==1 && this.operationName=='INSERT'){
-      let data = {
-        table_name:this.sourceTableName,
-        update_info:{...this.selectedItems[0]},
-        business_date:this.currentBusinessDate
-      }
+    if(this.operationName=='INSERT'){
+      this.auditInfo={
+        table_name:data["table_name"],
+        id:null,
+        change_type:this.operationName,
+        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.sourceTableName}`,
+        maker:this.props.login_details.user
+      };
+      Object.assign(this.auditInfo,auditInfo);
+      data["audit_info"]=this.auditInfo;
+      data["update_info"]={...this.selectedItems[0]};
+      data["business_date"]=this.currentBusinessDate;
       data.update_info.id = null;
       this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
+      this.setState({showAuditModal:false});
 
     }
 
-    if (this.selectedItems.length==1 && this.operationName=='DELETE'){
-      this.props.deleteFromSourceData(this.selectedItems[0]['id'],this.currentBusinessDate, this.sourceTableName, this.selectedIndexOfGrid);
+    if (this.operationName=='DELETE'){
+      this.auditInfo={
+        table_name:data["table_name"],
+        change_type:this.operationName,
+        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.sourceTableName}`,
+        maker:this.props.login_details.user
+      };
+      Object.assign(this.auditInfo,auditInfo);
+      data["audit_info"]=this.auditInfo;
+      data["update_info"]=this.selectedItems[0];
+      data["business_date"]=this.currentBusinessDate;
+
+      this.props.deleteFromSourceData(this.selectedItems[0]['id'],data, this.selectedIndexOfGrid);
+      this.setState({showAuditModal:false});
+    }
+
+   if(this.operationName=='UPDATE'){
+
+     this.auditInfo={
+       table_name:data["table_name"],
+       change_type:this.operationName,
+       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.sourceTableName}`,
+       maker:this.props.login_details.user
+     };
+     Object.assign(this.auditInfo,auditInfo);
+     data["audit_info"]=this.auditInfo;
+     data["update_info"]=this.updateInfo;
+     data["business_date"]=this.currentBusinessDate;
+     this.props.updateSourceData(data);
+
+   }
+
+  }
+
+  handleModalOkayClick(){
+    if(this.selectedItems.length==1 && (this.operationName=='DELETE'||this.operationName=='INSERT')){
+      this.setState({showAuditModal:true});
     }
 
   }
@@ -633,8 +682,8 @@ const mapDispatchToProps = (dispatch) => {
     updateSourceData:(data) => {
       dispatch(actionUpdateSourceData(data));
     },
-    deleteFromSourceData:(id,business_date,table_name, at) => {
-      dispatch(actionDeleteFromSourceData(id,business_date,table_name, at));
+    deleteFromSourceData:(id,data, at) => {
+      dispatch(actionDeleteFromSourceData(id,data, at));
     },
     setDisplayData:(selectedItem)=>{
       dispatch(actionSetDisplayData(selectedItem));
@@ -646,12 +695,11 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 function mapStateToProps(state){
-  console.log("On mapState ", state.view_data_store);
-  console.log("On mapState report ", state.report_store);
   return {
     data_date_heads:state.view_data_store.dates,
     report:state.report_store,
-    report_linkage:state.view_data_store.report_linkage
+    report_linkage:state.view_data_store.report_linkage,
+    login_details:state.login_store
   }
 }
 
