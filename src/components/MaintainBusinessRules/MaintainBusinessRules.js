@@ -148,6 +148,9 @@ class MaintainBusinessRules extends Component {
       }
       else {
         this.setState({ showRuleAssist: false });
+        this.selectedRows = null;
+        this.selectedRowItem = null;
+        this.selectedRow = null;
       }
     }
 
@@ -435,6 +438,7 @@ class MaintainBusinessRules extends Component {
                 title="Rule Assist"
                 className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
                 onClick={this.toggleRuleAssist}
+                disabled={!this.writeOnly}
               >
                 <i className="fa fa-superscript"></i>
               </button>
@@ -749,7 +753,7 @@ class MaintainBusinessRules extends Component {
       console.log("table_name",this.source_table);
     }
     else {
-      console.log("I am called at ", item, rownum);
+      console.log("I am called at else ", item, rownum);
       this.selectedRow = 0;
       this.selectedRowItem = null;
     }
@@ -860,6 +864,9 @@ class MaintainBusinessRules extends Component {
         </div>
       );
     }
+    this.selectedRows = null;
+    this.selectedRowItem = null;
+    this.selectedRow = null;
   }
 
   handleUpdateRow(item) {

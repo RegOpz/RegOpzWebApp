@@ -301,7 +301,7 @@ class RuleAssist extends Component {
                                                     <FormGroup>
                                                       <ControlLabel bsClass="control-label col-md-4 col-sm-4 col-xs-12">{item}</ControlLabel>
                                                         <FormControl
-                                                            placeholder={'Enter ' + item.toUpperCase()}
+                                                            placeholder={'Enter value of ' + item.toUpperCase()}
                                                             value= {this.state.attr[item]}
                                                             type="text"
                                                             bsClass="col-md-7 col-sm-7 col-xs-7"
@@ -464,7 +464,8 @@ class RuleAssist extends Component {
                         })
                     }
                     <FormControl
-                        type='text'
+                        componentClass="textarea"
+                        type="text"
                         value={this.state.currentFormula}
                         onChange={this.updateFormula}
                         placeholder='Enter a formula here...'

@@ -44,8 +44,14 @@ export default class RegOpzFlatGridRow extends Component {
                         <div
                             onClick={
                                 (event) => {
-                                    this.props.onSelect(index,item);
-                                    console.log('View data on click ...',this.props.onSelect.length)
+                                    let itemIndex = index;
+                                    let itemData = item;
+                                    if ( this.selectedRows.length==1) {
+                                      itemIndex = this.data.indexOf(this.selectedRows[0]);
+                                      itemData = this.selectedRows[0];
+                                    }
+                                    this.props.onSelect(itemIndex,itemData);
+                                    console.log('View data on click ...index, item ',itemIndex,itemData)
                                 }
                             }
                             key={index}

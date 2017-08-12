@@ -211,8 +211,8 @@ class AddBusinessRule extends Component {
     this.flatenTags();
     let formCopy = { ...this.state.form };
     let sourceTable = {
-      source_id: this.state.selectedSource.id,
-      source_table_name: this.state.selectedSource.tableName
+      source_id: formCopy.source_id,
+      source_table_name: this.sourceId.options[formCopy.source_id].getAttribute('target')
     }
     this.setState({
       showRuleAssist: true,
