@@ -51,6 +51,7 @@ export default class RegOpzFlatGrid extends Component {
                       this.flatGridRows = flatGridRows;
                     }}
                     readOnly={this.props.readOnly}
+                    isMultiSelectAllowed={this.props.isMultiSelectAllowed ? this.props.isMultiSelectAllowed : false}
                />
             </div>
         )

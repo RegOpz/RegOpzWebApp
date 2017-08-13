@@ -17,13 +17,13 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
         { label }
         <span className="required">*</span>
       </label>
-      <div className="col-md-5 col-sm-5 col-xs-12">
+      <div className="col-md-6 col-sm-6 col-xs-12">
         <input {...input}
          placeholder={label}
          type={type}
          id={label}
          readOnly={ readOnly }
-         className="form-control col-md-4 col-xs-12"/>
+         className="form-control col-md-6 col-sm-6 col-xs-12"/>
       </div>
     </div>
 );
@@ -74,7 +74,7 @@ class AddData extends Component {
                         Comment
                         <span className="required">*</span>
                       </label>
-                      <div className="col-md-5 col-sm-5 col-xs-12">
+                      <div className="col-md-6 col-sm-6 col-xs-12">
                         <textarea
                          value={this.state.audit_form.comment}
                          required={true}
@@ -82,7 +82,7 @@ class AddData extends Component {
                          maxLength="1000"
                          placeholder="Please provide a comment"
                          id="Comment"
-                         className="form-control col-md-4 col-xs-12"
+                         className="form-control col-md-6 col-xs-12"
                          onChange={(event)=>{
                             let audit_form={...this.state.audit_form};
                             audit_form.comment=event.target.value;

@@ -437,6 +437,7 @@ class ViewDataComponent extends Component {
                    onSort = {this.handleSort.bind(this)}
                    onFilter = {this.handleFilter.bind(this)}
                    onFullSelect = {this.handleFullSelect.bind(this)}
+                   isMultiSelectAllowed = { true }
                    ref={
                          (flatGrid) => {
                            this.flatGrid = flatGrid;
@@ -495,14 +496,11 @@ class ViewDataComponent extends Component {
 
   handleFullSelect(items){
     console.log("Selected Items ", items);
-    if(this.selectedItems.length==0) {
-      console.log("Inside Selected Items ", items);
-      this.selectedItems = items;
-      this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
-      this.props.setDisplayData(this.selectedItems[0]);
-    } else {
-      this.selectedItems = this.flatGrid.deSelectAll();
-    }
+
+    this.selectedItems = items;
+    this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
+    this.props.setDisplayData(this.selectedItems[0]);
+
   }
 
   handleSort(){
