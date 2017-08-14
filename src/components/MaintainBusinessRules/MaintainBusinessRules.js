@@ -448,9 +448,10 @@ class MaintainBusinessRules extends Component {
           {
             this.state.showToggleColumns && !this.state.showRuleAssist &&
               <ShowToggleColumns
-                columns={this.cols}
-                saveSelection={this.displaySelectedColumns}
-              />
+                  columns={this.cols}
+                  saveSelection={this.displaySelectedColumns}
+                  selectedViewColumns={this.selectedViewColumns}
+                />
           }
           {
             this.state.showRuleAssist && !this.state.showToggleColumns &&

@@ -97,7 +97,7 @@ class RuleAssist extends Component {
     }
 
     handleFormFieldClick(element) {
-        let currentFormula = this.state.currentFormula;
+        let currentFormula = this.state.currentFormula ? this.state.currentFormula : "";
         currentFormula += ' [' + element + '] ';
         this.setState({
             currentFormula: currentFormula

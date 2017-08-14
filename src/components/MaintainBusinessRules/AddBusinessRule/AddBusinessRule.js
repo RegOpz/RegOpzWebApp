@@ -55,9 +55,9 @@ class AddBusinessRule extends Component {
       ruleAssistProps: null
     };
     this.state.readOnly = this.state.requestType == "update" ? true : false;
-    this.handleRuleRefDelete = this.handleRuleRefDelete.bind(this);
-    this.handleRuleRefAddition = this.handleRuleRefAddition.bind(this);
-    this.handleRuleRefDrag = this.handleRuleRefDrag.bind(this);
+    // this.handleRuleRefDelete = this.handleRuleRefDelete.bind(this);
+    // this.handleRuleRefAddition = this.handleRuleRefAddition.bind(this);
+    // this.handleRuleRefDrag = this.handleRuleRefDrag.bind(this);
 
     this.handleDataFieldsDelete = this.handleDataFieldsDelete.bind(this);
     this.handleDataFieldsAddition = this.handleDataFieldsAddition.bind(this);
@@ -112,31 +112,31 @@ class AddBusinessRule extends Component {
     this.setState({ form: form });
 
   }
-  handleRuleRefDelete(i) {
-    let rulesTags = this.state.rulesTags;
-    rulesTags.splice(i, 1);
-    this.setState({ rulesTags: rulesTags });
-  }
-
-  handleRuleRefAddition(tag) {
-    let rulesTags = this.state.rulesTags;
-    rulesTags.push({
-      id: rulesTags.length + 1,
-      text: tag
-    });
-    this.setState({ rulesTags: rulesTags });
-  }
-
-  handleRuleRefDrag(tag, currPos, newPos) {
-    let rulesTags = this.state.rulesTags;
-
-    // mutate array
-    rulesTags.splice(currPos, 1);
-    rulesTags.splice(newPos, 0, tag);
-
-    // re-render
-    this.setState({ rulesTags: rulesTags });
-  }
+  // handleRuleRefDelete(i) {
+  //   let rulesTags = this.state.rulesTags;
+  //   rulesTags.splice(i, 1);
+  //   this.setState({ rulesTags: rulesTags });
+  // }
+  //
+  // handleRuleRefAddition(tag) {
+  //   let rulesTags = this.state.rulesTags;
+  //   rulesTags.push({
+  //     id: rulesTags.length + 1,
+  //     text: tag
+  //   });
+  //   this.setState({ rulesTags: rulesTags });
+  // }
+  //
+  // handleRuleRefDrag(tag, currPos, newPos) {
+  //   let rulesTags = this.state.rulesTags;
+  //
+  //   // mutate array
+  //   rulesTags.splice(currPos, 1);
+  //   rulesTags.splice(newPos, 0, tag);
+  //
+  //   // re-render
+  //   this.setState({ rulesTags: rulesTags });
+  // }
   handleDataFieldsDelete(i) {
     let dataFieldsTags = this.state.dataFieldsTags;
     dataFieldsTags.splice(i, 1);
@@ -171,13 +171,13 @@ class AddBusinessRule extends Component {
   }
   flatenTags() {
 
-    this.state.form.python_implementation = '';
+    // this.state.form.python_implementation = '';
     this.state.form.data_fields_list = '';
     console.log('inside process', this.state);
-    this.state.rulesTags.map(function (item, index) {
-      console.log('Inside rulesTags.map....:', item.text);
-      this.state.form.python_implementation += `${item.text}`;
-    }.bind(this));
+    // this.state.rulesTags.map(function (item, index) {
+    //   console.log('Inside rulesTags.map....:', item.text);
+    //   this.state.form.python_implementation += `${item.text}`;
+    // }.bind(this));
 
     this.state.dataFieldsTags.map(function (item, index) {
       if (index == 0) {
@@ -193,9 +193,9 @@ class AddBusinessRule extends Component {
   initialiseFormFields() {
     //this.setState({form: this.props.drill_down_result.cell_rules[this.state.ruleIndex]});
     this.state.form = this.props.business_rules[0].rows[this.state.ruleIndex];
-    if (this.state.rulesTags.length == 0) {
-      this.state.rulesTags.push({ id: 1, text: this.state.form.python_implementation });
-    }
+    // if (this.state.rulesTags.length == 0) {
+    //   this.state.rulesTags.push({ id: 1, text: this.state.form.python_implementation });
+    // }
     if (this.state.dataFieldsTags.length == 0) {
       const { data_fields_list } = this.state.form;
       let dataFieldsTagsArray = data_fields_list.split(',');
