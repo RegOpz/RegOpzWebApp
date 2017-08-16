@@ -31,7 +31,7 @@ class AddBusinessRule extends Component {
       componentDidUpdateCount: 0,
       requestType: this.props.businessRule ? "update":"add",
       ruleIndex: null,
-      readOnly: null,
+      readOnly: !this.props.editable,
       form: {
         id: null,
         source_id: null,
@@ -54,7 +54,6 @@ class AddBusinessRule extends Component {
       selectedSource: null,
       ruleAssistProps: null
     };
-    this.state.readOnly = this.state.requestType == "update" ? true : false;
     // this.handleRuleRefDelete = this.handleRuleRefDelete.bind(this);
     // this.handleRuleRefAddition = this.handleRuleRefAddition.bind(this);
     // this.handleRuleRefDrag = this.handleRuleRefDrag.bind(this);
@@ -305,7 +304,7 @@ class AddBusinessRule extends Component {
                       placeholder="Enter Business Rule Ref"
                       value={this.state.form.business_rule}
                       type="text"
-                      readOnly={this.state.readOnly}
+                      readOnly={this.state.readOnly || this.state.requestType == "update"}
                       maxLength="10"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
@@ -323,10 +322,10 @@ class AddBusinessRule extends Component {
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Rule Execution Order<span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <input
-                      placeholder="Enter Business Rule Ref"
+                      placeholder="Enter Business Rule Execution order"
                       value={this.state.form.rule_execution_order}
                       type="text"
-                      readOnly={this.state.readOnly}
+                      readOnly={this.state.readOnly || this.state.requestType == "update"}
                       maxLength="10"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
@@ -347,6 +346,7 @@ class AddBusinessRule extends Component {
                       placeholder="Enter Business Rule Description here..."
                       value={this.state.form.rule_description}
                       type="text"
+                      readOnly={this.state.readOnly}
                       maxLength="300"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
@@ -367,6 +367,7 @@ class AddBusinessRule extends Component {
                       placeholder="Enter Business Rule Logic Description here..."
                       value={this.state.form.logical_condition}
                       type="text"
+                      readOnly={this.state.readOnly}
                       maxLength="300"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
@@ -383,57 +384,92 @@ class AddBusinessRule extends Component {
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Source ID <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
-                    <select
-                      defaultValue={this.state.form.source_id}
-                      required="required"
-                      className="form-control"
-                      ref={(select) => { this.sourceId = select; }}
-                      onChange={
-                        (event) => {
-                          let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
-                          let newState = { ...this.state };
-                          console.log('table name in change event', table_name);
-                          newState.form.source_id = event.target.value;
-                          newState.selectedSource = {
-                            id: event.target.value,
-                            tableName: table_name
+                    {
+                      this.state.readOnly &&
+                      <input
+                        value={this.state.form.source_id}
+                        type="text"
+                        readOnly={this.state.readOnly}
+                        className="form-control col-md-7 col-xs-12"
+                      />
+
+                    }
+                    {
+                      !this.state.readOnly &&
+                      <select
+                        defaultValue={this.state.form.source_id}
+                        required="required"
+                        readOnly={this.state.readOnly}
+                        className="form-control"
+                        ref={(select) => { this.sourceId = select; }}
+                        onChange={
+                          (event) => {
+                            let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
+                            let newState = { ...this.state };
+                            console.log('table name in change event', table_name);
+                            newState.form.source_id = event.target.value;
+                            newState.selectedSource = {
+                              id: event.target.value,
+                              tableName: table_name
+                            }
+                            this.setState(newState);
+                            this.props.fetchSourceColumnList(table_name);
                           }
-                          this.setState(newState);
-                          this.props.fetchSourceColumnList(table_name);
                         }
-                      }
-                    >
-                      <option value="">Choose option</option>
-                      {
-                        source_suggestion.map(function (item, index) {
-                          return (
-                            <option key={index} target={item.source_table_name} value={item.source_id}>{item.source_id} - {item.source_table_name}</option>
-                          )
-                        })
-                      }
-                    </select>
+                      >
+                        <option value="">Choose option</option>
+                        {
+                          source_suggestion.map(function (item, index) {
+                            return (
+                              <option key={index} target={item.source_table_name} value={item.source_id}>{item.source_id} - {item.source_table_name}</option>
+                            )
+                          })
+                        }
+                      </select>
+                    }
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Data Attribute Fields <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
-                    <ReactTags tags={dataFieldsTags}
-                      suggestions={fieldsSuggestions}
-                      handleDelete={this.handleDataFieldsDelete}
-                      handleAddition={this.handleDataFieldsAddition}
-                      handleDrag={this.handleDataFieldsDrag}
-                      handleFilterSuggestions={this.searchAnywhere}
-                      allowDeleteFromEmptyInput={false}
-                      autocomplete={true}
-                      minQueryLength={1}
-                      classNames={{
-                        tagInput: 'tagInputClass',
-                        tagInputField: 'tagInputFieldClass form-control',
-                        suggestions: 'suggestionsClass',
-                      }}
-                      placeholder="Enter List of Attributes required for the rule"
-                      required="required"
-                    />
+                    {
+                      this.state.readOnly &&
+                      <textarea
+                        placeholder="Enter List of Attributes required for the rule"
+                        value={this.state.form.data_fields_list}
+                        type="text"
+                        readOnly={this.state.readOnly}
+                        required="required"
+                        className="form-control col-md-7 col-xs-12"
+                        onChange={
+                          (event) => {
+                            let newState = { ...this.state };
+                            newState.form.data_fields_list = event.target.value;
+                            this.setState(newState);
+                          }
+                        }
+                      />
+                    }
+                    {
+                      !this.state.readOnly &&
+                      <ReactTags tags={dataFieldsTags}
+                        suggestions={fieldsSuggestions}
+                        handleDelete={this.handleDataFieldsDelete}
+                        handleAddition={this.handleDataFieldsAddition}
+                        handleDrag={this.handleDataFieldsDrag}
+                        handleFilterSuggestions={this.searchAnywhere}
+                        allowDeleteFromEmptyInput={false}
+                        autocomplete={true}
+                        minQueryLength={1}
+                        classNames={{
+                          tagInput: 'tagInputClass',
+                          tagInputField: 'tagInputFieldClass form-control',
+                          suggestions: 'suggestionsClass',
+                        }}
+                        placeholder="Enter List of Attributes required for the rule"
+                        required="required"
+                      />
+                  }
                   </div>
                 </div>
                 <div className="form-group">
@@ -444,6 +480,7 @@ class AddBusinessRule extends Component {
                       placeholder="Enter actual rule logic using selected attributes"
                       value={this.state.form.python_implementation}
                       type="text"
+                      readOnly={this.state.readOnly}
                       required="required"
                       disabled
                       className="form-control col-md-7 col-xs-12"
@@ -456,57 +493,88 @@ class AddBusinessRule extends Component {
                       }
                     />
                   </div>
-                  <button
-                    type="button"
-                    disabled={ !this.state.dataFieldsTags.length }
-                    onClick={this.handleRuleAssistClick}
-                    className="btn btn-primary btn-xs"
-                  >
-                    Edit
-                  </button>
+                  {
+                    !this.state.readOnly &&
+                    <button
+                      type="button"
+                      disabled={ !this.state.dataFieldsTags.length }
+                      onClick={this.handleRuleAssistClick}
+                      className="btn btn-primary btn-xs"
+                    >
+                      Edit
+                    </button>
+                  }
                 </div>
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="rounding-option">Business or Validation Rule<span className="required">*</span></label>
                   <div className="col-md-3 col-sm-3 col-xs-12">
-                    <select
-                      defaultValue={this.state.form.business_or_validation}
-                      className="form-control"
-                      required="required"
-                      onChange={
-                        (event) => {
-                          let newState = { ...this.state };
-                          newState.form.business_or_validation = event.target.value;
-                          this.setState(newState);
+                    {
+                      this.state.readOnly &&
+                      <input
+                        value={this.state.form.business_or_validation}
+                        type="text"
+                        readOnly={this.state.readOnly}
+                        className="form-control col-md-7 col-xs-12"
+                      />
+
+                    }
+                    {
+                      !this.state.readOnly &&
+                      <select
+                        defaultValue={this.state.form.business_or_validation}
+                        readOnly={this.state.readOnly}
+                        className="form-control"
+                        required="required"
+                        onChange={
+                          (event) => {
+                            let newState = { ...this.state };
+                            newState.form.business_or_validation = event.target.value;
+                            this.setState(newState);
+                          }
                         }
-                      }
-                    >
-                      <option value="">Choose option</option>
-                      <option value="BUSINESS">BUSINESS</option>
-                      <option value="VALIDATION">VALIDATION</option>
-                    </select>
+                      >
+                        <option value="">Choose option</option>
+                        <option value="BUSINESS">BUSINESS</option>
+                        <option value="VALIDATION">VALIDATION</option>
+                      </select>
+                    }
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="rounding-option">Rule Type<span className="required"></span></label>
                   <div className="col-md-3 col-sm-3 col-xs-12">
-                    <select
-                      defaultValue={this.state.form.rule_type}
-                      className="form-control"
-                      onChange={
-                        (event) => {
-                          let newState = { ...this.state };
-                          newState.form.rule_type = event.target.value;
-                          this.setState(newState);
+                    {
+                      this.state.readOnly &&
+                      <input
+                        value={this.state.form.rule_type}
+                        type="text"
+                        readOnly={this.state.readOnly}
+                        className="form-control col-md-7 col-xs-12"
+                      />
+
+                    }
+                    {
+                      !this.state.readOnly &&
+                      <select
+                        defaultValue={this.state.form.rule_type}
+                        readOnly={this.state.readOnly}
+                        className="form-control"
+                        onChange={
+                          (event) => {
+                            let newState = { ...this.state };
+                            newState.form.rule_type = event.target.value;
+                            this.setState(newState);
+                          }
                         }
-                      }
-                    >
-                      <option value="">Choose option</option>
-                      <option value="DERIVED">DERIVED - This is a self reference value check</option>
-                      <option value="USEDATA">USEDATA - Rule is evaluated using supplied data</option>
-                      <option value="KEYCOLUMN">KEYCOLUMN - Key attribute of the data source</option>
-                      <option value="BUYCURRENCY">BUYCURRENCY - Buy currency of the position</option>
-                      <option value="SELLCURRENCY">SELLCURRENCY - Sell currency of the position</option>
-                    </select>
+                      >
+                        <option value="">Choose option</option>
+                        <option value="DERIVED">DERIVED - This is a self reference value check</option>
+                        <option value="USEDATA">USEDATA - Rule is evaluated using supplied data</option>
+                        <option value="KEYCOLUMN">KEYCOLUMN - Key attribute of the data source</option>
+                        <option value="BUYCURRENCY">BUYCURRENCY - Buy currency of the position</option>
+                        <option value="SELLCURRENCY">SELLCURRENCY - Sell currency of the position</option>
+                      </select>
+                    }
                   </div>
                 </div>
                 <div className="form-group">
@@ -536,32 +604,36 @@ class AddBusinessRule extends Component {
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment">Comment <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <textarea
-                      type="text"
-                      placeholder="Enter a Comment"
-                      required="required"
-                      className="form-control col-md-7 col-xs-12"
-                      value={this.state.audit_form.comment}
-                      maxLength="1000"
-                      minLength="20"
-                      onChange={
-                        (event) => {
-                          let { audit_form } = this.state;
-                          audit_form.comment = event.target.value;
-                          this.setState({ audit_form });
+                {
+
+                  !this.state.readOnly &&
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment">Comment <span className="required">*</span></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <textarea
+                        type="text"
+                        placeholder="Enter a Comment"
+                        required="required"
+                        className="form-control col-md-7 col-xs-12"
+                        value={this.state.audit_form.comment}
+                        maxLength="1000"
+                        minLength="20"
+                        onChange={
+                          (event) => {
+                            let { audit_form } = this.state;
+                            audit_form.comment = event.target.value;
+                            this.setState({ audit_form });
+                          }
                         }
-                      }
-                    />
+                      />
+                    </div>
                   </div>
-                </div>
+                }
 
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Last Updated by <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
-                    <input value="John Doe" type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
+                    <input value="User" type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
                   </div>
                 </div>
 
@@ -569,7 +641,10 @@ class AddBusinessRule extends Component {
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
                     <button type="button" className="btn btn-primary" onClick={ this.props.handleCancel }>
                       Cancel</button>
-                    <button type="submit" className="btn btn-success" >Submit</button>
+                    {
+                      !this.state.readOnly &&
+                      <button type="submit" className="btn btn-success" >Submit</button>
+                    }
                   </div>
                 </div>
               </form>

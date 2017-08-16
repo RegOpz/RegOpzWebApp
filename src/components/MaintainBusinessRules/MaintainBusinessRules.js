@@ -75,6 +75,7 @@ class MaintainBusinessRules extends Component {
       }
     };
     this.state = {
+      itemEditable: true,
       isModalOpen: false,
       showAuditModal: false,
       showToggleColumns: false,
@@ -168,7 +169,10 @@ class MaintainBusinessRules extends Component {
       });
     }
     else {
-      this.setState({ showAddRule: false });
+      this.setState({
+        showAddRule: false,
+        itemEditable: true,
+       });
       this.selectedRows = [];
       this.selectedRowItem = null;
       this.selectedRow = null;
@@ -296,9 +300,9 @@ class MaintainBusinessRules extends Component {
                     //this.currentPage = 0;
 
                     this.props.fetchBusinesRules(this.currentPage);
+                    $("button[title='Rule Details']").prop('disabled', false);
                     if (this.writeOnly) {
                       $("button[title='Delete']").prop('disabled', false);
-                      $("button[title='Update']").prop('disabled', false);
                       $("button[title='Duplicate']").prop('disabled', false);
                     }
                   }
@@ -340,12 +344,11 @@ class MaintainBusinessRules extends Component {
               <button
                 data-toggle="tooltip"
                 data-placement="top"
-                title="Update"
+                title="Rule Details"
                 onClick={
                   this.handleUpdateClick
                 }
                 className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
-                disabled={!this.writeOnly}
               >
                 <i className="fa fa-pencil"></i>
               </button>
@@ -513,9 +516,9 @@ class MaintainBusinessRules extends Component {
                     this.selectedRowItem = null;
                     this.selectedRow = null;
                     this.selectedRulesAsString = null;
+                    $("button[title='Rule Details']").prop('disabled', false);
                     if (this.writeOnly) {
                       $("button[title='Delete']").prop('disabled', false);
-                      $("button[title='Update']").prop('disabled', false);
                       $("button[title='Duplicate']").prop('disabled', false);
                     }
                   }
@@ -562,6 +565,7 @@ class MaintainBusinessRules extends Component {
               businessRule={this.selectedRowItem}
               handleCancel={this.handleAddRule}
               handleClose={this.handleAddRule}
+              editable={ this.writeOnly && this.state.itemEditable }
               />
           }
           {
@@ -685,6 +689,7 @@ class MaintainBusinessRules extends Component {
       console.log("I am called at ", item, rownum);
       this.selectedRow = rownum;
       this.selectedRowItem = item;
+      this.setState({itemEditable: item.dml_allowed == "Y"});
       this.source_table = this.props.sources.source_suggestion.filter((element) => {
           return (element.source_id == this.selectedRowItem['source_id']);
       })
@@ -699,7 +704,7 @@ class MaintainBusinessRules extends Component {
     if (this.selectedRows.length > 1) {
       console.log($("button [title='Delete']"));
       $("button[title='Delete']").prop('disabled', true);
-      $("button[title='Update']").prop('disabled', true);
+      $("button[title='Rule Details']").prop('disabled', true);
       $("button[title='Duplicate']").prop('disabled', true);
       //console.log("Button property........:",$("button[title='Delete']").prop('disabled'));
 
@@ -707,13 +712,13 @@ class MaintainBusinessRules extends Component {
     else {
       if (this.selectedRows.length == 1 && this.selectedRows[0]['dml_allowed'] == 'N') {
         $("button[title='Delete']").prop('disabled', true);
-        $("button[title='Update']").prop('disabled', true);
+        //$("button[title='Rule Details']").prop('disabled', true);
         $("button[title='Duplicate']").prop('disabled', true);
       }
       else {
+        $("button[title='Rule Details']").prop('disabled', false);
         if (this.writeOnly) {
           $("button[title='Delete']").prop('disabled', false);
-          $("button[title='Update']").prop('disabled', false);
           $("button[title='Duplicate']").prop('disabled', false);
         }
       }
@@ -772,7 +777,7 @@ class MaintainBusinessRules extends Component {
       this.operationName = "";
     } else if (this.selectedRows.length > 1) {
       this.modalInstance.open("Please select only one row");
-    } else if ($("button[title='Update']").prop('disabled')) {
+    } else if ($("button[title='Rule Details']").prop('disabled')) {
       // do nothing;
     } else {
       console.log("Before handleAddRule call");
@@ -887,7 +892,7 @@ class MaintainBusinessRules extends Component {
     if (this.selectedRows.length > 1) {
       console.log($("button [title='Delete']"));
       $("button[title='Delete']").prop('disabled', true);
-      $("button[title='Update']").prop('disabled', true);
+      $("button[title='Rule Details']").prop('disabled', true);
       $("button[title='Duplicate']").prop('disabled', true);
       //console.log("Button property........:",$("button[title='Delete']").prop('disabled'));
 
@@ -895,13 +900,13 @@ class MaintainBusinessRules extends Component {
     else {
       if (this.selectedRows.length == 1 && this.selectedRows[0]['dml_allowed'] != 'N') {
         $("button[title='Delete']").prop('disabled', true);
-        $("button[title='Update']").prop('disabled', true);
+        $("button[title='Rule Details']").prop('disabled', true);
         $("button[title='Duplicate']").prop('disabled', true);
       }
       else {
+        $("button[title='Rule Details']").prop('disabled', false);
         if (this.writeOnly) {
           $("button[title='Delete']").prop('disabled', false);
-          $("button[title='Update']").prop('disabled', false);
           $("button[title='Duplicate']").prop('disabled', false);
         }
       }
