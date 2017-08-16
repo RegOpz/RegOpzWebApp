@@ -121,7 +121,7 @@ class ShowToggleColumns extends Component {
         return (
           <div className="x_panel">
             <div className="x_title">
-              <h2>Data Grid Attributes <small> select to View Items in Data Grid</small></h2>
+              <h2>Data Grid Attributes <small> Select to View Items in Data Grid</small></h2>
                 <ul className="nav navbar-right panel_toolbox">
                   <li>
                     <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>

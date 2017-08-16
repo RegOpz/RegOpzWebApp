@@ -29,16 +29,16 @@ class AddBusinessRule extends Component {
       fieldsSuggestions: [],
       dataFieldsSuggestions: [],
       componentDidUpdateCount: 0,
-      requestType: this.props.location.query['request'],
-      ruleIndex: this.props.location.query['index'],
+      requestType: this.props.businessRule ? "update":"add",
+      ruleIndex: null,
       readOnly: null,
       form: {
         id: null,
         source_id: null,
         rule_execution_order: null,
-        business_rule: this.props.location.query['report_id'],
-        rule_description: this.props.location.query['sheet'],
-        logical_condition: this.props.location.query['cell'],
+        business_rule: null,
+        rule_description: null,
+        logical_condition: null,
         python_implementation: null,
         data_fields_list: null,
         business_or_validation: null,
@@ -65,6 +65,7 @@ class AddBusinessRule extends Component {
 
     this.searchAnywhere = this.searchAnywhere.bind(this);
     this.handleRuleAssistClick = this.handleRuleAssistClick.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
 
   }
 
@@ -74,9 +75,8 @@ class AddBusinessRule extends Component {
 
   componentWillMount() {
     this.props.fetchSources();
-    console.log('ruleIndex.....', this.state.ruleIndex, typeof this.props.business_rules)
-    if (typeof this.state.ruleIndex != 'undefined') {
-      Object.assign(this.state.form, this.props.business_rules[0].rows[this.state.ruleIndex]);
+    if (this.props.businessRule) {
+      Object.assign(this.state.form, this.props.businessRule);
       this.initialiseFormFields();
     }
   }
@@ -192,7 +192,7 @@ class AddBusinessRule extends Component {
   }
   initialiseFormFields() {
     //this.setState({form: this.props.drill_down_result.cell_rules[this.state.ruleIndex]});
-    this.state.form = this.props.business_rules[0].rows[this.state.ruleIndex];
+    this.state.form = this.props.businessRule;
     // if (this.state.rulesTags.length == 0) {
     //   this.state.rulesTags.push({ id: 1, text: this.state.form.python_implementation });
     // }
@@ -256,6 +256,9 @@ class AddBusinessRule extends Component {
             this.setState({ showRuleAssist: false });
           }}
           handleSaveEditing={this.handleSaveEditing.bind(this)}
+          handleClose={() => {
+            this.setState({ showRuleAssist: false });
+          }}
         />
       );
     }
@@ -268,15 +271,20 @@ class AddBusinessRule extends Component {
       console.log('in render', this.state)
       return (
         <div className="row">
-          <div className="col col-lg-12">
+          <div className="x_panel">
             <div className="x_title">
-              <h2>Maintain Business Rule <small>Add a new rule</small></h2>
+              <h2>Manage Rule <small> { this.props.businessRule ? "Edit": "Add a new"} rule</small></h2>
+              <ul className="nav navbar-right panel_toolbox">
+                <li>
+                  <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
+                </li>
+              </ul>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
               <br />
               <form className="form-horizontal form-label-left"
-                onSubmit={this.handleSubmit.bind(this)}
+                onSubmit={this.handleSubmit}
               >
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">ID <span className="required">*</span></label>
@@ -559,7 +567,7 @@ class AddBusinessRule extends Component {
 
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button" className="btn btn-primary" onClick={() => { this.handleCancel() }}>
+                    <button type="button" className="btn btn-primary" onClick={ this.props.handleCancel }>
                       Cancel</button>
                     <button type="submit" className="btn btn-success" >Submit</button>
                   </div>
@@ -571,10 +579,7 @@ class AddBusinessRule extends Component {
       )
     }
   }
-  handleCancel(event) {
-    console.log('inside cancel');
-    hashHistory.push(`/dashboard/maintain-business-rules`);
-  }
+
   handleSaveEditing(currentFormula){
     console.log('inside saveEditing');
     let formCopy = { ...this.state.form };
@@ -612,7 +617,7 @@ class AddBusinessRule extends Component {
       this.props.updateBusinessRule(data);
     }
 
-    hashHistory.push(`/dashboard/maintain-business-rules`);
+    this.props.handleClose(event);
   }
 }
 function mapStateToProps(state) {

@@ -25,7 +25,7 @@ class RuleReportLinkage extends Component {
     return(
           <div className="x_panel">
             <div className="x_title">
-              <h2>Change History<small> Time Line </small><small>{this.state.ruleReference}</small></h2>
+              <h2>Report Linkage<small> for Business Rules </small><small>{this.state.ruleReference}</small></h2>
               <ul className="nav navbar-right panel_toolbox">
                 <li>
                   <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>

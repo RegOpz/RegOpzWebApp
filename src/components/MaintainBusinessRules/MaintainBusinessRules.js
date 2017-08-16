@@ -33,6 +33,7 @@ import ShowToggleColumns from './ShowToggleColumns';
 import RuleAssist from './RuleAssist';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import RuleReportLinkage from './RuleReportLinkage';
+import AddBusinessRule from './AddBusinessRule/AddBusinessRule';
 require('react-datagrid/dist/index.css');
 require('./MaintainBusinessRules.css');
 
@@ -80,6 +81,7 @@ class MaintainBusinessRules extends Component {
       showRuleAssist: false,
       showDefAuditHistory: false,
       showRuleReportLinkage: false,
+      showAddRule: false,
     };
 
     this.msg = "";
@@ -106,6 +108,9 @@ class MaintainBusinessRules extends Component {
     this.handleDefAuditHistory = this.handleDefAuditHistory.bind(this);
     this.showLinkage = this.showLinkage.bind(this);
     this.handleRuleLinkage = this.handleRuleLinkage.bind(this);
+    this.handleUpdateClick = this.handleUpdateClick.bind(this);
+    this.handleInsertClick = this.handleInsertClick.bind(this);
+    this.handleAddRule = this.handleAddRule.bind(this);
   }
 
   componentWillMount() {
@@ -121,6 +126,7 @@ class MaintainBusinessRules extends Component {
         showRuleAssist: false,
         showDefAuditHistory: false,
         showRuleReportLinkage: false,
+        showAddRule: false,
       });
     }
     else {
@@ -138,10 +144,31 @@ class MaintainBusinessRules extends Component {
         showRuleAssist: false,
         showDefAuditHistory: true,
         showRuleReportLinkage: false,
+        showAddRule: false,
       });
     }
     else {
       this.setState({ showDefAuditHistory: false });
+      this.selectedRows = [];
+      this.selectedRowItem = null;
+      this.selectedRow = null;
+    }
+  }
+
+  handleAddRule() {
+    let isOpen = this.state.showAddRule;
+    console.log("Inside handleAddRule",this.state.handleAddRule);
+    if (!isOpen) {
+      this.setState({
+        showToggleColumns: false,
+        showRuleAssist: false,
+        showDefAuditHistory: false,
+        showRuleReportLinkage: false,
+        showAddRule: true,
+      });
+    }
+    else {
+      this.setState({ showAddRule: false });
       this.selectedRows = [];
       this.selectedRowItem = null;
       this.selectedRow = null;
@@ -162,6 +189,7 @@ class MaintainBusinessRules extends Component {
           showRuleAssist: false,
           showDefAuditHistory: false,
           showRuleReportLinkage: true,
+          showAddRule: false,
         });
       }
     }
@@ -202,6 +230,7 @@ class MaintainBusinessRules extends Component {
           showRuleAssist: true,
           showDefAuditHistory: false,
           showRuleReportLinkage: false,
+          showAddRule: false,
         });
       }
       else {
@@ -233,13 +262,10 @@ class MaintainBusinessRules extends Component {
       console.log("Linkage data ", this.linkageData);
       return (
         <div className="maintain_business_rules_container">
-          <Breadcrumbs
-            routes={this.props.routes}
-            params={this.props.params}
-            wrapperClass="breadcrumb"
-          />
+
         <h4>Maintain Business Rules</h4>
         {
+          this.state.showAddRule ||
           this.state.showRuleReportLinkage ||
           this.state.showDefAuditHistory ||
           this.state.showToggleColumns ||
@@ -287,7 +313,7 @@ class MaintainBusinessRules extends Component {
                 data-placement="top"
                 title="Insert"
                 onClick={
-                  this.handleInsertClick.bind(this)
+                  this.handleInsertClick
                 }
                 className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
                 disabled={!this.writeOnly}
@@ -316,7 +342,7 @@ class MaintainBusinessRules extends Component {
                 data-placement="top"
                 title="Update"
                 onClick={
-                  this.handleUpdateClick.bind(this)
+                  this.handleUpdateClick
                 }
                 className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
                 disabled={!this.writeOnly}
@@ -503,7 +529,7 @@ class MaintainBusinessRules extends Component {
               <button
                 data-toggle="tooltip"
                 data-placement="top"
-                title="Select Dsiplay Columns"
+                title="Select Display Columns"
                 className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
                 onClick={this.handleToggle}
               >
@@ -527,6 +553,19 @@ class MaintainBusinessRules extends Component {
           </div>
           }
           {
+            this.state.showAddRule &&
+            !this.state.showRuleReportLinkage &&
+            !this.state.showDefAuditHistory &&
+            !this.state.showToggleColumns &&
+            !this.state.showRuleAssist &&
+            <AddBusinessRule
+              businessRule={this.selectedRowItem}
+              handleCancel={this.handleAddRule}
+              handleClose={this.handleAddRule}
+              />
+          }
+          {
+            !this.state.showAddRule &&
             this.state.showRuleReportLinkage &&
             !this.state.showDefAuditHistory &&
             !this.state.showToggleColumns &&
@@ -538,6 +577,7 @@ class MaintainBusinessRules extends Component {
               />
           }
           {
+            !this.state.showAddRule &&
             !this.state.showRuleReportLinkage &&
             this.state.showDefAuditHistory &&
             !this.state.showToggleColumns &&
@@ -549,6 +589,7 @@ class MaintainBusinessRules extends Component {
               />
           }
           {
+            !this.state.showAddRule &&
             !this.state.showRuleReportLinkage &&
             !this.state.showDefAuditHistory &&
             this.state.showToggleColumns &&
@@ -561,6 +602,7 @@ class MaintainBusinessRules extends Component {
                 />
           }
           {
+            !this.state.showAddRule &&
             !this.state.showRuleReportLinkage &&
             !this.state.showDefAuditHistory &&
             !this.state.showToggleColumns &&
@@ -574,6 +616,7 @@ class MaintainBusinessRules extends Component {
               />
           }
           {
+            !this.state.showAddRule &&
             !this.state.showRuleReportLinkage &&
             !this.state.showDefAuditHistory &&
             !this.state.showToggleColumns &&
@@ -678,7 +721,11 @@ class MaintainBusinessRules extends Component {
   }
   handleInsertClick(event) {
     //this.props.insertBusinessRule(this.newItem, this.selectedRow);
-    hashHistory.push(`/dashboard/maintain-business-rules/add-business-rule?request=add`);
+    //hashHistory.push(`/dashboard/maintain-business-rules/add-business-rule?request=add`);
+    this.selectedRows = [];
+    this.selectedRowItem = null;
+    this.selectedRow = null;
+    this.handleAddRule(event);
   }
   handleDuplicateClick(event) {
     if (this.selectedRows.length == 0) {
@@ -728,7 +775,8 @@ class MaintainBusinessRules extends Component {
     } else if ($("button[title='Update']").prop('disabled')) {
       // do nothing;
     } else {
-      hashHistory.push(`/dashboard/maintain-business-rules/add-business-rule?request=update&index=${this.selectedRow}`)
+      console.log("Before handleAddRule call");
+      this.handleAddRule(event);
     }
   }
   handleSaveEditing(currentFormula){
