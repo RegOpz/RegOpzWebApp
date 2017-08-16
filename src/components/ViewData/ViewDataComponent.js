@@ -70,6 +70,9 @@ class ViewDataComponent extends Component {
     this.selectedViewColumns=[];
     this.handleToggle = this.handleToggle.bind(this);
     this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
+
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Data" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Data" }) ? true : false;
   }
 
   componentWillMount() {
@@ -194,6 +197,7 @@ class ViewDataComponent extends Component {
                                 }
                       }
                       className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                      disabled={!this.writeOnly}
                     >
                       <i className="fa fa-plus"></i>
                     </button>
@@ -205,6 +209,7 @@ class ViewDataComponent extends Component {
                       title="Duplicate"
                       onClick={ this.handleDuplicateClick.bind(this)}
                       className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                      disabled={!this.writeOnly}
                     >
                       <i className="fa fa-copy"></i>
                     </button>
@@ -227,6 +232,7 @@ class ViewDataComponent extends Component {
                         }
                       }
                       className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                      disabled={!this.writeOnly}
                     >
                       <i className="fa fa-pencil"></i>
                     </button>
@@ -238,6 +244,7 @@ class ViewDataComponent extends Component {
                       title="Delete"
                       onClick={ this.handleDeleteClick.bind(this) }
                       className="btn btn-circle btn-warning business_rules_ops_buttons btn-xs"
+                      disabled={!this.writeOnly}
                     >
                       <i className="fa fa-remove"></i>
                     </button>
@@ -353,6 +360,7 @@ class ViewDataComponent extends Component {
                       data-placement="top"
                       title="Report Link"
                       className="btn btn-circle btn-info business_rules_ops_buttons btn-xs"
+                      disabled={!this.viewOnly}
                     >
                       <i className="fa fa-link"></i>
                     </button>
@@ -368,6 +376,7 @@ class ViewDataComponent extends Component {
                       data-placement="top"
                       title="History"
                       className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                      disabled={!this.viewOnly}
                     >
                       <i className="fa fa-history"></i>
                     </button>
@@ -390,6 +399,7 @@ class ViewDataComponent extends Component {
                             });
                         }
                       }
+                      disabled={!this.viewOnly}
                     >
                       <i className="fa fa-table"></i>
                     </button>
@@ -406,6 +416,7 @@ class ViewDataComponent extends Component {
                           this.forceUpdate();
                         }
                       }
+                      disabled={!this.viewOnly}
                     >
                       <i className="fa fa-window-maximize"></i>
                     </button>
@@ -417,6 +428,7 @@ class ViewDataComponent extends Component {
                     title="Select Display Columns"
                     className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
                     onClick={this.handleToggle}
+                    disabled={!this.viewOnly}
                   >
                     <i className="fa fa-th-large"></i>
                   </button>
@@ -483,7 +495,27 @@ class ViewDataComponent extends Component {
       this.selectedIndexOfGrid = indexOfGrid;
       console.log("Inside Single select ", indexOfGrid);
     }
-    console.log("Single select ", this.selectedIndexOfGrid);
+
+    if (this.selectedItems.length > 1) {
+      console.log($("button [title='Delete']"));
+      $("button[title='Insert']").prop('disabled', true);
+      $("button[title='Delete']").prop('disabled', true);
+      $("button[title='Update']").prop('disabled', true);
+      $("button[title='Duplicate']").prop('disabled', true);
+      //console.log("Button property........:",$("button[title='Delete']").prop('disabled'));
+
+    } else if (this.selectedItems.length == 1 && this.selectedItems[0]['dml_allowed'] == 'N') {
+      $("button[title='Insert']").prop('disabled', true);
+      $("button[title='Delete']").prop('disabled', true);
+      $("button[title='Update']").prop('disabled', true);
+      $("button[title='Duplicate']").prop('disabled', true);
+    }else if (this.writeOnly) {
+      $("button[title='Insert']").prop('disabled', false);
+      $("button[title='Delete']").prop('disabled', false);
+      $("button[title='Update']").prop('disabled', false);
+      $("button[title='Duplicate']").prop('disabled', false);
+    }
+
 
   }
 
@@ -554,7 +586,8 @@ class ViewDataComponent extends Component {
         id:null,
         change_type:this.operationName,
         change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.sourceTableName}`,
-        maker:this.props.login_details.user
+        maker:this.props.login_details.user,
+        business_date:this.currentBusinessDate
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
@@ -571,12 +604,13 @@ class ViewDataComponent extends Component {
         table_name:data["table_name"],
         change_type:this.operationName,
         change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.sourceTableName}`,
-        maker:this.props.login_details.user
+        maker:this.props.login_details.user,
+        business_date:this.currentBusinessDate
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
       data["update_info"]=this.selectedItems[0];
-      data["business_date"]=this.currentBusinessDate;
+      data["business_date"]=this.currentBusinessDate
 
       this.props.deleteFromSourceData(this.selectedItems[0]['id'],data, this.selectedIndexOfGrid);
       this.setState({showAuditModal:false});
@@ -588,7 +622,8 @@ class ViewDataComponent extends Component {
        table_name:data["table_name"],
        change_type:this.operationName,
        change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.sourceTableName}`,
-       maker:this.props.login_details.user
+       maker:this.props.login_details.user,
+       business_date:this.currentBusinessDate
      };
      Object.assign(this.auditInfo,auditInfo);
      data["audit_info"]=this.auditInfo;

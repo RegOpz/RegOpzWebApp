@@ -4,7 +4,7 @@ export const componentMaptoName={
     MaintainBusinessRules:"Maintain Business Rules",
     AddBusinessRule:"Add Business Rule",
     ViewDataComponentV2:"View Data",
-    ViewDataComponent:"View Data Grid",
+    ViewDataComponent:"View Data",
     ViewReport:"View Report",
     CreateReport:"Create Report",
     DrillDown:"DrillDown",

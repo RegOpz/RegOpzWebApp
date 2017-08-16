@@ -110,9 +110,9 @@ ReactDOM.render(
                     <Route path="data-grid" name="Data Grid" component={RegOpzDataGrid} />
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
                     <Route path="maintain-business-rules/add-business-rule" component={AddBusinessRule} />
-                    <Route path="view-data" name="View Data" component={ViewDataComponentV2} />
+                    <Route path="view-data" name="View Data" component={authenticate(ViewDataComponentV2)} />
                     <Route path="view-data/add-data" name="Add Data" component={AddData} />
-                    <Route path="view-data-on-grid" name="View Data Grid" component={ViewDataComponent} />
+                    <Route path="view-data-on-grid" name="View Data Grid" component={authenticate(ViewDataComponent)} />
                     <Route path="view-report" name="View Report" component={ViewReport} />
                     <Route path="create-report" name="Create Report" component={CreateReport} />
                     <Route path="drill-down" name="DrillDown" component={DrillDown} />

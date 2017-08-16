@@ -125,6 +125,7 @@ class AddData extends Component {
       change_type:data.change_type,
       change_reference:`Data: ${submitData.id} of Source: ${this.props.table_name}`,
       maker:this.props.login_details.user,
+      business_date:submitData.business_date
     };
 
     Object.assign(audit_info,this.state.audit_form);
