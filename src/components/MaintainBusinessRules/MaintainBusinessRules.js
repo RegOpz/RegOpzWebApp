@@ -31,6 +31,8 @@ import { BASE_URL } from '../../Constant/constant';
 import axios from 'axios';
 import ShowToggleColumns from './ShowToggleColumns';
 import RuleAssist from './RuleAssist';
+import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import RuleReportLinkage from './RuleReportLinkage';
 require('react-datagrid/dist/index.css');
 require('./MaintainBusinessRules.css');
 
@@ -75,12 +77,15 @@ class MaintainBusinessRules extends Component {
       isModalOpen: false,
       showAuditModal: false,
       showToggleColumns: false,
-      showRuleAssist: false
+      showRuleAssist: false,
+      showDefAuditHistory: false,
+      showRuleReportLinkage: false,
     };
 
     this.msg = "";
     this.modalInstance = null;
     this.linkageData = null;
+    this.defAuditData = null;
     this.flatGrid = null;
     this.filterConditions = {};
     this.selectedRows = [];
@@ -97,6 +102,10 @@ class MaintainBusinessRules extends Component {
     this.handleToggle = this.handleToggle.bind(this);
     this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
     this.toggleRuleAssist = this.toggleRuleAssist.bind(this);
+    this.showHistory = this.showHistory.bind(this);
+    this.handleDefAuditHistory = this.handleDefAuditHistory.bind(this);
+    this.showLinkage = this.showLinkage.bind(this);
+    this.handleRuleLinkage = this.handleRuleLinkage.bind(this);
   }
 
   componentWillMount() {
@@ -109,11 +118,58 @@ class MaintainBusinessRules extends Component {
     if (!toggleValue) {
       this.setState({
         showToggleColumns: true,
-        showRuleAssist: false
+        showRuleAssist: false,
+        showDefAuditHistory: false,
+        showRuleReportLinkage: false,
       });
     }
     else {
       this.setState({ showToggleColumns: false });
+    }
+  }
+
+  handleDefAuditHistory() {
+    let isOpen = this.state.showDefAuditHistory;
+    //console.log("Inside handleDefAuditHistory",this.state.showDefAuditHistory);
+    if (!isOpen) {
+      this.showHistory(event);
+      this.setState({
+        showToggleColumns: false,
+        showRuleAssist: false,
+        showDefAuditHistory: true,
+        showRuleReportLinkage: false,
+      });
+    }
+    else {
+      this.setState({ showDefAuditHistory: false });
+      this.selectedRows = [];
+      this.selectedRowItem = null;
+      this.selectedRow = null;
+    }
+  }
+
+  handleRuleLinkage() {
+    let isOpen = this.state.showRuleReportLinkage;
+    console.log("Inside handleDefAuditHistory",this.state.showRuleReportLinkage);
+    if (!isOpen) {
+      if (this.selectedRows.length == 0) {
+        this.modalInstance.open("Please select at least one row")
+      } else {
+        this.showLinkage(event);
+
+        this.setState({
+          showToggleColumns: false,
+          showRuleAssist: false,
+          showDefAuditHistory: false,
+          showRuleReportLinkage: true,
+        });
+      }
+    }
+    else {
+      this.setState({ showRuleReportLinkage: false });
+      this.selectedRows = [];
+      this.selectedRowItem = null;
+      this.selectedRow = null;
     }
   }
 
@@ -143,12 +199,14 @@ class MaintainBusinessRules extends Component {
       if (!isOpen) {
         this.setState({
           showToggleColumns: false,
-          showRuleAssist: true
+          showRuleAssist: true,
+          showDefAuditHistory: false,
+          showRuleReportLinkage: false,
         });
       }
       else {
         this.setState({ showRuleAssist: false });
-        this.selectedRows = null;
+        this.selectedRows = [];
         this.selectedRowItem = null;
         this.selectedRow = null;
       }
@@ -166,12 +224,12 @@ class MaintainBusinessRules extends Component {
       this.data = this.props.business_rules[0].rows;
       this.count = this.props.business_rules[0].count;
       this.pages = Math.ceil(this.count / 100);
-      if (this.modalType == "Report Linkage") {
+      //if (this.modalType == "Report Linkage") {
         this.linkageData = this.props.report_linkage;
-      }
-      if (this.modalType == "Rule Audit") {
-        this.linkageData = this.props.audit_list;
-      }
+      //}
+      //if (this.modalType == "Rule Audit") {
+        this.defAuditData = this.props.audit_list;
+      //}
       console.log("Linkage data ", this.linkageData);
       return (
         <div className="maintain_business_rules_container">
@@ -180,7 +238,12 @@ class MaintainBusinessRules extends Component {
             params={this.props.params}
             wrapperClass="breadcrumb"
           />
-          <h1>Maintain Business Rules</h1>
+        <h4>Maintain Business Rules</h4>
+        {
+          this.state.showRuleReportLinkage ||
+          this.state.showDefAuditHistory ||
+          this.state.showToggleColumns ||
+          this.state.showRuleAssist ||
           <div className="ops_icons">
             <div className="btn-group">
               <button
@@ -190,10 +253,22 @@ class MaintainBusinessRules extends Component {
                 className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
                 onClick={
                   (event) => {
-                    this.selectedRows = this.flatGrid.deSelectAll();
+                    this.setState({
+                      showToggleColumns: false,
+                      showRuleAssist: false,
+                      showDefAuditHistory: false,
+                      showRuleReportLinkage: false,
+                    });
+                    if ( this.flatGrid ){
+                      this.selectedRows = this.flatGrid.deSelectAll();
+                    } else {
+                      this.selectedRows = [];
+                    }
                     this.selectedRowItem = null;
                     this.selectedRow = null;
+                    this.selectedRulesAsString = null;
                     //this.currentPage = 0;
+
                     this.props.fetchBusinesRules(this.currentPage);
                     if (this.writeOnly) {
                       $("button[title='Delete']").prop('disabled', false);
@@ -346,7 +421,7 @@ class MaintainBusinessRules extends Component {
 
             <div className="btn-group">
               <button
-                onClick={this.showLinkage.bind(this)}
+                onClick={this.handleRuleLinkage}
                 data-toggle="tooltip"
                 data-placement="top"
                 title="Report Link"
@@ -360,7 +435,7 @@ class MaintainBusinessRules extends Component {
 
             <div className="btn-group">
               <button
-                onClick={this.showHistory.bind(this)}
+                onClick={this.handleDefAuditHistory}
                 data-toggle="tooltip"
                 data-placement="top"
                 title="History"
@@ -404,9 +479,14 @@ class MaintainBusinessRules extends Component {
                 disabled={!this.viewOnly}
                 onClick={
                   (event) => {
-                    this.selectedRows = this.flatGrid.deSelectAll();
+                    if ( this.flatGrid ){
+                      this.selectedRows = this.flatGrid.deSelectAll();
+                    } else {
+                      this.selectedRows = [];
+                    }
                     this.selectedRowItem = null;
                     this.selectedRow = null;
+                    this.selectedRulesAsString = null;
                     if (this.writeOnly) {
                       $("button[title='Delete']").prop('disabled', false);
                       $("button[title='Update']").prop('disabled', false);
@@ -445,25 +525,59 @@ class MaintainBusinessRules extends Component {
             </div>
 
           </div>
+          }
           {
-            this.state.showToggleColumns && !this.state.showRuleAssist &&
+            this.state.showRuleReportLinkage &&
+            !this.state.showDefAuditHistory &&
+            !this.state.showToggleColumns &&
+            !this.state.showRuleAssist &&
+            <RuleReportLinkage
+              data={ this.linkageData }
+              ruleReference={ this.selectedRulesAsString }
+              handleClose={this.handleRuleLinkage}
+              />
+          }
+          {
+            !this.state.showRuleReportLinkage &&
+            this.state.showDefAuditHistory &&
+            !this.state.showToggleColumns &&
+            !this.state.showRuleAssist &&
+            <DefAuditHistory
+              data={ this.defAuditData }
+              historyReference={ this.selectedRulesAsString }
+              handleClose={this.handleDefAuditHistory}
+              />
+          }
+          {
+            !this.state.showRuleReportLinkage &&
+            !this.state.showDefAuditHistory &&
+            this.state.showToggleColumns &&
+            !this.state.showRuleAssist &&
               <ShowToggleColumns
                   columns={this.cols}
                   saveSelection={this.displaySelectedColumns}
                   selectedViewColumns={this.selectedViewColumns}
+                  handleClose={this.handleToggle}
                 />
           }
           {
-            this.state.showRuleAssist && !this.state.showToggleColumns &&
+            !this.state.showRuleReportLinkage &&
+            !this.state.showDefAuditHistory &&
+            !this.state.showToggleColumns &&
+            this.state.showRuleAssist &&
               <RuleAssist
                 rule={this.selectedRowItem}
                 sourceTable={this.source_table[0]}
                 cancelEditing={this.toggleRuleAssist}
                 handleSaveEditing={this.handleSaveEditing.bind(this)}
+                handleClose={this.toggleRuleAssist}
               />
           }
           {
-            !this.state.showRuleAssist && !this.state.showToggleColumns &&
+            !this.state.showRuleReportLinkage &&
+            !this.state.showDefAuditHistory &&
+            !this.state.showToggleColumns &&
+            !this.state.showRuleAssist &&
             <RegOpzFlatGrid
               columns={this.selectedViewColumns}
               dataSource={this.data}
@@ -506,27 +620,6 @@ class MaintainBusinessRules extends Component {
               }
             }
           />
-          <Modal
-            show={this.state.isModalOpen}
-            container={this}
-            onHide={(event) => {
-              this.setState({ isModalOpen: false });
-            }}
-          >
-            <Modal.Header closeButton>
-              <Modal.Title>{this.modalType} for <h6>{this.selectedRulesAsString}</h6></Modal.Title>
-            </Modal.Header>
-
-            <Modal.Body>
-              {this.renderModalBody(this.modalType, this.linkageData, this.selectedRulesAsString)}
-            </Modal.Body>
-
-            <Modal.Footer>
-              <Button onClick={(event) => {
-                this.setState({ isModalOpen: false })
-              }}>Ok</Button>
-            </Modal.Footer>
-          </Modal>
 
           < AuditModal showModal={this.state.showAuditModal}
             onClickOkay={this.handleAuditOkayClick.bind(this)}
@@ -539,206 +632,7 @@ class MaintainBusinessRules extends Component {
       )
     }
   }
-  renderModalBody(modalType, modalData, selectedRulesAsString) {
-    console.log("Modal type", modalType, modalData);
-    if (modalType == "Report Linkage") {
-      return this.renderReportLinkage(modalData, selectedRulesAsString);
-    }
-    if (modalType == "Rule Audit") {
-      return this.renderChangeHistory(modalData);
-    }
-  }
-  renderReportLinkage(linkageData, selectedRulesAsString) {
-    console.log("Modal linkage data", linkageData);
-    if (!linkageData || typeof (linkageData) == 'undefined' || linkageData == null || linkageData.length == 0)
-      return (
-        <div>
-          <h4>No linked report found!</h4>
-        </div>
-      )
-    else {
-      return (
-        <table className="table table-hover">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Report</th>
-              <th>Sheet</th>
-              <th>Cell</th>
-              <th>InUse</th>
-              <th>Rules</th>
-            </tr>
-          </thead>
-          <tbody>
-            {
-              linkageData.map(function (item, index) {
-                let cell_business_rules = item.cell_business_rules.toString().split(",");
-                const selectedRules = selectedRulesAsString.toString().split(",");
-                return (
-                  <tr>
-                    <th scope="row">{index + 1}</th>
-                    <td>{item.report_id}</td>
-                    <td>{item.sheet_id}</td>
-                    <td>{item.cell_id}</td>
-                    <td>
-                      {
-                        ((in_use) => {
-                          if (in_use == 'Y') {
-                            return (
-                              <Label bsStyle="success">{in_use}</Label>
-                            );
-                          } else {
-                            return (<Label bsStyle="warning">{in_use}</Label>);
-                          }
-                        })(item.in_use)
-                      }
-                    </td>
-                    <td><p>{
-                      ((rules, selectedRules) => {
-                        let rule_list = [];
-                        rules.map(function (rule, index) {
-                          if (selectedRules.indexOf(rule) == -1) {
-                            rule_list.push(rule);
-                            rule_list.push(" ");
-                          } else {
-                            rule_list.push(<Label bsStyle="primary">{rule}</Label>);
-                            rule_list.push(" ");
-                          }
-                        })
-                        return rule_list;
-                      })(cell_business_rules, selectedRules)
-                    }</p></td>
-                  </tr>
-                )
-              })
-            }
-          </tbody>
-        </table>
-      )
-    }
-  }
-  renderChangeHistory(linkageData) {
-    if (!linkageData || typeof (linkageData) == 'undefined' || linkageData == null || linkageData.length == 0)
-      return (
-        <div>
-          <h4>No audit change report found!</h4>
-        </div>
-      )
-    else {
-      return (
-        <div className="dashboard-widget-content">
-          <ul className="list-unstyled timeline widget">
-            {
-              linkageData.map(function (item, index) {
-                return (
-                  <li>
-                    <div className="block">
-                      <div className="block_content">
-                        <h2 className="title"></h2>
-                        <Media>
-                          <Media.Left>
-                            <h3>{moment(item.date_of_change ? item.date_of_change : "20170624T203000").format('DD')}</h3>
-                            <h6>{moment(item.date_of_change ? item.date_of_change : "20170624").format('MMM')},
-                              <small>{moment(item.date_of_change ? item.date_of_change : "20170624").format('YYYY')}</small></h6>
-                          </Media.Left>
-                          <Media.Body>
-                            <Media.Heading>Buisness Rule Change for id: {item.id} <small>[{item.change_reference}]</small></Media.Heading>
-                            <h6>
-                              <Badge>{item.change_type}</Badge> by {item.maker} on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}
-                            </h6>
-                            <p>{item.maker_comment}</p>
-                            <div><h5>Change Summary</h5>
 
-                              {((item) => {
-                                if (item.change_type == "UPDATE") {
-                                  console.log("Update Info........", item.update_info);
-                                  const update_list = item.update_info.map((uitem, uindex) => {
-                                    console.log("Uitem.....", uitem);
-                                    return (
-                                      <tr>
-                                        <th scope="row">{uindex + 1}</th>
-                                        <td><h6><Label bsStyle="warning">{uitem.field_name}</Label></h6></td>
-                                        <td>{uitem.new_val}</td>
-                                        <td>{uitem.old_val}</td>
-                                      </tr>
-                                    );
-                                  });
-                                  return (
-                                    <table className="table table-hover table-content-wrap">
-                                      <thead>
-                                        <tr>
-                                          <th>#</th>
-                                          <th>Column</th>
-                                          <th>New Value</th>
-                                          <th>Old Value</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {update_list}
-                                      </tbody>
-                                    </table>
-                                  );
-                                } else {
-                                  return (<table className="table table-hover table-content-wrap">
-                                    <thead>
-                                      <tr>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <tr><td>This is a {item.change_type} request</td></tr>
-                                    </tbody>
-                                  </table>
-                                  )
-                                }
-                              })(item)}
-
-                            </div>
-                            <div className="clearfix" />
-                            <Media>
-                              <Media.Left>
-                                {
-                                  ((status) => {
-                                    if (status == "PENDING") {
-                                      return (<Label bsStyle="primary">{status}</Label>)
-                                    } else if (status == "REJECTED") {
-                                      return (<Label bsStyle="warning">{status}</Label>)
-                                    } else if (status == "APPROVED") {
-                                      return (<Label bsStyle="success">{status}</Label>)
-                                    } else {
-                                      return (<Label>{status}</Label>)
-                                    }
-                                  }
-                                  )(item.status)}
-                              </Media.Left>
-                              <Media.Body>
-                                <Media.Heading>Verification details</Media.Heading>
-                                {
-                                  ((status) => {
-                                    if (status != "PENDING") {
-                                      return (
-                                        <h6>
-                                          by {item.checker} on {moment(item.date_of_checking).format('ll')} {moment(item.date_of_checking).format('LTS')}
-                                        </h6>
-                                      )
-                                    }
-                                  }
-                                  )(item.status)}
-                                <p>{item.checker_comment}</p>
-                              </Media.Body>
-                            </Media>
-                          </Media.Body>
-                        </Media>
-                      </div>
-                    </div>
-                  </li>
-                )
-              })
-            }
-          </ul>
-        </div>
-      )
-    }
-  }
   handlePageClick(event) {
     event.preventDefault();
     this.props.fetchBusinesRules($(event.target).text());
@@ -886,25 +780,24 @@ class MaintainBusinessRules extends Component {
   }
 
   showLinkage(event) {
-    if (this.selectedRows.length == 0) {
-      this.modalInstance.open("Please select at least one row")
-    } else {
-      var params = {};
-      params.business_rule_list = [];
-      params.rule_id_list = [];
-      for (let i = 0; i < this.selectedRows.length; i++) {
-        params.source_id = this.selectedRows[0].source_id;
-        params.business_rule_list.push(this.selectedRows[i].business_rule);
-        params.rule_id_list.push(this.selectedRows[i].id);
-      }
-      this.modalType = "Report Linkage";
-      this.selectedRulesAsString = params.business_rule_list.toString();
-      this.selectedRulesIdAsString = params.rule_id_list.toString();
-      this.props.fetchReportLinkage(params);
-      this.setState({ isModalOpen: true })
+
+    var params = {};
+    params.business_rule_list = [];
+    params.rule_id_list = [];
+    for (let i = 0; i < this.selectedRows.length; i++) {
+      params.source_id = this.selectedRows[0].source_id;
+      params.business_rule_list.push(this.selectedRows[i].business_rule);
+      params.rule_id_list.push(this.selectedRows[i].id);
     }
+    this.modalType = "Report Linkage";
+    this.selectedRulesAsString = params.business_rule_list.toString();
+    this.selectedRulesIdAsString = params.rule_id_list.toString();
+    this.props.fetchReportLinkage(params);
+    //this.setState({ isModalOpen: true })
+
   }
   showHistory(event) {
+    //console.log("Inside showHistory",this.selectedRows.length);
     if (this.selectedRows.length == -1) {
       this.modalInstance.open("Please select at least one row")
     } else {
@@ -920,7 +813,7 @@ class MaintainBusinessRules extends Component {
       this.selectedRulesAsString = params.business_rule_list.toString();
       this.selectedRulesIdAsString = params.rule_id_list.length > 0 ? params.rule_id_list.toString() : "id";
       this.props.fetchAuditList(this.selectedRulesIdAsString, "business_rules");
-      this.setState({ isModalOpen: true })
+      //this.setState({ isModalOpen: true })
     }
   }
 

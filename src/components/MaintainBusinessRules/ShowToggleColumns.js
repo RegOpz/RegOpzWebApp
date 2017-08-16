@@ -119,10 +119,20 @@ class ShowToggleColumns extends Component {
 
     render() {
         return (
-            <div>
+          <div className="x_panel">
+            <div className="x_title">
+              <h2>Data Grid Attributes <small> select to View Items in Data Grid</small></h2>
+                <ul className="nav navbar-right panel_toolbox">
+                  <li>
+                    <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
+                  </li>
+                </ul>
+              <div className="clearfix"></div>
+            </div>
+            <div className="x_content">
                 <FormControl
                     type="text"
-                    placeholder="Enter a search term..."
+                    placeholder="Enter a search string..."
                     value={this.state.value}
                     onChange={this.handleSearchChange}
                 />
@@ -182,6 +192,7 @@ class ShowToggleColumns extends Component {
                     </Button>
                 </div>
             </div >
+          </div>
         )
     }
 

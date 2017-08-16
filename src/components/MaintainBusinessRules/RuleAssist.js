@@ -231,6 +231,11 @@ class RuleAssist extends Component {
                     <div className="col col-lg-12">
                         <div className="x_title">
                             <h2>Business Rule Management <small>Edit business rule</small></h2>
+                              <ul className="nav navbar-right panel_toolbox">
+                                <li>
+                                  <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
+                                </li>
+                              </ul>
                             <div className="clearfix"></div>
                         </div>
 
