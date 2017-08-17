@@ -149,7 +149,10 @@ class MaintainBusinessRules extends Component {
       });
     }
     else {
-      this.setState({ showDefAuditHistory: false });
+      this.setState({
+        showDefAuditHistory: false,
+        itemEditable: true,
+      });
       this.selectedRows = [];
       this.selectedRowItem = null;
       this.selectedRow = null;
@@ -199,7 +202,10 @@ class MaintainBusinessRules extends Component {
       }
     }
     else {
-      this.setState({ showRuleReportLinkage: false });
+      this.setState({
+        showRuleReportLinkage: false,
+        itemEditable: true,
+      });
       this.selectedRows = [];
       this.selectedRowItem = null;
       this.selectedRow = null;
@@ -239,7 +245,10 @@ class MaintainBusinessRules extends Component {
         });
       }
       else {
-        this.setState({ showRuleAssist: false });
+        this.setState({
+          showRuleAssist: false,
+          itemEditable: true,
+        });
         this.selectedRows = [];
         this.selectedRowItem = null;
         this.selectedRow = null;
@@ -729,6 +738,7 @@ class MaintainBusinessRules extends Component {
   handleInsertClick(event) {
     //this.props.insertBusinessRule(this.newItem, this.selectedRow);
     //hashHistory.push(`/dashboard/maintain-business-rules/add-business-rule?request=add`);
+    this.setState({itemEditable: true});
     this.selectedRows = [];
     this.selectedRowItem = null;
     this.selectedRow = null;
