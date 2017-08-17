@@ -45,6 +45,7 @@ import EditUsers from './components/ManageUsers/ModifyUser/ModifyUser';
 import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
 import AddData from './components/ViewData/AddData';
+import ManageDataChange from './components/ManageDataChange/ManageDataChange';
 
 
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware)(createStore);
@@ -125,6 +126,7 @@ ReactDOM.render(
                     <Route path="variance-analysis/variance-data-grid" name="Variance Analysis Grid" component={VarianceAnalysisGrid} />
                     <Route path="variance-analysis/variance-chart" name="Variance Analysis Chart" component={VarianceAnalysisChart} />
                     <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(ManageDefChange)} />
+                    <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(ManageDataChange)} />
                     <Route path="manage-roles" name="Role Management" component={ManageRoles} />
                     <Route path="manage-roles/add-roles" name="Add Role" component={AddRoles} />
                     <Route path="manage-users" name="User Management" component={ManageUsers} />

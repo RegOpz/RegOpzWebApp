@@ -96,6 +96,9 @@ class LeftMenu extends Component {
                                       <li>
                                           <Link to="/dashboard/workflow/manage-def-change"> Manage Definition Change</Link>
                                       </li>
+                                      <li>
+                                          <Link to="/dashboard/workflow/manage-data-change"> Manage Data Change</Link>
+                                      </li>
                                     </ul>
                                 </li>
                                 <li>

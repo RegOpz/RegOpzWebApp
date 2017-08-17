@@ -1,0 +1,33 @@
+.form-container{
+  min-height: 90vh;
+}
+
+.def-change-list{
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.form-def-change-detail{
+  height: 80vh;
+  overflow-y: auto;
+}
+
+.list_item_active:hover{
+  cursor:pointer;
+  color: white;
+  background-color: #546784;
+}
+
+.list_item_select{
+  color: white;
+  background-color:#546784 !important;
+}
+
+.panel_list_item_active:hover{
+  cursor:pointer;
+  background-color: #f7f7f7;
+}
+
+.column-name{
+  background-color: #777;
+}

@@ -17,6 +17,7 @@ export const componentMaptoName={
     VarianceAnalysisGrid:"Variance Analysis Grid",
     VarianceAnalysisChart:"Variance Analysis Chart",
     ManageDefChange:"Manage Definition Change",
+    ManageDataChange:"Manage Data Change",
     ManageRoles:"Role Management",
     AddRoles:"Add Role",
     ManageUsers:"User Management"
