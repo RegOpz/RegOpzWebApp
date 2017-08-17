@@ -177,6 +177,7 @@ class MaintainBusinessRules extends Component {
       this.selectedRowItem = null;
       this.selectedRow = null;
     }
+    this.props.fetchBusinesRules(this.currentPage);
   }
 
   handleRuleLinkage() {
@@ -244,6 +245,7 @@ class MaintainBusinessRules extends Component {
         this.selectedRow = null;
       }
     }
+    this.props.fetchBusinesRules(this.currentPage);
 
   }
 
@@ -265,7 +267,7 @@ class MaintainBusinessRules extends Component {
       //}
       console.log("Linkage data ", this.linkageData);
       return (
-        <div className="maintain_business_rules_container">
+        <div className="maintain_business_rules_container form-container">
 
         <h4>Maintain Business Rules</h4>
         {

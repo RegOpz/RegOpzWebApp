@@ -100,7 +100,8 @@ class RuleAssist extends Component {
         let currentFormula = this.state.currentFormula ? this.state.currentFormula : "";
         currentFormula += ' [' + element + '] ';
         this.setState({
-            currentFormula: currentFormula
+            currentFormula: currentFormula,
+            validationState: false,
         });
     }
 
@@ -109,7 +110,8 @@ class RuleAssist extends Component {
         let currentFormula = value;
 
         this.setState({
-            currentFormula: currentFormula
+            currentFormula: currentFormula,
+            validationState: false,
         });
     }
 
