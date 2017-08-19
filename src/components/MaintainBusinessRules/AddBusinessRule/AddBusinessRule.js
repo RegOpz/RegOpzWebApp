@@ -247,11 +247,14 @@ class AddBusinessRule extends Component {
       return (
         <h1>Loading...</h1>
       )
-    } else if (this.state.showRuleAssist) {
+    }
+    else if (this.state.showRuleAssist) {
+      console.log("Rule assists", this.props.editable);
       return (
         <RuleAssist
           rule={this.state.ruleAssistProps.rule}
           sourceTable={this.state.ruleAssistProps.sourceTable}
+          editable={ !this.state.readOnly }
           cancelEditing={() => {
             this.setState({ showRuleAssist: false });
           }}

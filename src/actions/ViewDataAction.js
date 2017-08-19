@@ -90,10 +90,10 @@ export function actionUpdateSourceData(data) {
 }
 
 // TODO:
-export function actionFetchSource(business_date) {
+export function actionFetchSource(startDate='19000101',endDate='39991231', catalog_type) {
   return {
     type: FETCH_SOURCE,
-    payload: axios.get(BASE_URL + "view-data/get-sources?business_date=" + business_date)
+    payload: axios.get(BASE_URL + "view-data/get-sources?startDate=" + startDate + "&endDate=" + endDate + "&catalog_type=" + catalog_type)
   }
 }
 

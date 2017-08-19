@@ -2,17 +2,15 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 import { bindActionCreators, dispatch } from 'redux'
-import { Link } from 'react-router';
+import { Button } from 'react-bootstrap';
 import moment from 'moment'
 import axios from 'axios'
 import Collapsible from '../CollapsibleModified/Collapsible'
 import {
-  actionFetchSource,
-  actionFetchReportFromDate ,
-  actionGenerateReport,
   actionApplyRules
 } from '../../actions/ViewDataAction'
 import { BASE_URL } from '../../Constant/constant'
+require('./ViewDataComponentStyle.css');
 
 class SourceTreeInfoComponent extends Component {
   constructor(props) {
@@ -47,7 +45,7 @@ class SourceTreeInfoComponent extends Component {
       )
     } else {
         return(
-          <table className="table">
+          <table className="table table-hover">
             <thead>
               <tr>
                 <th>Source ID</th>
@@ -62,18 +60,36 @@ class SourceTreeInfoComponent extends Component {
               return (
                 <tr key={index}>
                   <td>{item.source_id}</td>
-                  <td><Link to={`/dashboard/view-data-on-grid?business_date=${item.business_date}&source_id=${item.source_id}`}>{item.data_file_name}</Link></td>
+                  <td>
+                    <button
+                      className="btn btn-link btn-xs"
+                      onClick={
+                        ()=>{
+                          console.log("Inside file name click",item.data_file_name)
+                        }
+                      }
+                      >
+                      <small>
+                        <i className="fa fa-file-text"></i>
+                        {' '}{item.data_file_name}
+                      </small>
+                    </button>
+                  </td>
                   <td>{item.file_load_status}</td>
                   <td>{item.data_loaded_by}</td>
                   <td>
+                    <div className="ops_icons">
+                    <div className="btn-group">
                     <button
                       className="btn btn-primary btn-xs"
                       data-toggle="tooltip"
                       data-placement="top"
                       title="Operation Log History"
                     >
-                      <span className="fa fa-history" aria-hidden="true"></span>
+                      <i className="fa fa-history" aria-hidden="true"></i>
                     </button>
+                    </div>
+                    <div className="btn-group">
                     <button
                       className="btn btn-success btn-xs"
                       onClick={
@@ -90,8 +106,10 @@ class SourceTreeInfoComponent extends Component {
                       data-placement="top"
                       title="Apply Rules"
                     >
-                      <span className="fa fa-flash" aria-hidden="true"></span>
+                      <i className="fa fa-flash" aria-hidden="true"></i>
                     </button>
+                  </div>
+                    </div>
                   </td>
                 </tr>
               )
@@ -119,18 +137,9 @@ class SourceTreeInfoComponent extends Component {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchSource:(business_date) => {
-      dispatch(actionFetchSource(business_date));
-    },
-    fetchReportFromDate:(source_id,business_date,page) => {
-      dispatch(actionFetchReportFromDate(source_id,business_date,page));
-    },
-    generateReport:(report_info) => {
-      dispatch(actionGenerateReport(report_info));
-    },
     applyRules:(source_info) => {
       dispatch(actionApplyRules(source_info));
-    }
+    },
   }
 }
 

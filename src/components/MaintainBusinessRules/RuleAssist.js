@@ -41,9 +41,10 @@ class RuleAssist extends Component {
             result: [],
             displayResult: [],
             activePage: 1,
-            totalItems: 0,
+            isValidationRun: false,
             attr: {},
-            validationState: false
+            validationState: false,
+            readOnly: this.props.editable
         };
         console.log(this.props);
 
@@ -59,6 +60,7 @@ class RuleAssist extends Component {
 
     componentWillMount() {
         let attr = {};
+        console.log("Inside componentWillMount");
         attr["id"] = "";
         attr["business_date"] = "";
         if( this.state.columns != null){
@@ -74,25 +76,27 @@ class RuleAssist extends Component {
 
     componentWillReceiveProps(nextProps) {
         console.log('Next Props: ', nextProps);
-        let validationState = false;
-        let slicedResults = nextProps.rule_assist.slice(0, 10);
-        let attr = {};
-        attr["id"] = "";
-        attr["business_date"] = "";
-        if( this.state.columns != null){
-          this.state.columns.map((item, index) => {
-            attr[`${item}`] = "";
+        if ( this.state.isValidationRun ){
+          let validationState = false;
+          let slicedResults = nextProps.rule_assist.slice(0, 10);
+          let attr = {};
+          attr["id"] = "";
+          attr["business_date"] = "";
+          if( this.state.columns != null){
+            this.state.columns.map((item, index) => {
+              attr[`${item}`] = "";
+            });
+          }
+          if( ! _.find(nextProps.rule_assist,{status:"INVALID"})){
+              validationState = true;
+          }
+          this.setState({
+              result: nextProps.rule_assist,
+              displayResult: slicedResults,
+              attr: attr,
+              validationState: validationState
           });
         }
-        if( ! _.find(nextProps.rule_assist,{status:"INVALID"})){
-            validationState = true;
-        }
-        this.setState({
-            result: nextProps.rule_assist,
-            displayResult: slicedResults,
-            attr: attr,
-            validationState: validationState
-        });
 
     }
 
@@ -145,7 +149,8 @@ class RuleAssist extends Component {
 
         let validationState = false;
         this.setState({
-            validationState: validationState
+            validationState: validationState,
+            isValidationRun: true
         });
 
         this.props.validateExp(
@@ -228,7 +233,7 @@ class RuleAssist extends Component {
 
     render() {
         return (
-            <div>
+            <div className="x_panel">
                 <div className="row form-container">
                     <div className="col col-lg-12">
                         <div className="x_title">
@@ -251,143 +256,143 @@ class RuleAssist extends Component {
                                 this.renderPythonLogic()
                             }
                         </div>
-                        <div className="col-md-5 col-sm-5 col-xs-12">
-                            <div className="x_panel">
-                                <div className="x_title">
-                                    <h2>Sampling Option <Label>{this.state.tableName}</Label>
-                                        <small> Using Data</small>
-                                    </h2>
-                                    <div className="clearfix"></div>
-                                </div>
-                                <div className="x_content">
+                          <div className="col-md-5 col-sm-5 col-xs-12">
+                              <div className="x_panel">
+                                  <div className="x_title">
+                                      <h2>Sampling Option <Label>{this.state.tableName}</Label>
+                                          <small> Using Data</small>
+                                      </h2>
+                                      <div className="clearfix"></div>
+                                  </div>
+                                  <div className="x_content">
 
-                                    <div className="row">
-                                        <FormGroup>
-                                            <ControlLabel bsClass="col-md-4 col-sm-4 col-xs-4">Sample Size <span className="required">*</span></ControlLabel>
-                                            <FormControl
-                                                type='number'
-                                                value={this.state.sampleSize}
-                                                onChange={this.handleSampleSizeChange}
-                                                bsClass="col-md-3 col-sm-3 col-xs-3"
-                                                placeholder='Enter the sample size'
-                                            />
-                                        </FormGroup>
-                                    </div>
-                                    <div className="row">
-                                        <FormGroup>
-                                            <ControlLabel bsClass="control-label col-md-4 col-sm-4 col-xs-4">Business Date <span className="required">*</span></ControlLabel>
-                                            <DatePicker
-                                                dateFormat="DD-MMM-YYYY"
-                                                className="col-md-7 col-sm-7 col-xs-7"
-                                                placeholderText='Select a date'
-                                                onChange={this.handleDateChange}
-                                                selected={this.state.businessDate}
-                                            />
-                                        </FormGroup>
-                                    </div>
-                                </div>
-                            </div>
+                                      <div className="row">
+                                          <FormGroup>
+                                              <ControlLabel bsClass="col-md-5 col-sm-5 col-xs-5">Sample Size <span className="required">*</span></ControlLabel>
+                                              <FormControl
+                                                  type='number'
+                                                  value={this.state.sampleSize}
+                                                  onChange={this.handleSampleSizeChange}
+                                                  bsClass="col-md-3 col-sm-3 col-xs-3"
+                                                  placeholder='Enter the sample size'
+                                              />
+                                          </FormGroup>
+                                      </div>
+                                      <div className="row">
+                                          <FormGroup>
+                                              <ControlLabel bsClass="control-label col-md-5 col-sm-5 col-xs-5">Business Date <span className="required">*</span></ControlLabel>
+                                              <DatePicker
+                                                  dateFormat="DD-MMM-YYYY"
+                                                  className="col-md-7 col-sm-7 col-xs-7"
+                                                  placeholderText='Select a date'
+                                                  onChange={this.handleDateChange}
+                                                  selected={this.state.businessDate}
+                                              />
+                                          </FormGroup>
+                                      </div>
+                                  </div>
+                              </div>
 
-                        </div>
-                        <div className="col-md-7 col-sm-7 col-xs-12">
-                            <div className="x_panel">
-                                <div className="x_title">
-                                    <h2>Data Fields Value Option
-                                        <small> User Data</small>
-                                    </h2>
-                                    <div className="clearfix"></div>
-                                </div>
-                                <div className="x_content">
-                                    {
-                                        this.state.columns.map((item, index) => {
-                                            return (
-                                                <div
-                                                    className="row"
-                                                    key={item}
-                                                >
-                                                    <FormGroup>
-                                                      <ControlLabel bsClass="control-label col-md-4 col-sm-4 col-xs-12">{item}</ControlLabel>
-                                                        <FormControl
-                                                            placeholder={'Enter value of ' + item.toUpperCase()}
-                                                            value= {this.state.attr[item]}
-                                                            type="text"
-                                                            bsClass="col-md-7 col-sm-7 col-xs-7"
-                                                            onChange={
-                                                              (event)=>{
-                                                                let attr = this.state.attr;
-                                                                attr[item] = event.target.value;
-                                                                console.log("Inside onchange attr",attr)
-                                                                this.setState({attr: attr});
+                          </div>
+                          <div className="col-md-7 col-sm-7 col-xs-12">
+                              <div className="x_panel">
+                                  <div className="x_title">
+                                      <h2>Data Fields Value Option
+                                          <small> User Data</small>
+                                      </h2>
+                                      <div className="clearfix"></div>
+                                  </div>
+                                  <div className="x_content">
+                                      {
+                                          this.state.columns.map((item, index) => {
+                                              return (
+                                                  <div
+                                                      className="row"
+                                                      key={item}
+                                                  >
+                                                      <FormGroup>
+                                                        <ControlLabel bsClass="control-label col-md-4 col-sm-4 col-xs-12">{item}</ControlLabel>
+                                                          <FormControl
+                                                              placeholder={'Enter value of ' + item.toUpperCase()}
+                                                              value= {this.state.attr[item]}
+                                                              type="text"
+                                                              bsClass="col-md-7 col-sm-7 col-xs-7"
+                                                              onChange={
+                                                                (event)=>{
+                                                                  let attr = this.state.attr;
+                                                                  attr[item] = event.target.value;
+                                                                  console.log("Inside onchange attr",attr)
+                                                                  this.setState({attr: attr});
+                                                                }
                                                               }
-                                                            }
-                                                        />
-                                                    </FormGroup>
-                                                </div>
-                                            );
-                                        })
-                                    }
-                                </div>
-                            </div>
+                                                          />
+                                                      </FormGroup>
+                                                  </div>
+                                              );
+                                          })
+                                      }
+                                  </div>
+                              </div>
 
-                        </div>
-                    </div>
-                </div>
-
-                  <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button"
-                        className="btn btn-primary"
-                        onClick={this.props.cancelEditing}>
-                        Cancel
-                    </button>
-
-                    <button type="submit"
-                        className="btn btn-success"
-                        disabled={!this.state.validationState}
-                        onClick={()=>{this.props.handleSaveEditing(this.state.currentFormula)}}
-                    >
-                        Save
-                    </button>
-
-                    <button type="button"
-                        className="btn btn-warning"
-                        disabled=""
-                        onClick={this.handleValidationClick}>
-                        Validate
-                    </button>
+                          </div>
+                      </div>
                   </div>
+                    <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                      <button type="button"
+                          className="btn btn-primary"
+                          onClick={this.props.cancelEditing}>
+                          Cancel
+                      </button>
 
-                <div className="clearfix"></div>
-                <div>
-                {
-                    this.state.result.length > 0 &&
-                    <div>
-                        <Table className="table table-hover" striped bordered condensed>
-                            {
-                                this.renderTableHeader(this.state.result[0].attr)
-                            }
-                            <tbody>
-                                {
-                                    this.state.displayResult.map(element => {
-                                        return this.renderResultTableRow(element.msg, element.status, element.attr);
-                                    })
-                                }
-                            </tbody>
-                        </Table>
-                        <Pagination
-                            next
-                            prev
-                            first
-                            last
-                            ellipsis
-                            boundaryLinks
-                            maxButtons={5}
-                            items={Math.ceil(this.state.result.length/10)}
-                            activePage={this.state.activePage}
-                            onSelect={this.activatePage}
-                        />
+                      <button type="submit"
+                          className="btn btn-success"
+                          disabled={!this.state.validationState || !this.state.readOnly }
+                          onClick={()=>{this.props.handleSaveEditing(this.state.currentFormula)}}
+                      >
+                          Save
+                      </button>
+
+                      <button type="button"
+                          className="btn btn-warning"
+                          disabled=""
+                          onClick={this.handleValidationClick}>
+                          Validate
+                      </button>
                     </div>
-                  }
-                </div>
+
+                  <div className="clearfix"></div>
+
+                  <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                  {
+                      this.state.result.length > 0 &&
+                      <div className="row">
+                          <Table bsClass="table table-striped table-bordered dataTable no-footer dtr-inline" striped bordered condensed>
+                              {
+                                  this.renderTableHeader(this.state.result[0].attr)
+                              }
+                              <tbody>
+                                  {
+                                      this.state.displayResult.map(element => {
+                                          return this.renderResultTableRow(element.msg, element.status, element.attr);
+                                      })
+                                  }
+                              </tbody>
+                          </Table>
+                          <Pagination
+                              next
+                              prev
+                              first
+                              last
+                              ellipsis
+                              boundaryLinks
+                              maxButtons={5}
+                              items={Math.ceil(this.state.result.length/10)}
+                              activePage={this.state.activePage}
+                              onSelect={this.activatePage}
+                          />
+                      </div>
+                    }
+                  </div>
             </div >
         );
     }
@@ -409,6 +414,7 @@ class RuleAssist extends Component {
                                 return (
                                     <button type="button"
                                         name={item}
+                                        disabled={!this.state.readOnly}
                                         className="btn btn-default btn-sm"
                                         onClick={() => { this.handleFormFieldClick(item); }}
                                         key={item}
@@ -461,6 +467,7 @@ class RuleAssist extends Component {
                             return (
                                 <button type="button"
                                     name={item}
+                                    disabled={!this.state.readOnly}
                                     className="btn btn-default btn-xs"
                                     onClick={() => { this.handleFormFieldClick(item); }}
                                     key={item}
@@ -473,6 +480,7 @@ class RuleAssist extends Component {
                     <FormControl
                         componentClass="textarea"
                         type="text"
+                        disabled={!this.state.readOnly}
                         value={this.state.currentFormula}
                         onChange={this.updateFormula}
                         placeholder='Enter a formula here...'

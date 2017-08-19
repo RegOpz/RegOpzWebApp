@@ -3,7 +3,9 @@ import {
   VIEW_DATA_FETCH_REPORT_LINKAGE,
   SET_FORM_DISPLAY_DATA,
   RESET_FORM_DISPLAY_DATA,
-  SET_FORM_DISPLAY_COLS
+  SET_FORM_DISPLAY_COLS,
+  FETCH_SOURCE,
+  FETCH_REPORT_BY_DATE
 } from '../actions/ViewDataAction';
 
 // TODO:
@@ -13,6 +15,14 @@ export default function(state=[], action) {
     case FETCH_DATES:
       return Object.assign({}, state, {
         dates:action.payload.data
+      });
+    case FETCH_REPORT_BY_DATE:
+      return Object.assign({}, state, {
+        gridData:action.payload.data
+      });
+    case FETCH_SOURCE:
+      return Object.assign({}, state, {
+        dataCatalog:action.payload.data
       });
     case VIEW_DATA_FETCH_REPORT_LINKAGE:
       return Object.assign({}, state, {
@@ -26,8 +36,8 @@ export default function(state=[], action) {
       return Object.assign({},state,{
         form_cols:action.payload.cols,table_name:action.payload.table_name
       });
-      case RESET_FORM_DISPLAY_DATA:
-        return Object.assign({},state,{form_data:action.payload});
+    case RESET_FORM_DISPLAY_DATA:
+      return Object.assign({},state,{form_data:action.payload});
 
     default:
     	return state;

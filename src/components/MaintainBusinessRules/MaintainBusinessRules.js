@@ -161,7 +161,7 @@ class MaintainBusinessRules extends Component {
 
   handleAddRule() {
     let isOpen = this.state.showAddRule;
-    console.log("Inside handleAddRule",this.state.handleAddRule);
+    console.log("Inside handleAddRule",this.state.itemEditable);
     if (!isOpen) {
       this.setState({
         showToggleColumns: false,
@@ -276,9 +276,31 @@ class MaintainBusinessRules extends Component {
       //}
       console.log("Linkage data ", this.linkageData);
       return (
-        <div className="maintain_business_rules_container form-container">
-
-        <h4>Maintain Business Rules</h4>
+        <div className="maintain_business_rules_container form-container x_panel">
+          <div className="row">
+            <ul className="nav navbar-left">
+              <h4>Maintain Business Rules</h4>
+            </ul>
+            <ul className="nav navbar-right panel_toolbox">
+              <li>
+                <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                  <i className="fa fa-cubes"></i>
+                  <small>{' Sources '}</small>
+                  <i className="fa fa-caret-down"></i>
+                </a>
+                <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                  <li>
+                    <ShowToggleColumns
+                        columns={this.cols}
+                        saveSelection={this.displaySelectedColumns}
+                        selectedViewColumns={this.selectedViewColumns}
+                        handleClose={this.handleToggle}
+                      />
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
         {
           this.state.showAddRule ||
           this.state.showRuleReportLinkage ||
@@ -291,7 +313,7 @@ class MaintainBusinessRules extends Component {
                 data-toggle="tooltip"
                 data-placement="top"
                 title="Refresh"
-                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                className="btn btn-circle btn-link btn-primary business_rules_ops_buttons btn-xs"
                 onClick={
                   (event) => {
                     this.setState({
@@ -319,7 +341,7 @@ class MaintainBusinessRules extends Component {
                   }
                 }
               >
-                <i className="fa fa-refresh"></i>
+                <i className="fa fa-refresh"></i>{' Refresh'}
               </button>
             </div>
             <div className="btn-group">
@@ -330,10 +352,10 @@ class MaintainBusinessRules extends Component {
                 onClick={
                   this.handleInsertClick
                 }
-                className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
                 disabled={!this.writeOnly}
               >
-                <i className="fa fa-plus"></i>
+                <i className="fa fa-plus"></i>{' Add'}
               </button>
             </div>
 
@@ -345,10 +367,10 @@ class MaintainBusinessRules extends Component {
                 onClick={
                   this.handleDuplicateClick.bind(this)
                 }
-                className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
                 disabled={!this.writeOnly}
               >
-                <i className="fa fa-copy"></i>
+                <i className="fa fa-copy"></i>{' Duplicate'}
               </button>
             </div>
             <div className="btn-group">
@@ -359,9 +381,9 @@ class MaintainBusinessRules extends Component {
                 onClick={
                   this.handleUpdateClick
                 }
-                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
               >
-                <i className="fa fa-pencil"></i>
+                <i className="fa fa-pencil"></i>{' Details'}
               </button>
             </div>
 
@@ -373,21 +395,126 @@ class MaintainBusinessRules extends Component {
                 onClick={
                   this.handleDeleteClick.bind(this)
                 }
-                className="btn btn-circle btn-warning business_rules_ops_buttons btn-xs"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
                 disabled={!this.writeOnly}
               >
-                <i className="fa fa-remove"></i>
+                <i className="fa fa-remove"></i>{' Delete'}
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                onClick={this.handleRuleLinkage}
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Report Link"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+              >
+                <i className="fa fa-link"></i>{' Report Link'}
               </button>
             </div>
 
 
+            <div className="btn-group">
+              <button
+                onClick={this.handleDefAuditHistory}
+                data-toggle="tooltip"
+                data-placement="top"
+                title="History"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+              >
+                <i className="fa fa-history"></i>{' History'}
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Export CSV"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+                onClick={
+                  (event) => {
+                    axios.get(`${BASE_URL}business-rule/export_to_csv`)
+                      .then(function (response) {
+                        console.log("export csv", response);
+                        window.location.href = BASE_URL + "../../static/" + response.data.file_name;
+                      })
+                      .catch(function (error) {
+                        console.log(error);
+                      });
+                  }
+                }
+              >
+                <i className="fa fa-table"></i>{' Export'}
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Deselect All"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
+                disabled={!this.viewOnly}
+                onClick={
+                  (event) => {
+                    if ( this.flatGrid ){
+                      this.selectedRows = this.flatGrid.deSelectAll();
+                    } else {
+                      this.selectedRows = [];
+                    }
+                    this.selectedRowItem = null;
+                    this.selectedRow = null;
+                    this.selectedRulesAsString = null;
+                    $("button[title='Rule Details']").prop('disabled', false);
+                    if (this.writeOnly) {
+                      $("button[title='Delete']").prop('disabled', false);
+                      $("button[title='Duplicate']").prop('disabled', false);
+                    }
+                  }
+                }
+              >
+                <i className="fa fa-window-maximize"></i>{' Deselect'}
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Select Display Columns"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
+                onClick={this.handleToggle}
+              >
+                <i className="fa fa-th-large"></i>{' Columns'}
+              </button>
+            </div>
+
+            <div className="btn-group">
+              <button
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Rule Assist"
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs"
+                onClick={this.toggleRuleAssist}
+                disabled={!this.writeOnly}
+              >
+                <i className="fa fa-superscript"></i>{' Rule Assist'}
+              </button>
+            </div>
+
+            <div>
             <div className="btn-group">
               <button data-toggle="tooltip" data-placement="top" title="First" onClick={(event) => {
                 this.currentPage = 0;
                 this.props.fetchBusinesRules(this.currentPage, this.orderBy);
                 this.forceUpdate();
               }}
-                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs">
                 <i className="fa fa-fast-backward"></i>
               </button>
             </div>
@@ -401,7 +528,7 @@ class MaintainBusinessRules extends Component {
                 }
 
               }}
-                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+                className="btn btn-circle btn-link business_rules_ops_buttons btn-xs">
                 <i className="fa fa-chevron-left"></i>
               </button>
             </div>
@@ -432,7 +559,7 @@ class MaintainBusinessRules extends Component {
                 }
                 type="text"
                 value={this.currentPage}
-                className="form-control" />
+                className="form-control btn btn-circle btn-xs" />
             </div>
 
             <div className="btn-group">
@@ -442,7 +569,7 @@ class MaintainBusinessRules extends Component {
                   this.props.fetchBusinesRules(this.currentPage, this.orderBy);
                   this.forceUpdate();
                 }
-              }} className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+              }} className="btn btn-circle btn-link business_rules_ops_buttons btn-xs">
                 <i className="fa fa-chevron-right"></i>
               </button>
             </div>
@@ -453,116 +580,11 @@ class MaintainBusinessRules extends Component {
                 this.currentPage = this.pages - 1;
                 this.props.fetchBusinesRules(this.currentPage, this.orderBy);
                 this.forceUpdate();
-              }} className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs">
+              }} className="btn btn-circle btn-link business_rules_ops_buttons btn-xs">
                 <i className="fa fa-fast-forward"></i>
               </button>
             </div>
-
-
-            <div className="btn-group">
-              <button
-                onClick={this.handleRuleLinkage}
-                data-toggle="tooltip"
-                data-placement="top"
-                title="Report Link"
-                className="btn btn-circle btn-info business_rules_ops_buttons btn-xs"
-                disabled={!this.viewOnly}
-              >
-                <i className="fa fa-link"></i>
-              </button>
-            </div>
-
-
-            <div className="btn-group">
-              <button
-                onClick={this.handleDefAuditHistory}
-                data-toggle="tooltip"
-                data-placement="top"
-                title="History"
-                className="btn btn-circle btn-primary business_rules_ops_buttons btn-xs"
-                disabled={!this.viewOnly}
-              >
-                <i className="fa fa-history"></i>
-              </button>
-            </div>
-
-            <div className="btn-group">
-              <button
-                data-toggle="tooltip"
-                data-placement="top"
-                title="Export CSV"
-                className="btn btn-circle btn-success business_rules_ops_buttons btn-xs"
-                disabled={!this.viewOnly}
-                onClick={
-                  (event) => {
-                    axios.get(`${BASE_URL}business-rule/export_to_csv`)
-                      .then(function (response) {
-                        console.log("export csv", response);
-                        window.location.href = BASE_URL + "../../static/" + response.data.file_name;
-                      })
-                      .catch(function (error) {
-                        console.log(error);
-                      });
-                  }
-                }
-              >
-                <i className="fa fa-table"></i>
-              </button>
-            </div>
-
-            <div className="btn-group">
-              <button
-                data-toggle="tooltip"
-                data-placement="top"
-                title="Deselect All"
-                className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
-                disabled={!this.viewOnly}
-                onClick={
-                  (event) => {
-                    if ( this.flatGrid ){
-                      this.selectedRows = this.flatGrid.deSelectAll();
-                    } else {
-                      this.selectedRows = [];
-                    }
-                    this.selectedRowItem = null;
-                    this.selectedRow = null;
-                    this.selectedRulesAsString = null;
-                    $("button[title='Rule Details']").prop('disabled', false);
-                    if (this.writeOnly) {
-                      $("button[title='Delete']").prop('disabled', false);
-                      $("button[title='Duplicate']").prop('disabled', false);
-                    }
-                  }
-                }
-              >
-                <i className="fa fa-window-maximize"></i>
-              </button>
-            </div>
-
-            <div className="btn-group">
-              <button
-                data-toggle="tooltip"
-                data-placement="top"
-                title="Select Display Columns"
-                className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
-                onClick={this.handleToggle}
-              >
-                <i className="fa fa-th-large"></i>
-              </button>
-            </div>
-
-            <div className="btn-group">
-              <button
-                data-toggle="tooltip"
-                data-placement="top"
-                title="Rule Assist"
-                className="btn btn-circle btn-default business_rules_ops_buttons btn-xs"
-                onClick={this.toggleRuleAssist}
-                disabled={!this.writeOnly}
-              >
-                <i className="fa fa-superscript"></i>
-              </button>
-            </div>
+          </div>
 
           </div>
           }
@@ -628,6 +650,7 @@ class MaintainBusinessRules extends Component {
                 cancelEditing={this.toggleRuleAssist}
                 handleSaveEditing={this.handleSaveEditing.bind(this)}
                 handleClose={this.toggleRuleAssist}
+                editable={ this.writeOnly && this.state.itemEditable }
               />
           }
           {

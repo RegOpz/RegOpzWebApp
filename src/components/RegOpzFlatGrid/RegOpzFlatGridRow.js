@@ -63,7 +63,7 @@ export default class RegOpzFlatGridRow extends Component {
                                               var index = this.selectedRows.indexOf(item);
                                               this.selectedRows.splice(index, 1);
                                             } else {
-                                              if(this.props.isMultiSelectAllowed){
+                                              if(!this.props.isMultiSelectAllowed){
                                                 console.log('To uncheck the previously selected checkbox in data view mode')
                                                 this.selectedRows = [];
                                               }
