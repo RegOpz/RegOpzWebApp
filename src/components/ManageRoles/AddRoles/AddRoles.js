@@ -12,7 +12,7 @@ import {
     actionDeleteRoles
 } from '../../../actions/RolesAction';
 import Breadcrumbs from 'react-breadcrumbs';
-import InfoModal from '../../InfoModal/InfoModal';
+import AuditModal from '../../AuditModal/AuditModal';
 import ModalAlert from '../../ModalAlert/ModalAlert';
 import ViewRole from '../ViewRole';
 require('./AddRoles.css');
@@ -23,13 +23,13 @@ class AddRolesComponent extends Component {
         this.state = {
             role: this.props.location.query['role'],
             permissions: null,
-            selectedComponent: null
+            selectedComponent: null,
+            showAuditModal: false
         };
         this.dataSource = null;
         this.formData = [];
         this.componentList = null;
         this.permissionList = null;
-        this.infoModal = null;
         this.modalAlert = null;
         this.buttonClicked = null;
         this.isDefaultChecked = this.isDefaultChecked.bind(this);
@@ -131,14 +131,15 @@ class AddRolesComponent extends Component {
                           </form>
                           <div className="clearfix"></div>
                       </div>
-                      <InfoModal
-                      title={ this.state.role }
-                      ref={ (infoModal) => { this.infoModal = infoModal }}
-                      onClickOkay={ this.goPreviousPage }/>
                       <ModalAlert
-                      showDiscard={ true }
-                      ref={ (modalAlert) => { this.modalAlert = modalAlert }}
-                      onClickOkay= { this.onClickOkay }/>
+                        showDiscard={ true }
+                        ref={ (modalAlert) => { this.modalAlert = modalAlert }}
+                        onClickOkay= { this.onClickOkay }
+                      />
+                      <AuditModal
+                        showModal={ this.state.showAuditModal }
+                        onClickOkay={ this.formSubmit }
+                      />
                   </div>
               </div>
             </div>
@@ -383,16 +384,9 @@ class AddRolesComponent extends Component {
     onClickOkay(e) {
         if (this.buttonClicked == 'Cancel') {
             this.goPreviousPage();
-        } else if (this.buttonClicked == 'Delete') {
-            this.props.deleteRow(this.state.role);
-        } else if (this.buttonClicked == 'Submit') {
-            this.formSubmit();
+        } else {
+            this.setState({ showAuditModal: true });
         }
-        if (typeof this.props.message !== 'undefined') {
-          console.log(this.props.message);
-          //this.infoModal.open(this.props.message.msg);
-        }
-        this.goPreviousPage(); //Unless infoModal starts working!
     }
 
     handleCancel(e) {
@@ -411,15 +405,21 @@ class AddRolesComponent extends Component {
         this.modalAlert.open(this.renderSubmitRole());
     }
 
-    formSubmit() {
-        this.savePrevious();
-        if (this.dataSource != null) {
-            let formData = { ...this.dataSource, role: this.state.role} ;
-            console.log("Submiting form data:", formData);
-            this.props.submitForm(formData)
-        } else {
-            console.log("Nothing to commit, no data found!");
+    formSubmit(form) {
+        if (this.buttonClicked == 'Delete') {
+            console.log("410:", form.comment);
+            this.props.deleteRow(this.state.role, form.comment);
+        } else if (this.buttonClicked == 'Submit') {
+            this.savePrevious();
+            if (this.dataSource != null) {
+                let formData = { ...this.dataSource, role: this.state.role, comment: form.comment } ;
+                console.log("Submiting form data:", formData);
+                this.props.submitForm(formData)
+            } else {
+                console.log("Nothing to commit, no data found!");
+            }
         }
+        this.goPreviousPage();
     }
 
     renderSubmitRole() {
@@ -459,8 +459,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchPermissions: () => {
         dispatch(actionFetchPermissions());
     },
-    deleteRow: (role) => {
-        dispatch(actionDeleteRoles(role));
+    deleteRow: (role, comment) => {
+        dispatch(actionDeleteRoles(role, comment));
     },
     submitForm: (data) => {
         dispatch(actionUpdateRoles(data));

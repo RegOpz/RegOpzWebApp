@@ -20,7 +20,7 @@ export function actionFetchRoles(role) {
         actionType = FETCH_ONE_ROLE_ACTION;
     }
     console.log("Fetching roles from API.");
-    const request = axios.get(curl);
+    const request = axios.get(encodeURI(curl));
     console.log("Fetch roles request response:", request);
     return {
         type: actionType,
@@ -30,9 +30,9 @@ export function actionFetchRoles(role) {
 
 // TODO: Get the list of Permissions available
 export function actionFetchPermissions() {
-    let purl = BASE_URL + "permissions";
+    const purl = BASE_URL + "permissions";
     console.log("Fetching permissions from API.");
-    const request = axios.get(purl);
+    const request = axios.get(encodeURI(purl));
     console.log("Fetch permissions request response:", request);
     return {
         type: FETCH_PERMISSION_ACTION,
@@ -44,7 +44,7 @@ export function actionFetchPermissions() {
 export function actionUpdateRoles(data) {
     if (typeof data !== 'undefined') {
         console.log("Sending roles to API.", data);
-        const request = axios.post(url, data);
+        const request = axios.post(encodeURI(url), data);
         console.log("Update roles request response:", request);
         return {
             type: UPDATE_ROLE_ACTION,
@@ -54,10 +54,14 @@ export function actionUpdateRoles(data) {
 }
 
 // TODO: Delete role data
-export function actionDeleteRoles(role) {
+export function actionDeleteRoles(role, comment) {
     if (typeof role !== 'undefined') {
-        console.log("Deleting roles to API.", role);
-        const request = axios.delete(url + `/${role}`);
+        console.log("Deleting roles to API.", role, comment);
+        let curl = url + `/${role}`;
+        if (typeof comment !== 'undefined' && comment !== null) {
+            curl += `?comment=${comment}`;
+        }
+        const request = axios.delete(encodeURI(curl));
         console.log("Delete roles request response:", request);
         return {
             type: DELETE_ROLE_ACTION,
