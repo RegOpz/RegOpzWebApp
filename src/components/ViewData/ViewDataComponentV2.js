@@ -415,7 +415,7 @@ class ViewDataComponentV2 extends Component {
 
    }
 
-   this.selectedItems = this.flatGrid.deSelectAll();
+   this.handleRefreshGrid(event);
 
   }
 
