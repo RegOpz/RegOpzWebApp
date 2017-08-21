@@ -538,7 +538,8 @@ class ViewDataComponentV2 extends Component {
                     <AddData
                       requestType={this.requestType}
                       form_data={this.form_data}
-                      form_cols={this.props.gridData.cols}
+                      form_cols={this.selectedViewColumns}
+                      all_cols={this.props.gridData.cols}
                       businessDate={this.state.businessDate}
                       table_name={this.props.gridData.table_name}
                       handleClose={this.handleAdd}

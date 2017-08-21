@@ -8,6 +8,7 @@ import {
   actionDeleteFromSourceData,
   actionResetDisplayData
 } from '../../actions/ViewDataAction';
+import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
 
 require('./ViewDataComponentStyle.css');
 
@@ -35,12 +36,17 @@ class AddData extends Component {
     this.requestType=this.props.requestType;
     this.businessDate=this.props.businessDate;
     this.form_data=this.props.form_data;
-    this.form_cols=this.props.form_cols;
+    this.form_cols= this.props.form_cols.length ? this.props.form_cols : this.props.all_cols;
+    this.all_cols=this.props.all_cols;
     this.table_name=this.props.table_name;
     this.readOnly=this.props.readOnly;
     this.state={
-      audit_form:{comment:null}
+      audit_form:{comment:null},
+      showToggleColumns: false,
     }
+
+    this.handleToggle = this.handleToggle.bind(this);
+    this.displaySelectedColumns=this.displaySelectedColumns.bind(this);
   }
 
   componentDidMount(){
@@ -68,10 +74,42 @@ class AddData extends Component {
                 </h2>
                   <ul className="nav navbar-right panel_toolbox">
                     <li>
-                      <a className="close-link" onClick={()=>{this.props.handleClose(event)}}><i className="fa fa-close"></i></a>
+                      <a className="close-link"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Close"
+                        onClick={()=>{this.props.handleClose(event)}}>
+                        <i className="fa fa-close"></i>
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        className="close-link"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title="Columns"
+                        onClick={
+                          (event)=>{
+                            console.log("Clicked columns");
+                            this.handleToggle(event);
+                          }
+                        }>
+                        <i className="fa fa-th-large"></i>
+                      </a>
                     </li>
                   </ul>
                 <div className="clearfix"></div>
+              </div>
+              <div className="x_content">
+              {
+                this.state.showToggleColumns &&
+                <ShowToggleColumns
+                    columns={this.all_cols}
+                    saveSelection={this.displaySelectedColumns}
+                    selectedViewColumns={this.form_cols}
+                    handleClose={this.handleToggle}
+                  />
+              }
               </div>
               <div className="x_content">
                 <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit.bind(this)) }>
@@ -110,10 +148,10 @@ class AddData extends Component {
 
                   <div className="form-group">
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                      <button type="button" className="btn btn-primary" onClick={ this.handleCancel.bind(this) } disabled={ submitting }>
+                      <button type="button" className="btn btn-primary btn-xs" onClick={ this.handleCancel.bind(this) } disabled={ submitting }>
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-success" disabled={ pristine || submitting }>
+                      <button type="submit" className="btn btn-success btn-xs" disabled={ pristine || submitting }>
                         Submit
                       </button>
                     </div>
@@ -124,6 +162,35 @@ class AddData extends Component {
             </div>
           </div>
     );
+  }
+
+  handleToggle(event) {
+    console.log("Inside handleToggle");
+    let toggleValue = this.state.showToggleColumns;
+    if (!toggleValue) {
+      this.setState({
+        showToggleColumns: true,
+      });
+    }
+    else {
+      this.setState({
+        showToggleColumns: false,
+      });
+    }
+  }
+
+  displaySelectedColumns(columns) {
+    var selectedColumns = [];
+    for (let i = 0; i < columns.length; i++)
+      if (columns[i].checked)
+        selectedColumns.push(columns[i].name);
+
+    this.form_cols = selectedColumns;
+    //console.log(selectedColumns);
+    //console.log(this.selectedViewColumns);
+    this.setState({
+      showToggleColumns: false,
+    });
   }
 
   handleFormSubmit(submitData){
@@ -191,7 +258,7 @@ class AddData extends Component {
             type="text"
             component={renderField}
             label={ item }
-            readOnly={item == "id" || item=="business_date" || this.readOnly}
+            readOnly={item == "id" || item=="business_date" || item=="dml_allowed" || item=="in_use" || this.readOnly}
           />
       );
     });
