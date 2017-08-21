@@ -5,7 +5,7 @@
  .form-container {
    min-height: 90vh;
  }
- 
+
 .data-holder {
   border: 1px solid;
   min-height: 110px;
@@ -22,4 +22,8 @@
 
 .x_panel_overflow {
   overflow: auto;
+}
+
+.x_footer {
+    font-style: italic;
 }

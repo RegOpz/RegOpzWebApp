@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import { Label } from 'react-bootstrap';
+import moment from 'moment';
 
 export default class ViewRole extends Component {
     render() {
@@ -59,6 +60,9 @@ export default class ViewRole extends Component {
                     }
                     </ul>
                   </div>
+                </div>
+                <div className="x_footer">
+                  Last Updated By: { item.last_updated_by || "John Doe" } on { moment(item.last_updated_on).format("DD-MMM-YYYY") }
                 </div>
               </div>
             );
