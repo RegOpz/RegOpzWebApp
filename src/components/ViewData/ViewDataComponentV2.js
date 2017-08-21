@@ -4,16 +4,16 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
-import Collapsible from '../CollapsibleModified/Collapsible';
-import SourceTreeInfoComponent from './SourceTreeInfoComponent';
 import {
   //actionFetchDates,
   actionFetchSource,
-  actionFetchReportFromDate
+  actionFetchReportFromDate,
+  actionInsertSourceData,
+  actionUpdateSourceData,
+  actionDeleteFromSourceData
 } from '../../actions/ViewDataAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
-import Breadcrumbs from 'react-breadcrumbs';
 import RegOpzFlatGrid from '../RegOpzFlatGrid/RegOpzFlatGrid';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import AddData from './AddData';
@@ -34,8 +34,10 @@ class ViewDataComponentV2 extends Component {
       showDataGrid: false,
       showAddForm: false,
       showToggleColumns: false,
+      itemEditable: true,
       sourceId: null,
-      businessDate: null
+      businessDate: null,
+      showAuditModal: false,
     }
 
     this.pages=0;
@@ -45,6 +47,7 @@ class ViewDataComponentV2 extends Component {
     this.selectedIndexOfGrid = 0;
     this.form_data={};
     this.selectedViewColumns=[];
+    this.operationName=null;
     this.buttons=[
       {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No'},
       {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes'},
@@ -67,13 +70,16 @@ class ViewDataComponentV2 extends Component {
     this.handlePageNavigation = this.handlePageNavigation.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
-    this.handleClose = this.handleClose.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleToggle = this.handleToggle.bind(this);
     this.displaySelectedColumns=this.displaySelectedColumns.bind(this);
 
     this.handleSelectRow = this.handleSelectRow.bind(this);
     this.handleFullSelect = this.handleFullSelect.bind(this);
+    this.handleDuplicateClick=this.handleDuplicateClick.bind(this);
     this.handleUpdateRow = this.handleUpdateRow.bind(this);
+    this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
+    this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Data" }) ? true : false;
@@ -121,7 +127,7 @@ class ViewDataComponentV2 extends Component {
       case "Copy":
         return !this.writeOnly;
       case "Delete":
-        return !this.writeOnly;
+        return (!this.writeOnly || !this.state.itemEditable);
       default:
         console.log("No specific checkDisabled has been defined for ",item);
     }
@@ -172,13 +178,13 @@ class ViewDataComponentV2 extends Component {
         this.handleAdd(event,"add");
         break;
       case "Copy":
-        console.log("actionButtonClicked",itemClicked ,event);
+        this.handleDuplicateClick(event);
         break;
       case "Details":
         this.handleAdd(event,"update");
         break;
       case "Delete":
-        console.log("actionButtonClicked",itemClicked ,event);
+        this.handleDeleteClick(event);
         break;
       case "Report Link":
         console.log("actionButtonClicked",itemClicked ,event);
@@ -223,6 +229,7 @@ class ViewDataComponentV2 extends Component {
       case "PageOkay":
         if(event.key == "Enter"){
             if(event.target.value > this.pages){
+              this.modalAlert.isDiscardToBeShown = false;
               this.modalAlert.open("Page does not exists");
             } else {
               this.currentPage = event.target.value;
@@ -236,30 +243,10 @@ class ViewDataComponentV2 extends Component {
 
   }
 
-  handleClose(subForm) {
-    switch( subForm) {
-      case "Add":
-        let isOpen = this.state.showAddForm;
-        if(isOpen) {
-          this.setState({
-            showDataGrid: true,
-            showAddForm: false,
-            },
-            ()=>{
-                  if(this.selectedItems){
-                    this.selectedItems = this.flatGrid.deSelectAll();
-                  }
-                }
-          )
-        }
-      default:
-        console.log("No action for handleClose", subForm);
-    }
-  }
-
   handleRefreshGrid(event){
     this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
+    this.setState({itemEditable:true});
     this.fetchDataToGrid(event);
   }
 
@@ -274,21 +261,40 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleAdd(event,requestType){
-    if ( requestType == "add") {
-      this.selectedItems = this.flatGrid.deSelectAll();
+    let isOpen = this.state.showAddForm;
+    if(isOpen) {
+      this.setState({
+        showDataGrid: true,
+        showAddForm: false,
+        itemEditable: true,
+        },
+        ()=>{
+              if(this.selectedItems){
+                this.selectedItems = this.flatGrid.deSelectAll();
+              }
+            }
+      )
     } else {
-      if(this.selectedItems.length==0){
-          this.modalAlert.open("Please select a row");
-          return;
-      }else{
-        this.form_data = this.selectedItems[0];
+      let itemEditable = true;
+      if ( requestType == "add") {
+        this.selectedItems = this.flatGrid.deSelectAll();
+      } else {
+        if(this.selectedItems.length==0){
+            this.modalAlert.isDiscardToBeShown = false;
+            this.modalAlert.open("Please select a row");
+            return;
+        }else{
+          this.form_data = this.selectedItems[0];
+          itemEditable = (this.form_data.dml_allowed == "Y");
+        }
       }
+      this.requestType = requestType;
+      this.setState({
+          showDataGrid: false,
+          showAddForm: true,
+          itemEditable: itemEditable,
+        });
     }
-    this.requestType = requestType;
-    this.setState({
-        showDataGrid: false,
-        showAddForm: true,
-      });
   }
 
 
@@ -296,45 +302,120 @@ class ViewDataComponentV2 extends Component {
     console.log("Inside Single select....",this.selectedItems.length);
     if(this.selectedItems.length == 1){
       this.selectedIndexOfGrid = indexOfGrid;
+      this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
       console.log("Inside Single select ", indexOfGrid);
     }
-
-    // if (this.selectedItems.length > 1) {
-    //   console.log($("button [title='Delete']"));
-    //   $("button[title='Insert']").prop('disabled', true);
-    //   $("button[title='Delete']").prop('disabled', true);
-    //   $("button[title='Update']").prop('disabled', true);
-    //   $("button[title='Duplicate']").prop('disabled', true);
-    //   //console.log("Button property........:",$("button[title='Delete']").prop('disabled'));
-    //
-    // } else if (this.selectedItems.length == 1 && this.selectedItems[0]['dml_allowed'] == 'N') {
-    //   $("button[title='Insert']").prop('disabled', true);
-    //   $("button[title='Delete']").prop('disabled', true);
-    //   $("button[title='Update']").prop('disabled', true);
-    //   $("button[title='Duplicate']").prop('disabled', true);
-    // }else if (this.writeOnly) {
-    //   $("button[title='Insert']").prop('disabled', false);
-    //   $("button[title='Delete']").prop('disabled', false);
-    //   $("button[title='Update']").prop('disabled', false);
-    //   $("button[title='Duplicate']").prop('disabled', false);
-    // }
-
 
   }
 
 
   handleUpdateRow(row){
-    //this.operationName = "UPDATE";
-    // this.updateInfo = row;
-    // this.setState({ showAuditModal: true });
+    this.operationName = "UPDATE";
+    this.updateInfo = row;
+    this.setState({ showAuditModal: true });
   }
 
   handleFullSelect(items){
     console.log("Selected Items ", items);
 
     this.selectedItems = items;
-    // this.props.setDisplayCols(this.props.report[0].cols,this.props.report[0].table_name);
-    // this.props.setDisplayData(this.selectedItems[0]);
+    //this.props.setDisplayCols(this.props.gridData.cols,this.props.gridData.table_name);
+    //this.props.setDisplayData(this.selectedItems[0]);
+
+  }
+
+  handleDuplicateClick(event){
+    if(this.selectedItems.length != 1){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please select only one row")
+    } else {
+      this.modalAlert.isDiscardToBeShown = true;
+      this.operationName = "INSERT";
+      this.modalAlert.open(`Are you sure to create a copy of this record (ID: ${this.selectedItems[0]['id']}) ?`)
+    }
+  }
+
+  handleDeleteClick(event){
+      if(this.selectedItems.length != 1){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select only one row")
+        console.log("Inside OnClick delete ......",this.selectedItems);
+      } else {
+        this.modalAlert.isDiscardToBeShown = true;
+        this.operationName = "DELETE";
+        this.modalAlert.open(`Do you really want to delete this record (ID: ${this.selectedItems[0]['id']}) ?`)
+      }
+    }
+
+  handleModalOkayClick(event){
+    //console.log("showAuditModal",this.state.showAuditModal);
+    this.modalAlert.isDiscardToBeShown = false;
+    if(this.selectedItems.length==1 && (this.operationName=='DELETE'||this.operationName=='INSERT')){
+      this.setState({showAuditModal:true},
+          ()=>{console.log("showAuditModal",this.state.showAuditModal);});
+    }
+  }
+
+  handleAuditOkayClick(auditInfo){
+    let data={};
+    data["change_type"]=this.operationName;
+    data["table_name"]=this.props.gridData.table_name;
+
+    if(this.operationName=='INSERT'){
+      this.auditInfo={
+        table_name:data["table_name"],
+        id:null,
+        change_type:this.operationName,
+        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${data["table_name"]}`,
+        maker:this.props.login_details.user,
+        business_date:this.state.businessDate
+      };
+      Object.assign(this.auditInfo,auditInfo);
+      data["audit_info"]=this.auditInfo;
+      data["update_info"]={...this.selectedItems[0]};
+      data["business_date"]=this.state.businessDate;
+      data.update_info.id = null;
+      this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
+      this.setState({showAuditModal:false});
+
+    }
+
+    if (this.operationName=='DELETE'){
+      this.auditInfo={
+        table_name:data["table_name"],
+        change_type:this.operationName,
+        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${data["table_name"]}`,
+        maker:this.props.login_details.user,
+        business_date:this.state.businessDate
+      };
+      Object.assign(this.auditInfo,auditInfo);
+      data["audit_info"]=this.auditInfo;
+      data["update_info"]=this.selectedItems[0];
+      data["business_date"]=this.state.businessDate;
+
+      this.props.deleteFromSourceData(this.selectedItems[0]['id'],data, this.selectedIndexOfGrid);
+      this.setState({showAuditModal:false});
+    }
+
+   if(this.operationName=='UPDATE'){
+
+     this.auditInfo={
+       table_name:data["table_name"],
+       change_type:this.operationName,
+       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${data["table_name"]}`,
+       maker:this.props.login_details.user,
+       business_date:this.state.businessDate
+     };
+     Object.assign(this.auditInfo,auditInfo);
+     data["audit_info"]=this.auditInfo;
+     data["update_info"]=this.updateInfo;
+     data["business_date"]=this.state.businessDate;
+     this.props.updateSourceData(data);
+     this.setState({showAuditModal:false});
+
+   }
+
+   this.selectedItems = this.flatGrid.deSelectAll();
 
   }
 
@@ -433,36 +514,38 @@ class ViewDataComponentV2 extends Component {
                   this.props.gridData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
-                      <RegOpzFlatGrid
-                       columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
-                       dataSource={this.props.gridData.rows}
-                       onSelectRow={this.handleSelectRow.bind(this)}
-                       onUpdateRow = {this.handleUpdateRow.bind(this)}
-                       onSort = {()=>{}}
-                       onFilter = {()=>{}}
-                       onFullSelect = {this.handleFullSelect.bind(this)}
-                       isMultiSelectAllowed = { false }
-                       ref={
-                             (flatGrid) => {
-                               this.flatGrid = flatGrid;
-                             }
+                    <RegOpzFlatGrid
+                     columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
+                     dataSource={this.props.gridData.rows}
+                     onSelectRow={this.handleSelectRow.bind(this)}
+                     onUpdateRow = {this.handleUpdateRow.bind(this)}
+                     onSort = {()=>{}}
+                     onFilter = {()=>{}}
+                     onFullSelect = {this.handleFullSelect.bind(this)}
+                     isMultiSelectAllowed = { false }
+                     ref={
+                           (flatGrid) => {
+                             this.flatGrid = flatGrid;
                            }
-                      />
+                         }
+                    />
                 }
                 {
                   !this.state.showDataGrid &&
                   this.state.showAddForm &&
                   this.props.gridData &&
                   !this.state.showToggleColumns &&
-                  <AddData
-                    requestType={this.requestType}
-                    form_data={this.form_data}
-                    form_cols={this.props.gridData.cols}
-                    businessDate={this.state.businessDate}
-                    table_name={this.props.gridData.table_name}
-                    handleClose={this.handleClose}
-                    readOnly={!this.writeOnly}
-                    />
+                    <AddData
+                      requestType={this.requestType}
+                      form_data={this.form_data}
+                      form_cols={this.props.gridData.cols}
+                      businessDate={this.state.businessDate}
+                      table_name={this.props.gridData.table_name}
+                      handleClose={this.handleAdd}
+                      readOnly={(!this.writeOnly || !this.state.itemEditable)}
+                      updateSourceData={this.updateSourceData}
+                      insertSourceData={this.insertSourceData}
+                      />
                 }
                 {
                   this.state.showDataGrid &&
@@ -478,11 +561,11 @@ class ViewDataComponentV2 extends Component {
           </div>
           <ModalAlert
             ref={(modalAlert) => {this.modalAlert = modalAlert}}
-            onClickOkay={()=>{console.log("this.handleModalOkayClick.bind(this)");}}
+            onClickOkay={this.handleModalOkayClick}
           />
 
           < AuditModal showModal={this.state.showAuditModal}
-            onClickOkay={()=>{console.log("this.handleAuditOkayClick.bind(this)");}}
+            onClickOkay={this.handleAuditOkayClick}
           />
         </div>
       );
@@ -503,6 +586,15 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportFromDate:(source_id,business_date,page)=>{
       dispatch(actionFetchReportFromDate(source_id,business_date,page))
     },
+    insertSourceData:(data,at) => {
+      dispatch(actionInsertSourceData(data,at));
+    },
+    updateSourceData:(data) => {
+      dispatch(actionUpdateSourceData(data));
+    },
+    deleteFromSourceData:(id,data, at) => {
+      dispatch(actionDeleteFromSourceData(id,data, at));
+    },
   }
 }
 
@@ -512,6 +604,7 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.view_data_store.dataCatalog,
     gridData: state.view_data_store.gridData,
+    login_details:state.login_store,
   }
 }
 

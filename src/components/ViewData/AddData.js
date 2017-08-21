@@ -68,7 +68,7 @@ class AddData extends Component {
                 </h2>
                   <ul className="nav navbar-right panel_toolbox">
                     <li>
-                      <a className="close-link" onClick={()=>{this.props.handleClose("Add")}}><i className="fa fa-close"></i></a>
+                      <a className="close-link" onClick={()=>{this.props.handleClose(event)}}><i className="fa fa-close"></i></a>
                     </li>
                   </ul>
                 <div className="clearfix"></div>
@@ -110,7 +110,7 @@ class AddData extends Component {
 
                   <div className="form-group">
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                      <button type="button" className="btn btn-primary" onClick={ ()=>{this.props.handleClose("Add")} } disabled={ submitting }>
+                      <button type="button" className="btn btn-primary" onClick={ this.handleCancel.bind(this) } disabled={ submitting }>
                         Cancel
                       </button>
                       <button type="submit" className="btn btn-success" disabled={ pristine || submitting }>
@@ -167,7 +167,7 @@ class AddData extends Component {
 
       console.log("Inside handleFormSubmit......",data);
       this.props.resetDisplayData();
-      hashHistory.push('/dashboard/view-data');
+      this.props.handleClose("Add");
 
 
 
@@ -175,7 +175,7 @@ class AddData extends Component {
 
   handleCancel(){
     this.props.resetDisplayData();
-    hashHistory.push('/dashboard/view-data');
+    this.props.handleClose("Add");
   }
 
   renderFields(colsList){
