@@ -63,7 +63,6 @@ export default class RegOpzFlatGridCell extends Component {
         this.setState({
             value:event.target.value
         });
-        this.props.data[this.props.identifier] = event.target.value;
 
     }
     handleBlur(event){
@@ -76,7 +75,12 @@ export default class RegOpzFlatGridCell extends Component {
     }
     handleAlertOkayClick(){
       if(this.props.data['dml_allowed']=='Y' && !this.props.readOnly){
+        this.props.data[this.props.identifier] = this.state.value;
+        //console.log("RegOpzFlatGridCell handleAlertOkayClick",this.props.data.user);
         this.props.onUpdateRow(this.props.data);
+        this.setState({
+            value:this.editingValue
+        });
       }
     }
     handleAlertDiscardClick(){

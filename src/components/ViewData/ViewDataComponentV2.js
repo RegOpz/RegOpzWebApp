@@ -10,7 +10,10 @@ import {
   actionFetchReportFromDate,
   actionInsertSourceData,
   actionUpdateSourceData,
-  actionDeleteFromSourceData
+  actionDeleteFromSourceData,
+  actionFetchReportLinkage,
+  actionFetchDataChangeHistory,
+  actionExportCSV,
 } from '../../actions/ViewDataAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
@@ -21,6 +24,8 @@ import DataCatalogList from './DataCatalogList';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
+import DataReportLinkage from './DataReportLinkage';
+import DefAuditHistory from '../AuditModal/DefAuditHistory';
 require('react-datepicker/dist/react-datepicker.css');
 require('./ViewDataComponentStyle.css');
 
@@ -38,6 +43,8 @@ class ViewDataComponentV2 extends Component {
       sourceId: null,
       businessDate: null,
       showAuditModal: false,
+      showReportLinkage: false,
+      showHistory: false,
     }
 
     this.pages=0;
@@ -49,17 +56,18 @@ class ViewDataComponentV2 extends Component {
     this.selectedViewColumns=[];
     this.operationName=null;
     this.buttons=[
-      {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No'},
-      {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes'},
-      {title: 'Copy', iconClass: 'fa-copy', checkDisabled: 'Yes'},
-      {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No'},
-      {title: 'Delete', iconClass: 'fa-minus', checkDisabled: 'Yes'},
-      {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No'},
-      {title: 'History', iconClass: 'fa-history', checkDisabled: 'No'},
-      {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No'},
-      {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No'},
-      {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No'},
+      {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
+      {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes', className: "btn-success"},
+      {title: 'Copy', iconClass: 'fa-copy', checkDisabled: 'Yes', className: "btn-success"},
+      {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
+      {title: 'Delete', iconClass: 'fa-minus', checkDisabled: 'Yes', className: "btn-warning"},
+      {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
+      {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
+      {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
+      {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-default"},
+      {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
     ]
+    this.buttonClassOverride = "None";
 
 
     this.handleDataFileClick = this.handleDataFileClick.bind(this);
@@ -72,7 +80,10 @@ class ViewDataComponentV2 extends Component {
     this.handleAdd = this.handleAdd.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleToggle = this.handleToggle.bind(this);
-    this.displaySelectedColumns=this.displaySelectedColumns.bind(this);
+    this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
+    this.handleReportLinkClick = this.handleReportLinkClick.bind(this);
+    this.handleHistoryClick = this.handleHistoryClick.bind(this);
+    this.handleExportCSV = this.handleExportCSV.bind(this);
 
     this.handleSelectRow = this.handleSelectRow.bind(this);
     this.handleFullSelect = this.handleFullSelect.bind(this);
@@ -99,8 +110,11 @@ class ViewDataComponentV2 extends Component {
     this.currentPage = 0;
     this.selectedViewColumns=[];
     this.setState({
+        showToggleColumns: false,
         showDataGrid: true,
         showAddForm: false,
+        showReportLinkage: false,
+        showHistory: false,
         sourceId: item.source_id,
         businessDate: item.business_date
      },
@@ -141,6 +155,8 @@ class ViewDataComponentV2 extends Component {
         showToggleColumns: true,
         showDataGrid: false,
         showAddForm: false,
+        showReportLinkage: false,
+        showHistory: false,
       });
     }
     else {
@@ -148,6 +164,8 @@ class ViewDataComponentV2 extends Component {
         showToggleColumns: false,
         showDataGrid: true,
         showAddForm: false,
+        showReportLinkage: false,
+        showHistory: false,
       });
     }
   }
@@ -165,6 +183,8 @@ class ViewDataComponentV2 extends Component {
       showToggleColumns: false,
       showDataGrid: true,
       showAddForm: false,
+      showReportLinkage: false,
+      showHistory: false,
     });
   }
 
@@ -187,10 +207,10 @@ class ViewDataComponentV2 extends Component {
         this.handleDeleteClick(event);
         break;
       case "Report Link":
-        console.log("actionButtonClicked",itemClicked ,event);
+        this.handleReportLinkClick(event);
         break;
       case "History":
-        console.log("actionButtonClicked",itemClicked ,event);
+        this.handleHistoryClick(event);
         break;
       case "Deselect":
         this.selectedItems = this.flatGrid.deSelectAll();
@@ -199,7 +219,7 @@ class ViewDataComponentV2 extends Component {
         this.handleToggle(event);
         break;
       case "Export":
-        console.log("actionButtonClicked",itemClicked ,event);
+        this.handleExportCSV(event);
         break;
       case "FirstPage":
         if( this.currentPage !=0 ){
@@ -261,11 +281,15 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleAdd(event,requestType){
+
     let isOpen = this.state.showAddForm;
     if(isOpen) {
       this.setState({
+        showToggleColumns: false,
         showDataGrid: true,
         showAddForm: false,
+        showReportLinkage: false,
+        showHistory: false,
         itemEditable: true,
         },
         ()=>{
@@ -275,25 +299,33 @@ class ViewDataComponentV2 extends Component {
             }
       )
     } else {
-      let itemEditable = true;
-      if ( requestType == "add") {
-        this.selectedItems = this.flatGrid.deSelectAll();
-      } else {
-        if(this.selectedItems.length==0){
-            this.modalAlert.isDiscardToBeShown = false;
-            this.modalAlert.open("Please select a row");
-            return;
-        }else{
-          this.form_data = this.selectedItems[0];
-          itemEditable = (this.form_data.dml_allowed == "Y");
+        if( requestType != "add" && this.selectedItems.length != 1){
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open("Please select " + (this.selectedItems.length ? "only one " : " a " ) + " record");
+        } else {
+          let itemEditable = true;
+          if ( requestType == "add") {
+            this.selectedItems = this.flatGrid.deSelectAll();
+          } else {
+            if(this.selectedItems.length==0){
+                this.modalAlert.isDiscardToBeShown = false;
+                this.modalAlert.open("Please select a row");
+                return;
+            }else{
+              this.form_data = this.selectedItems[0];
+              itemEditable = (this.form_data.dml_allowed == "Y");
+            }
+          }
+          this.requestType = requestType;
+          this.setState({
+              showToggleColumns: false,
+              showDataGrid: false,
+              showAddForm: true,
+              showReportLinkage: false,
+              showHistory: false,
+              itemEditable: itemEditable,
+            });
         }
-      }
-      this.requestType = requestType;
-      this.setState({
-          showDataGrid: false,
-          showAddForm: true,
-          itemEditable: itemEditable,
-        });
     }
   }
 
@@ -315,6 +347,72 @@ class ViewDataComponentV2 extends Component {
     this.setState({ showAuditModal: true });
   }
 
+  handleReportLinkClick(event) {
+    let isOpen = this.state.showReportLinkage;
+    if(isOpen) {
+      this.setState({
+        showToggleColumns: false,
+        showDataGrid: true,
+        showAddForm: false,
+        showReportLinkage: false,
+        showHistory: false,
+      });
+    } else {
+      if(this.selectedItems.length < 1){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select atleast one record");
+      } else {
+        let selectedKeys=null;
+        this.selectedItems.map((item,index)=>{
+          selectedKeys += (selectedKeys ? ',' + item.id : item.id)
+        })
+        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate);
+        //console.log("Repot Linkage",this.props.report_linkage);
+        this.setState({
+          showToggleColumns: false,
+          showDataGrid: false,
+          showAddForm: false,
+          showReportLinkage: true,
+          showHistory: false,
+        });
+      }
+    }
+    this.selectedItems = this.flatGrid.deSelectAll();
+  }
+
+  handleHistoryClick(event) {
+    let isOpen = this.state.showHistory;
+    if(isOpen) {
+      this.setState({
+        showToggleColumns: false,
+        showDataGrid: true,
+        showAddForm: false,
+        showReportLinkage: false,
+        showHistory: false,
+      });
+    } else {
+      let selectedKeys=null;
+      this.selectedItems.map((item,index)=>{
+        selectedKeys += (selectedKeys ? ',' + item.id : item.id)
+      })
+      this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys,this.state.businessDate);
+      console.log("Repot Linkage",this.props.change_history);
+      this.setState({
+        showToggleColumns: false,
+        showDataGrid: false,
+        showAddForm: false,
+        showReportLinkage: false,
+        showHistory: true,
+      });
+    }
+    this.selectedItems = this.flatGrid.deSelectAll();
+  }
+
+  handleExportCSV(event) {
+    let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
+    this.props.exportCSV(this.props.gridData.table_name,business_ref,this.props.gridData.sql);
+  }
+
   handleFullSelect(items){
     console.log("Selected Items ", items);
 
@@ -327,7 +425,7 @@ class ViewDataComponentV2 extends Component {
   handleDuplicateClick(event){
     if(this.selectedItems.length != 1){
       this.modalAlert.isDiscardToBeShown = false;
-      this.modalAlert.open("Please select only one row")
+      this.modalAlert.open("Please select " + (this.selectedItems.length ? "only one " : " a " ) + " record");
     } else {
       this.modalAlert.isDiscardToBeShown = true;
       this.operationName = "INSERT";
@@ -338,7 +436,7 @@ class ViewDataComponentV2 extends Component {
   handleDeleteClick(event){
       if(this.selectedItems.length != 1){
         this.modalAlert.isDiscardToBeShown = false;
-        this.modalAlert.open("Please select only one row")
+        this.modalAlert.open("Please select " + (this.selectedItems.length ? "only one " : " a " ) + " record");
         console.log("Inside OnClick delete ......",this.selectedItems);
       } else {
         this.modalAlert.isDiscardToBeShown = true;
@@ -366,7 +464,7 @@ class ViewDataComponentV2 extends Component {
         table_name:data["table_name"],
         id:null,
         change_type:this.operationName,
-        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${data["table_name"]}`,
+        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
         maker:this.props.login_details.user,
         business_date:this.state.businessDate
       };
@@ -384,7 +482,7 @@ class ViewDataComponentV2 extends Component {
       this.auditInfo={
         table_name:data["table_name"],
         change_type:this.operationName,
-        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${data["table_name"]}`,
+        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
         maker:this.props.login_details.user,
         business_date:this.state.businessDate
       };
@@ -402,7 +500,7 @@ class ViewDataComponentV2 extends Component {
      this.auditInfo={
        table_name:data["table_name"],
        change_type:this.operationName,
-       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${data["table_name"]}`,
+       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
        maker:this.props.login_details.user,
        business_date:this.state.businessDate
      };
@@ -432,13 +530,17 @@ class ViewDataComponentV2 extends Component {
                       { !this.state.showDataGrid &&
                         !this.state.showAddForm &&
                         !this.state.showToggleColumns &&
+                        !this.state.showReportLinkage &&
+                        !this.state.showHistory &&
                         <h2>View Data <small>Available Business Data</small>
                           <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }
                       { (this.state.showDataGrid ||
                         this.state.showAddForm ||
-                        this.state.showToggleColumns) &&
+                        this.state.showToggleColumns ||
+                        this.state.showReportLinkage ||
+                        this.state.showHistory ) &&
                         <h2>View Data <small>{' Data for Source '}</small>
                           <small><i className="fa fa-file-text"></i></small>
                           <small>{this.state.sourceId }</small>
@@ -470,6 +572,36 @@ class ViewDataComponentV2 extends Component {
                             </ul>
                           </li>
                         </ul>
+                        <ul className="nav navbar-right panel_toolbox">
+                          <li>
+                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                              <i className="fa fa-spinner"></i><small>{' Button Style '}</small>
+                              <i className="fa fa-caret-down"></i>
+                            </a>
+                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                              <li>
+                                <a onClick={(event)=>{this.buttonClassOverride="Simplified"; this.forceUpdate();}}>
+                                    <i className="fa fa-toggle-off"></i>{' Simplified'}
+                                </a>
+                              </li>
+                              <li>
+                                <a onClick={(event)=>{this.buttonClassOverride="None";this.forceUpdate();}}>
+                                    <i className="fa fa-toggle-on"></i>{' Multi Colour'}
+                                </a>
+                              </li>
+                              <li>
+                                <a onClick={(event)=>{this.buttonClassOverride="btn-default";this.forceUpdate();}}>
+                                    <i className="fa fa-square-o"></i>{' Default'}
+                                </a>
+                              </li>
+                              <li>
+                                <a onClick={(event)=>{this.buttonClassOverride="btn-primary";this.forceUpdate();}}>
+                                    <i className="fa fa-square"></i>{' Primary'}
+                                </a>
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
                       </div>
                     <div className="clearfix"></div>
                 </div>
@@ -477,6 +609,8 @@ class ViewDataComponentV2 extends Component {
                 { !this.state.showDataGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  !this.state.showHistory &&
                   <DataCatalogList
                     dataCatalog={this.props.dataCatalog}
                     navMenu={false}
@@ -488,6 +622,8 @@ class ViewDataComponentV2 extends Component {
                   this.props.gridData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  !this.state.showHistory &&
                     <RegOpzFlatGridActionButtons
                       editable={this.writeOnly}
                       buttonClicked={this.actionButtonClicked}
@@ -495,6 +631,7 @@ class ViewDataComponentV2 extends Component {
                       buttons={this.buttons}
                       dataNavigation={true}
                       pageNo={this.currentPage}
+                      buttonClassOverride={this.buttonClassOverride}
                       />
                 }
                 {
@@ -502,6 +639,8 @@ class ViewDataComponentV2 extends Component {
                   this.props.gridData &&
                   !this.state.showAddForm &&
                   this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  !this.state.showHistory &&
                     <ShowToggleColumns
                         columns={this.props.gridData.cols}
                         saveSelection={this.displaySelectedColumns}
@@ -514,6 +653,8 @@ class ViewDataComponentV2 extends Component {
                   this.props.gridData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  !this.state.showHistory &&
                     <RegOpzFlatGrid
                      columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
                      dataSource={this.props.gridData.rows}
@@ -522,7 +663,7 @@ class ViewDataComponentV2 extends Component {
                      onSort = {()=>{}}
                      onFilter = {()=>{}}
                      onFullSelect = {this.handleFullSelect.bind(this)}
-                     isMultiSelectAllowed = { false }
+                     isMultiSelectAllowed = { true }
                      ref={
                            (flatGrid) => {
                              this.flatGrid = flatGrid;
@@ -535,6 +676,8 @@ class ViewDataComponentV2 extends Component {
                   this.state.showAddForm &&
                   this.props.gridData &&
                   !this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  !this.state.showHistory &&
                     <AddData
                       requestType={this.requestType}
                       form_data={this.form_data}
@@ -553,9 +696,36 @@ class ViewDataComponentV2 extends Component {
                   !this.props.gridData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  !this.state.showHistory &&
                   <div>
                     <h4>Loading ....</h4>
                   </div>
+                }
+                {
+                  !this.state.showDataGrid &&
+                  !this.state.showAddForm &&
+                  !this.state.showToggleColumns &&
+                  this.state.showReportLinkage &&
+                  !this.state.showHistory &&
+                  <DataReportLinkage
+                    data={ this.props.report_linkage }
+                    ruleReference={ "" }
+                    handleClose={this.handleReportLinkClick}
+                  />
+                }
+                {
+                  !this.state.showDataGrid &&
+                  !this.state.showAddForm &&
+                  !this.state.showToggleColumns &&
+                  !this.state.showReportLinkage &&
+                  this.props.change_history &&
+                  this.state.showHistory &&
+                  <DefAuditHistory
+                    data={ this.props.change_history }
+                    historyReference={ "" }
+                    handleClose={this.handleHistoryClick}
+                    />
                 }
                 </div>
             </div>
@@ -596,6 +766,15 @@ const mapDispatchToProps = (dispatch) => {
     deleteFromSourceData:(id,data, at) => {
       dispatch(actionDeleteFromSourceData(id,data, at));
     },
+    fetchReportLinkage:(source_id,qualifying_key,business_date) => {
+      dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
+    },
+    fetchDataChangeHistory:(table_name,id_list,business_date) => {
+      dispatch(actionFetchDataChangeHistory(table_name,id_list,business_date));
+    },
+    exportCSV:(table_name,business_ref,sql) => {
+      dispatch(actionExportCSV(table_name,business_ref,sql));
+    },
   }
 }
 
@@ -605,6 +784,8 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.view_data_store.dataCatalog,
     gridData: state.view_data_store.gridData,
+    report_linkage:state.view_data_store.report_linkage,
+    change_history:state.view_data_store.change_history,
     login_details:state.login_store,
   }
 }

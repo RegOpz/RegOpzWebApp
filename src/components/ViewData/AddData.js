@@ -151,9 +151,12 @@ class AddData extends Component {
                       <button type="button" className="btn btn-primary btn-xs" onClick={ this.handleCancel.bind(this) } disabled={ submitting }>
                         Cancel
                       </button>
-                      <button type="submit" className="btn btn-success btn-xs" disabled={ pristine || submitting }>
-                        Submit
-                      </button>
+                      {
+                        !this.readOnly &&
+                        <button type="submit" className="btn btn-success btn-xs" disabled={ pristine || submitting }>
+                          Submit
+                        </button>
+                      }
                     </div>
                  </div>
                 </form>

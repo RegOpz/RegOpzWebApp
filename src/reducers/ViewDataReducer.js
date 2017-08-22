@@ -1,3 +1,4 @@
+import { BASE_URL } from '../Constant/constant';
 import {
   FETCH_DATES,
   VIEW_DATA_FETCH_REPORT_LINKAGE,
@@ -5,7 +6,9 @@ import {
   RESET_FORM_DISPLAY_DATA,
   SET_FORM_DISPLAY_COLS,
   FETCH_SOURCE,
-  FETCH_REPORT_BY_DATE
+  FETCH_REPORT_BY_DATE,
+  FETCH_CHANGE_HISTORY,
+  EXPORT_DATA_CSV
 } from '../actions/ViewDataAction';
 
 // TODO:
@@ -38,6 +41,13 @@ export default function(state=[], action) {
       });
     case RESET_FORM_DISPLAY_DATA:
       return Object.assign({},state,{form_data:action.payload});
+    case FETCH_CHANGE_HISTORY:
+      return Object.assign({},state,{
+        change_history:action.payload.data
+      });
+    case EXPORT_DATA_CSV:
+      window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
+      return state;
 
     default:
     	return state;

@@ -14,6 +14,12 @@ class RegOpzFlatGridActionButtons extends Component {
         this.buttonClicked = this.props.buttonClicked;
         this.checkDisabled = this.props.checkDisabled;
         this.dataNavigation = this.props.dataNavigation;
+        //None: Use supplied className
+        //Simplified: Use className as btn-link
+        //Else use override className for all buttons
+        this.buttonClassOverride = this.props.buttonClassOverride ? this.props.buttonClassOverride : "None";
+
+        this.handleClassName = this.handleClassName.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -23,8 +29,24 @@ class RegOpzFlatGridActionButtons extends Component {
         this.buttons = nextProps.buttons;
         this.buttonClicked = nextProps.buttonClicked;
         this.checkDisabled = nextProps.checkDisabled;
+        this.buttonClassOverride = nextProps.buttonClassOverride ? nextProps.buttonClassOverride : "None";
     }
 
+    handleClassName(item){
+      let className="btn btn-circle business_rules_ops_buttons btn-xs ";
+      switch(this.buttonClassOverride){
+        case "None":
+          className = item.className ? className + item.className : className + "btn-link";
+          break;
+        case "Simplified":
+          className = className + "btn-link";
+          break;
+        default:
+          className = className + this.buttonClassOverride;
+      }
+      console.log("className",className,this.buttonClassOverride);
+      return className;
+    }
 
     render() {
       console.log("Inside Render RegOpzFlatGridActionButtons....",this.props);
@@ -44,7 +66,7 @@ class RegOpzFlatGridActionButtons extends Component {
                               this.buttonClicked(event,item.title);
                             }
                           }
-                          className={"btn btn-circle business_rules_ops_buttons btn-xs " + (item.className ? item.className : "btn-link")}
+                          className={ this.handleClassName(item) }
                           disabled={ item.checkDisabled=="Yes" ? this.checkDisabled(item.title) : false}
                         >
                           <i className={'fa '+ item.iconClass }></i>{' ' + item.title }

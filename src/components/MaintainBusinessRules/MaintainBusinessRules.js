@@ -667,6 +667,7 @@ class MaintainBusinessRules extends Component {
               onSort={this.handleSort.bind(this)}
               onFilter={this.handleFilter.bind(this)}
               onFullSelect={this.handleFullSelect.bind(this)}
+              isMultiSelectAllowed={true}
               readOnly={!this.writeOnly}
               ref={(flatGrid) => { this.flatGrid = flatGrid }}
             />

@@ -17,6 +17,8 @@ export let APPLY_RULES = "APPLY_RULES";
 export let SET_FORM_DISPLAY_DATA="SET_FORM_DISPLAY_DATA";
 export let RESET_FORM_DISPLAY_DATA="RESET_FORM_DISPLAY_DATA";
 export let SET_FORM_DISPLAY_COLS="SET_FORM_DISPLAY_COLS";
+export let FETCH_CHANGE_HISTORY="FETCH_CHANGE_HISTORY";
+export let EXPORT_DATA_CSV = "EXPORT_DATA_CSV";
 
 // TODO:
 export function actionFetchDates(startDate='19000101',endDate='39991231', table_name) {
@@ -139,5 +141,19 @@ export function actionSetDisplayCols(cols,table_name){
   return {
     type:SET_FORM_DISPLAY_COLS,
     payload:{'cols':cols,'table_name':table_name}
+  }
+}
+
+export function actionFetchDataChangeHistory(table_name, id_list, business_date) {
+  return {
+    type: FETCH_CHANGE_HISTORY,
+    payload: axios.get(`${BASE_URL}workflow/data-change/get-audit-list?table_name=${table_name}&id_list=${id_list}&business_date=${business_date}`)
+  }
+}
+
+export function actionExportCSV(table_name,business_ref,sql){
+  return{
+    type:EXPORT_DATA_CSV,
+    payload:axios.get(`${BASE_URL}view-data/report/export-csv?table_name=${table_name}&business_ref=${business_ref}&sql=${sql}`)
   }
 }
