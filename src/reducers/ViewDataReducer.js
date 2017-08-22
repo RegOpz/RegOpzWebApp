@@ -10,6 +10,9 @@ import {
   FETCH_CHANGE_HISTORY,
   EXPORT_DATA_CSV
 } from '../actions/ViewDataAction';
+import {
+  FETCH_SOURCES
+} from '../actions/MaintainReportRuleAction';
 
 // TODO:
 export default function(state=[], action) {
@@ -44,6 +47,10 @@ export default function(state=[], action) {
     case FETCH_CHANGE_HISTORY:
       return Object.assign({},state,{
         change_history:action.payload.data
+      });
+    case FETCH_SOURCES:
+      return Object.assign({},state,{
+        sources:action.payload.data.source_suggestion
       });
     case EXPORT_DATA_CSV:
       window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;

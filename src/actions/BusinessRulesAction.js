@@ -9,8 +9,10 @@ export let UPDATE_RULES = 'UPDATE_RULES';
 export let FETCH_REPORT_LINKAGE = 'FETCH_REPORT_LINKAGE';
 
 // TODO:
-export function actionFetchBusinessRules(page, order) {
+export function actionFetchBusinessRules(source_id,page, order) {
   var url = BASE_URL + "business-rules/" + page;
+  url = source_id ? url + "/" + source_id : url;
+  //console.log(url,source_id);  
   if (typeof order !== 'undefined' && order !== null) {
   	let direction = (order.direction) ? 'DESC':'ASC'
   	url = BASE_URL + "business-rules/" + page + '/orderby/' + order.colName
