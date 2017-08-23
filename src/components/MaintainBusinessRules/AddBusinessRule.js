@@ -596,11 +596,11 @@ class AddBusinessRule extends Component {
 
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button" className="btn btn-primary" onClick={ this.props.handleCancel }>
+                    <button type="button" className="btn btn-primary btn-xs" onClick={ this.props.handleCancel }>
                       Cancel</button>
                     {
                       !this.state.readOnly &&
-                      <button type="submit" className="btn btn-success" >Submit</button>
+                      <button type="submit" className="btn btn-success btn-xs" >Submit</button>
                     }
                   </div>
                 </div>

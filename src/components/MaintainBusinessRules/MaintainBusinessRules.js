@@ -4,19 +4,15 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
-import {
-
-  actionInsertSourceData,
-  actionUpdateSourceData,
-  actionDeleteFromSourceData,
-  actionFetchReportLinkage,
-  //actionFetchDataChangeHistory,
-  actionExportCSV,
-} from '../../actions/ViewDataAction';
 import { actionFetchAuditList } from '../../actions/DefChangeAction';
 import {
   //actionFetchSources,
   actionFetchBusinessRules,
+  actionInsertBusinessRule,
+  actionDeleteBusinessRule,
+  actionUpdateBusinessRule,
+  actionFetchReportLinkage,
+  actionExportCSV,
 } from '../../actions/BusinessRulesAction';
 import {
   actionFetchSources
@@ -49,6 +45,7 @@ class ViewDataComponentV2 extends Component {
       showReportLinkage: false,
       showHistory: false,
       sourceFileName: null,
+      tableName: null,
     }
 
     this.pages=0;
@@ -72,6 +69,7 @@ class ViewDataComponentV2 extends Component {
       {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
     ]
     this.buttonClassOverride = "None";
+    this.selectedKeys = '';
 
 
     this.handleDataFileClick = this.handleDataFileClick.bind(this);
@@ -119,6 +117,7 @@ class ViewDataComponentV2 extends Component {
         showHistory: false,
         sourceId: item.source_id,
         sourceFileName: item.source_file_name,
+        tableName: item.source_table_name,
      },
       this.props.fetchBusinesRules(item.source_id,this.currentPage)
     );
@@ -349,15 +348,17 @@ class ViewDataComponentV2 extends Component {
         showReportLinkage: false,
         showHistory: false,
       });
+      this.selectedKeys = '';
     } else {
       if(this.selectedItems.length < 1){
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select atleast one record");
       } else {
-        let selectedKeys=null;
+        let selectedKeys='';
         this.selectedItems.map((item,index)=>{
           selectedKeys += (selectedKeys ? ',' + item.business_rule : item.business_rule)
         })
+        this.selectedKeys = selectedKeys;
         this.props.fetchReportLinkage(this.state.sourceId,selectedKeys);
         //console.log("Repot Linkage",this.props.report_linkage);
         this.setState({
@@ -382,12 +383,14 @@ class ViewDataComponentV2 extends Component {
         showReportLinkage: false,
         showHistory: false,
       });
+      this.selectedKeys = '';
     } else {
-      let selectedKeys=null;
+      let selectedKeys='';
       this.selectedItems.map((item,index)=>{
-        selectedKeys += (selectedKeys ? ',' + item.business_rule : item.business_rule)
+        selectedKeys += (selectedKeys ? ',' + item.id : item.id)
       })
-      this.props.fetchAuditList(selectedKeys,this.state.tableName);
+      this.selectedKeys = selectedKeys ? selectedKeys : "undefined";
+      this.props.fetchAuditList(this.selectedKeys,"business_rules");
       console.log("Repot Linkage",this.props.change_history);
       this.setState({
         showToggleColumns: false,
@@ -402,7 +405,7 @@ class ViewDataComponentV2 extends Component {
 
   handleExportCSV(event) {
     let business_ref = "_source_" + this.state.sourceId + "_";
-    this.props.exportCSV(this.props.gridData.table_name,business_ref,this.props.gridData.sql);
+    this.props.exportCSV(this.state.sourceId);
   }
 
   handleFullSelect(items){
@@ -449,7 +452,7 @@ class ViewDataComponentV2 extends Component {
   handleAuditOkayClick(auditInfo){
     let data={};
     data["change_type"]=this.operationName;
-    data["table_name"]=this.props.gridData.table_name;
+    data["table_name"]="business_rules";
 
     if(this.operationName=='INSERT'){
       this.auditInfo={
@@ -463,7 +466,7 @@ class ViewDataComponentV2 extends Component {
       data["audit_info"]=this.auditInfo;
       data["update_info"]={...this.selectedItems[0]};
       data.update_info.id = null;
-      this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
+      this.props.insertBusinessRule(data,this.selectedIndexOfGrid + 1);
       this.setState({showAuditModal:false});
 
     }
@@ -479,7 +482,7 @@ class ViewDataComponentV2 extends Component {
       data["audit_info"]=this.auditInfo;
       data["update_info"]=this.selectedItems[0];
 
-      this.props.deleteFromSourceData(this.selectedItems[0]['id'],data, this.selectedIndexOfGrid);
+      this.props.deleteBusinessRule(data, this.selectedItems[0]['id'], this.selectedIndexOfGrid);
       this.setState({showAuditModal:false});
     }
 
@@ -494,7 +497,7 @@ class ViewDataComponentV2 extends Component {
      Object.assign(this.auditInfo,auditInfo);
      data["audit_info"]=this.auditInfo;
      data["update_info"]=this.updateInfo;
-     this.props.updateSourceData(data);
+     this.props.updateBusinessRule(data);
      this.setState({showAuditModal:false});
 
    }
@@ -682,13 +685,14 @@ class ViewDataComponentV2 extends Component {
                   !this.state.showDataGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
+                  this.props.report_linkage &&
                   this.state.showReportLinkage &&
                   !this.state.showHistory &&
                   <RuleReportLinkage
                     data={ this.props.report_linkage }
                     ruleReference={ this.selectedKeys }
                     handleClose={this.handleReportLinkClick}
-                  />
+                    />
                 }
                 {
                   !this.state.showDataGrid &&
@@ -699,7 +703,7 @@ class ViewDataComponentV2 extends Component {
                   this.state.showHistory &&
                   <DefAuditHistory
                     data={ this.props.change_history }
-                    historyReference={ this.selectedKeys }
+                    historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
                     handleClose={this.handleHistoryClick}
                     />
                 }
@@ -733,23 +737,23 @@ const mapDispatchToProps = (dispatch) => {
     fetchBusinesRules: (source_id,page, order) => {
       dispatch(actionFetchBusinessRules(source_id,page, order))
     },
-    insertSourceData:(data,at) => {
-      dispatch(actionInsertSourceData(data,at));
+    insertBusinessRule: (data, at) => {
+      dispatch(actionInsertBusinessRule(data, at))
     },
-    updateSourceData:(data) => {
-      dispatch(actionUpdateSourceData(data));
+    deleteBusinessRule: (data, item, at) => {
+      dispatch(actionDeleteBusinessRule(data, item, at))
     },
-    deleteFromSourceData:(id,data, at) => {
-      dispatch(actionDeleteFromSourceData(id,data, at));
+    updateBusinessRule: (data) => {
+      dispatch(actionUpdateBusinessRule(data))
     },
-    fetchReportLinkage:(source_id,qualifying_key,business_date) => {
-      dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
+    fetchReportLinkage: (sourceId,selectedKeys) => {
+      dispatch(actionFetchReportLinkage(sourceId,selectedKeys))
     },
     fetchAuditList: (idList, tableName) => {
       dispatch(actionFetchAuditList(idList, tableName));
     },
-    exportCSV:(table_name,business_ref,sql) => {
-      dispatch(actionExportCSV(table_name,business_ref,sql));
+    exportCSV:(sourceId) => {
+      dispatch(actionExportCSV(sourceId));
     },
   }
 }
@@ -760,7 +764,7 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.view_data_store.sources,
     gridData: state.business_rules[0],
-    report_linkage:state.view_data_store.report_linkage,
+    report_linkage:state.report_linkage,
     change_history:state.def_change_store.audit_list,
     login_details:state.login_store,
   }

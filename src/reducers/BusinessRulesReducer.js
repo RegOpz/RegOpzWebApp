@@ -1,4 +1,10 @@
-import {FETCH_RULES, INSERT_RULES, DELETE_RULES} from '../actions/BusinessRulesAction';
+import { BASE_URL } from '../Constant/constant';
+import {
+  FETCH_RULES,
+  INSERT_RULES,
+  DELETE_RULES,
+  EXPORT_RULES_CSV
+} from '../actions/BusinessRulesAction';
 
 // TODO:
 export default function(state=[], action) {
@@ -13,6 +19,9 @@ export default function(state=[], action) {
     case DELETE_RULES:
     	// state[0].rows.splice(action.meta.at, 1);
     	// return state.splice(0, 1, state);
+      return state;
+    case EXPORT_RULES_CSV:
+      window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
       return state;
     default:
       return state;
