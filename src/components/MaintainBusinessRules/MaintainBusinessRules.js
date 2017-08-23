@@ -94,8 +94,8 @@ class ViewDataComponentV2 extends Component {
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "View Data" }) ? true : false;
-    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Data" }) ? true : false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Business Rules" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Business Rules" }) ? true : false;
   }
 
   componentWillMount(){
