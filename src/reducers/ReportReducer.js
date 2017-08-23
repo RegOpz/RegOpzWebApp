@@ -6,7 +6,8 @@ import {
   INSERT_SOURCE_DATA,
   UPDATE_SOURCE_DATA,
   DELETE_SOURCE_ROW,
-  FETCH_DATE_FOR_REPORT
+  FETCH_DATE_FOR_REPORT,
+  FETCH_REPORT_CATALOG
 } from '../actions/ViewDataAction';
 
 // TODO:
@@ -31,6 +32,11 @@ export default function(state=[], action) {
     case DELETE_SOURCE_ROW:
       state[0].rows.splice(action.meta.at, 1);
       return state.splice(0, 1, state);
+    case FETCH_REPORT_CATALOG:
+      console.log("FETCH_REPORT_CATALOG",action.payload.data)
+      return Object.assign({},state,{
+        reports: action.payload.data
+      });
     default:
     	return state;
   }

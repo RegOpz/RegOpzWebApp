@@ -14,6 +14,7 @@ import {
   actionFetchReportLinkage,
   actionFetchDataChangeHistory,
   actionExportCSV,
+  actionApplyRules,
 } from '../../actions/ViewDataAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
@@ -616,6 +617,7 @@ class ViewDataComponentV2 extends Component {
                     navMenu={false}
                     handleDataFileClick={this.handleDataFileClick}
                     dateFilter={this.handleDateFilter}
+                    applyRules={this.props.applyRules}
                     />
                 }
                 { this.state.showDataGrid &&
@@ -774,6 +776,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
+    },
+    applyRules:(source_info) => {
+      dispatch(actionApplyRules(source_info));
     },
   }
 }

@@ -30,6 +30,7 @@ class RegOpzFlatGridActionButtons extends Component {
         this.buttonClicked = nextProps.buttonClicked;
         this.checkDisabled = nextProps.checkDisabled;
         this.buttonClassOverride = nextProps.buttonClassOverride ? nextProps.buttonClassOverride : "None";
+        this.dataNavigation = nextProps.dataNavigation;
     }
 
     handleClassName(item){

@@ -31,7 +31,7 @@ import DefAuditHistory from '../AuditModal/DefAuditHistory';
 require('react-datepicker/dist/react-datepicker.css');
 require('./MaintainBusinessRules.css');
 
-class ViewDataComponentV2 extends Component {
+class MaintainBusinessRules extends Component {
   constructor(props){
     super(props)
     this.state = {
@@ -770,9 +770,9 @@ function mapStateToProps(state){
   }
 }
 
-const VisibleViewDataComponentV2 = connect(
+const VisibleMaintainBusinessRules = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ViewDataComponentV2);
+)(MaintainBusinessRules);
 
-export default VisibleViewDataComponentV2;
+export default VisibleMaintainBusinessRules;
