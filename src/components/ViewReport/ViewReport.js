@@ -7,28 +7,27 @@ import _ from 'lodash';
 import {
   //actionFetchDates,
   actionFetchReportCatalog,
-  actionInsertSourceData,
-  actionUpdateSourceData,
-  actionDeleteFromSourceData,
   actionFetchReportLinkage,
   actionFetchDataChangeHistory,
   actionExportCSV,
   actionApplyRules,
 } from '../../actions/ViewDataAction';
 import {
-  actionFetchReportData
+  actionFetchReportData,
+  actionDrillDown
 } from '../../actions/CaptureReportAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
-import AddData from '../ViewData/AddData';
 import ReportCatalogList from './ReportCatalogList';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
-import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import DrillDownRules from '../DrillDown/DrillDownRules';
+import ViewData from '../ViewData/ViewDataComponentV2';
+import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
 
 class ViewReport extends Component {
@@ -38,7 +37,7 @@ class ViewReport extends Component {
       startDate:moment().subtract(1,'months').format("YYYYMMDD"),
       endDate:moment().format('YYYYMMDD'),
       sources:null,
-      showDataGrid: false,
+      showReportGrid: false,
       showAddForm: false,
       showToggleColumns: false,
       itemEditable: true,
@@ -48,11 +47,17 @@ class ViewReport extends Component {
       showAuditModal: false,
       showReportLinkage: false,
       showHistory: false,
+      showDrillDownRules: false,
+      showDrillDownData: false,
+      showDrillDownCalcBusinessRules: false,
     }
 
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
+    this.calcRuleFilter = {};
+    this.businessRuleFilterParam = {};
+    this.selectedCell={};
     this.selectedItems = [];
     this.selectedIndexOfGrid = 0;
     this.form_data={};
@@ -60,16 +65,11 @@ class ViewReport extends Component {
     this.operationName=null;
     this.buttons=[
       {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
-      {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes', className: "btn-success"},
-      {title: 'Copy', iconClass: 'fa-copy', checkDisabled: 'Yes', className: "btn-success"},
-      {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
-      {title: 'Delete', iconClass: 'fa-minus', checkDisabled: 'Yes', className: "btn-warning"},
-      {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
+      {title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success"},
       {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
-      {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
-      {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-default"},
+      {title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info"},
       {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
-    ]
+    ];
     this.buttonClassOverride = "None";
 
 
@@ -78,26 +78,26 @@ class ViewReport extends Component {
     this.actionButtonClicked = this.actionButtonClicked.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.handleRefreshGrid = this.handleRefreshGrid.bind(this);
-    this.handlePageNavigation = this.handlePageNavigation.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
-    this.handleAdd = this.handleAdd.bind(this);
-    this.handleDeleteClick = this.handleDeleteClick.bind(this);
-    this.handleToggle = this.handleToggle.bind(this);
     this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
     this.handleReportLinkClick = this.handleReportLinkClick.bind(this);
     this.handleHistoryClick = this.handleHistoryClick.bind(this);
     this.handleExportCSV = this.handleExportCSV.bind(this);
+    this.handleDetails = this.handleDetails.bind(this);
+    this.handleCalcRuleClicked = this.handleCalcRuleClicked.bind(this);
+    this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
+    this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
 
+    this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleSelectRow = this.handleSelectRow.bind(this);
     this.handleFullSelect = this.handleFullSelect.bind(this);
-    this.handleDuplicateClick=this.handleDuplicateClick.bind(this);
     this.handleUpdateRow = this.handleUpdateRow.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "View Data" }) ? true : false;
-    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Data" }) ? true : false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report" }) ? true : false;
   }
 
   componentWillMount(){
@@ -113,11 +113,10 @@ class ViewReport extends Component {
     this.currentPage = 0;
     this.selectedViewColumns=[];
     this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
+        showReportGrid: true,
         showReportLinkage: false,
         showHistory: false,
+        showDrillDownRules: false,
         reportId: item.report_id,
         reportingDate: item.reporting_date,
         businessDate: item.as_of_reporting_date,
@@ -152,28 +151,6 @@ class ViewReport extends Component {
 
   }
 
-  handleToggle(event) {
-    let toggleValue = this.state.showToggleColumns;
-    if (!toggleValue) {
-      this.setState({
-        showToggleColumns: true,
-        showDataGrid: false,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
-    }
-    else {
-      this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
-    }
-  }
-
   displaySelectedColumns(columns) {
     var selectedColumns = [];
     for (let i = 0; i < columns.length; i++)
@@ -184,11 +161,9 @@ class ViewReport extends Component {
     //console.log(selectedColumns);
     //console.log(this.selectedViewColumns);
     this.setState({
-      showToggleColumns: false,
-      showDataGrid: true,
-      showAddForm: false,
       showReportLinkage: false,
       showHistory: false,
+      showDrillDownRules: false,
     });
   }
 
@@ -198,17 +173,8 @@ class ViewReport extends Component {
       case "Refresh":
         this.handleRefreshGrid(event);
         break;
-      case "Add":
-        this.handleAdd(event,"add");
-        break;
-      case "Copy":
-        this.handleDuplicateClick(event);
-        break;
       case "Details":
-        this.handleAdd(event,"update");
-        break;
-      case "Delete":
-        this.handleDeleteClick(event);
+        this.handleDetails(event);
         break;
       case "Report Link":
         this.handleReportLinkClick(event);
@@ -219,47 +185,8 @@ class ViewReport extends Component {
       case "Deselect":
         this.selectedItems = this.flatGrid.deSelectAll();
         break;
-      case "Columns":
-        this.handleToggle(event);
-        break;
       case "Export":
         this.handleExportCSV(event);
-        break;
-      case "FirstPage":
-        if( this.currentPage !=0 ){
-          this.handlePageNavigation(event,0);
-        }
-        break;
-      case "NextPage":
-        if ( this.currentPage < this.pages - 1 ){
-          this.currentPage++;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "PrevPage":
-        if ( this.currentPage > 0 ){
-          this.currentPage--;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "LastPage":
-        if( this.currentPage != this.pages -1 ){
-          this.currentPage=this.pages -1;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "Page":
-        break;
-      case "PageOkay":
-        if(event.key == "Enter"){
-            if(event.target.value > this.pages){
-              this.modalAlert.isDiscardToBeShown = false;
-              this.modalAlert.open("Page does not exists");
-            } else {
-              this.currentPage = event.target.value;
-              this.fetchDataToGrid(event,this.currentPage);
-            }
-        }
         break;
       default:
         console.log("No specific action has been defined for ",itemClicked);
@@ -274,65 +201,82 @@ class ViewReport extends Component {
     this.fetchDataToGrid(event);
   }
 
-  handlePageNavigation(event, pageNo) {
-    this.currentPage = pageNo;
-    console.log("Inside handlePageNavigation",this.currentPage,pageNo);
-    this.fetchDataToGrid(event);
-  }
 
   fetchDataToGrid(event){
     this.props.fetchReportData(this.state.reportId,this.state.reportingDate);
   }
 
-  handleAdd(event,requestType){
-
-    let isOpen = this.state.showAddForm;
-    if(isOpen) {
+  handleDetails(event){
+    //TODO
+    let isOpen = this.state.showDrillDownRules;
+    if(isOpen){
       this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
+        showReportGrid: true,
         showReportLinkage: false,
         showHistory: false,
-        itemEditable: true,
-        },
-        ()=>{
-              if(this.selectedItems){
-                this.selectedItems = this.flatGrid.deSelectAll();
-              }
-            }
-      )
+        showDrillDownRules: false,
+        showDrillDownData: false,
+        showDrillDownCalcBusinessRules: false,
+      });
     } else {
-        if( requestType != "add" && this.selectedItems.length != 1){
-          this.modalAlert.isDiscardToBeShown = false;
-          this.modalAlert.open("Please select " + (this.selectedItems.length ? "only one " : " a " ) + " record");
-        } else {
-          let itemEditable = true;
-          if ( requestType == "add") {
-            this.selectedItems = this.flatGrid.deSelectAll();
-          } else {
-            if(this.selectedItems.length==0){
-                this.modalAlert.isDiscardToBeShown = false;
-                this.modalAlert.open("Please select a row");
-                return;
-            }else{
-              this.form_data = this.selectedItems[0];
-              itemEditable = (this.form_data.dml_allowed == "Y");
-            }
-          }
-          this.requestType = requestType;
-          this.setState({
-              showToggleColumns: false,
-              showDataGrid: false,
-              showAddForm: true,
-              showReportLinkage: false,
-              showHistory: false,
-              itemEditable: itemEditable,
-            });
-        }
+      //console.log("handleSelectCell",this.selectedCell.cell);
+      if(!this.selectedCell.cell){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select a cell for details");
+      } else {
+        //this.buttons=this.dataButtons;
+        this.setState({
+          showReportGrid: false,
+          showReportLinkage: false,
+          showHistory: false,
+          showDrillDownRules: true,
+          showDrillDownData: false,
+          showDrillDownCalcBusinessRules: false,
+          },
+          this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
+        );
+      }
     }
+
+  }
+  handleSelectCell(cell){
+    console.log("handleSelectCell",cell);
+    this.selectedCell = cell;
   }
 
+  handleCalcRuleClicked(event,calcRuleFilter){
+    console.log("Clicked calcRuleFilter",calcRuleFilter);
+    this.calcRuleFilter = calcRuleFilter;
+    this.setState({
+        showDrillDownData : true,
+        showDrillDownCalcBusinessRules : false,
+        showAggRuleDetails: false
+      });
+
+  }
+
+  handleBusinessRuleClicked(event,businessRuleFilterParam){
+    console.log("Clicked ruleFilterParam",businessRuleFilterParam);
+    this.businessRuleFilterParam = businessRuleFilterParam;
+    this.setState({
+        showDrillDownData : false,
+        showDrillDownCalcBusinessRules : true,
+        showAggRuleDetails: false
+      });
+
+  }
+
+  handleAggeRuleClicked(event,item){
+    console.log("Clicked ruleFilterParam",item);
+    this.aggRuleData = item;
+    // TODO AddReportAggRules as form and then pass aggRuleData
+    this.setState({
+        showDrillDownData : false,
+        showDrillDownCalcBusinessRules : false,
+        showAggRuleDetails: true
+      });
+
+  }
 
   handleSelectRow(indexOfGrid){
     console.log("Inside Single select....",this.selectedItems.length);
@@ -356,7 +300,7 @@ class ViewReport extends Component {
     if(isOpen) {
       this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showReportGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -374,7 +318,7 @@ class ViewReport extends Component {
         //console.log("Repot Linkage",this.props.report_linkage);
         this.setState({
           showToggleColumns: false,
-          showDataGrid: false,
+          showReportGrid: false,
           showAddForm: false,
           showReportLinkage: true,
           showHistory: false,
@@ -389,7 +333,7 @@ class ViewReport extends Component {
     if(isOpen) {
       this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showReportGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -399,11 +343,11 @@ class ViewReport extends Component {
       this.selectedItems.map((item,index)=>{
         selectedKeys += (selectedKeys ? ',' + item.id : item.id)
       })
-      this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys,this.state.businessDate);
+      this.props.fetchDataChangeHistory(this.props.gridDataViewReport.table_name,selectedKeys,this.state.businessDate);
       console.log("Repot Linkage",this.props.change_history);
       this.setState({
         showToggleColumns: false,
-        showDataGrid: false,
+        showReportGrid: false,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: true,
@@ -414,141 +358,55 @@ class ViewReport extends Component {
 
   handleExportCSV(event) {
     let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
-    this.props.exportCSV(this.props.gridData.table_name,business_ref,this.props.gridData.sql);
+    this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
   }
 
   handleFullSelect(items){
     console.log("Selected Items ", items);
 
     this.selectedItems = items;
-    //this.props.setDisplayCols(this.props.gridData.cols,this.props.gridData.table_name);
+    //this.props.setDisplayCols(this.props.gridDataViewReport.cols,this.props.gridDataViewReport.table_name);
     //this.props.setDisplayData(this.selectedItems[0]);
 
   }
 
-  handleDuplicateClick(event){
-    if(this.selectedItems.length != 1){
-      this.modalAlert.isDiscardToBeShown = false;
-      this.modalAlert.open("Please select " + (this.selectedItems.length ? "only one " : " a " ) + " record");
-    } else {
-      this.modalAlert.isDiscardToBeShown = true;
-      this.operationName = "INSERT";
-      this.modalAlert.open(`Are you sure to create a copy of this record (ID: ${this.selectedItems[0]['id']}) ?`)
-    }
-  }
-
-  handleDeleteClick(event){
-      if(this.selectedItems.length != 1){
-        this.modalAlert.isDiscardToBeShown = false;
-        this.modalAlert.open("Please select " + (this.selectedItems.length ? "only one " : " a " ) + " record");
-        console.log("Inside OnClick delete ......",this.selectedItems);
-      } else {
-        this.modalAlert.isDiscardToBeShown = true;
-        this.operationName = "DELETE";
-        this.modalAlert.open(`Do you really want to delete this record (ID: ${this.selectedItems[0]['id']}) ?`)
-      }
-    }
-
   handleModalOkayClick(event){
-    //console.log("showAuditModal",this.state.showAuditModal);
-    this.modalAlert.isDiscardToBeShown = false;
-    if(this.selectedItems.length==1 && (this.operationName=='DELETE'||this.operationName=='INSERT')){
-      this.setState({showAuditModal:true},
-          ()=>{console.log("showAuditModal",this.state.showAuditModal);});
-    }
+    // TODO
   }
 
   handleAuditOkayClick(auditInfo){
-    let data={};
-    data["change_type"]=this.operationName;
-    data["table_name"]=this.props.gridData.table_name;
-
-    if(this.operationName=='INSERT'){
-      this.auditInfo={
-        table_name:data["table_name"],
-        id:null,
-        change_type:this.operationName,
-        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
-        maker:this.props.login_details.user,
-        business_date:this.state.businessDate
-      };
-      Object.assign(this.auditInfo,auditInfo);
-      data["audit_info"]=this.auditInfo;
-      data["update_info"]={...this.selectedItems[0]};
-      data["business_date"]=this.state.businessDate;
-      data.update_info.id = null;
-      this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
-      this.setState({showAuditModal:false});
-
-    }
-
-    if (this.operationName=='DELETE'){
-      this.auditInfo={
-        table_name:data["table_name"],
-        change_type:this.operationName,
-        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
-        maker:this.props.login_details.user,
-        business_date:this.state.businessDate
-      };
-      Object.assign(this.auditInfo,auditInfo);
-      data["audit_info"]=this.auditInfo;
-      data["update_info"]=this.selectedItems[0];
-      data["business_date"]=this.state.businessDate;
-
-      this.props.deleteFromSourceData(this.selectedItems[0]['id'],data, this.selectedIndexOfGrid);
-      this.setState({showAuditModal:false});
-    }
-
-   if(this.operationName=='UPDATE'){
-
-     this.auditInfo={
-       table_name:data["table_name"],
-       change_type:this.operationName,
-       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
-       maker:this.props.login_details.user,
-       business_date:this.state.businessDate
-     };
-     Object.assign(this.auditInfo,auditInfo);
-     data["audit_info"]=this.auditInfo;
-     data["update_info"]=this.updateInfo;
-     data["business_date"]=this.state.businessDate;
-     this.props.updateSourceData(data);
-     this.setState({showAuditModal:false});
-
-   }
-
-   this.handleRefreshGrid(event);
-
+    //TODO
   }
+
 
   render(){
     if (typeof this.props.dataCatalog != 'undefined') {
-        if (typeof this.props.gridData != 'undefined' ){
-          this.pages = Math.ceil(this.props.gridData.count / 100);
+        if (typeof this.props.gridDataViewReport != 'undefined' ){
+          this.pages = Math.ceil(this.props.gridDataViewReport.count / 100);
         }
         return(
           <div>
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
-                      { !this.state.showDataGrid &&
+                      { !this.state.showReportGrid &&
                         !this.state.showAddForm &&
-                        !this.state.showToggleColumns &&
+                        !this.state.showDrillDownRules &&
                         !this.state.showReportLinkage &&
                         !this.state.showHistory &&
                         <h2>View Report <small>Available Reports for </small>
                           <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }
-                      { (this.state.showDataGrid ||
+                      { (this.state.showReportGrid ||
                         this.state.showAddForm ||
-                        this.state.showToggleColumns ||
+                        this.state.showDrillDownRules ||
                         this.state.showReportLinkage ||
                         this.state.showHistory ) &&
                         <h2>View Report <small>{' Report '}</small>
                           <small><i className="fa fa-file-text"></i></small>
                           <small>{this.state.reportId }</small>
-                          <small>{' Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
+                          <small>{' as on Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }
                       <div className="row">
@@ -560,7 +418,13 @@ class ViewReport extends Component {
                             </a>
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li>
-                                <Link to="/dashboard/view-report" onClick={()=>{this.setState({ showDataGrid: false, showAddForm: false, });}}>
+                                <Link to="/dashboard/view-report"
+                                  onClick={()=>{this.setState({
+                                                                showReportGrid: false,
+                                                                showAddForm: false,
+                                                                showDrillDownRules: false,
+                                                              });}}
+                                >
                                     <i className="fa fa-bars"></i>{' All Report List'}
                                 </Link>
                               </li>
@@ -576,43 +440,13 @@ class ViewReport extends Component {
                             </ul>
                           </li>
                         </ul>
-                        <ul className="nav navbar-right panel_toolbox">
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-spinner"></i><small>{' Button Style '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="Simplified"; this.forceUpdate();}}>
-                                    <i className="fa fa-toggle-off"></i>{' Simplified'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="None";this.forceUpdate();}}>
-                                    <i className="fa fa-toggle-on"></i>{' Multi Colour'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="btn-default";this.forceUpdate();}}>
-                                    <i className="fa fa-square-o"></i>{' Default'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="btn-primary";this.forceUpdate();}}>
-                                    <i className="fa fa-square"></i>{' Primary'}
-                                </a>
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
                       </div>
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
-                { !this.state.showDataGrid &&
+                { !this.state.showReportGrid &&
                   !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
+                  !this.state.showDrillDownRules &&
                   !this.state.showReportLinkage &&
                   !this.state.showHistory &&
                   <ReportCatalogList
@@ -623,8 +457,9 @@ class ViewReport extends Component {
                     applyRules={this.props.applyRules}
                     />
                 }
-                { this.state.showDataGrid &&
-                  this.props.gridData &&
+                { this.state.showReportGrid &&
+                  this.props.gridDataViewReport &&
+                  !this.state.showDrillDownRules &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -640,28 +475,18 @@ class ViewReport extends Component {
                       />
                 }
                 {
-                  !this.state.showDataGrid &&
-                  this.props.gridData &&
-                  !this.state.showAddForm &&
-                  this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <ShowToggleColumns
-                        columns={this.props.gridData.cols}
-                        saveSelection={this.displaySelectedColumns}
-                        selectedViewColumns={this.selectedViewColumns}
-                        handleClose={this.handleToggle}
-                      />
-                }
-                {
-                  this.state.showDataGrid &&
-                  this.props.gridData &&
+                  this.state.showReportGrid &&
+                  this.props.gridDataViewReport &&
+                  !this.state.showDrillDownRules &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
                   !this.state.showHistory &&
                     <RegOpzReportGrid
-                     gridData={this.props.gridData}
+                     report_id={this.state.reportId}
+                     reporting_date={this.state.reportingDate}
+                     gridData={this.props.gridDataViewReport}
+                     handleSelectCell={this.handleSelectCell}
                      ref={
                            (flatGrid) => {
                              this.flatGrid = flatGrid;
@@ -670,28 +495,49 @@ class ViewReport extends Component {
                     />
                 }
                 {
-                  !this.state.showDataGrid &&
-                  this.state.showAddForm &&
-                  this.props.gridData &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <AddData
-                      requestType={this.requestType}
-                      form_data={this.form_data}
-                      form_cols={this.selectedViewColumns}
-                      all_cols={this.props.gridData.cols}
-                      businessDate={this.state.businessDate}
-                      table_name={this.props.gridData.table_name}
-                      handleClose={this.handleAdd}
-                      readOnly={(!this.writeOnly || !this.state.itemEditable)}
-                      updateSourceData={this.updateSourceData}
-                      insertSourceData={this.insertSourceData}
-                      />
+                  !this.state.showReportGrid &&
+                  this.props.cell_rules &&
+                  this.state.showDrillDownRules &&
+                  <DrillDownRules
+                    cellRules = {this.props.cell_rules}
+                    readOnly = {this.readOnly}
+                    selectedCell = {this.selectedCell}
+                    handleClose={this.handleDetails}
+                    reportingDate={this.state.reportingDate}
+                    handleCalcRuleClicked={this.handleCalcRuleClicked}
+                    handleBusinessRuleClicked={this.handleBusinessRuleClicked}
+                  />
                 }
                 {
-                  this.state.showDataGrid &&
-                  !this.props.gridData &&
+                  !this.state.showReportGrid &&
+                  this.props.cell_rules &&
+                  this.state.showDrillDownRules &&
+                  this.state.showDrillDownData &&
+                  !this.state.showDrillDownCalcBusinessRules &&
+                  <ViewData
+                    showDataGrid={true}
+                    flagDataDrillDown={true}
+                    sourceId={this.state.sourceId}
+                    businessDate={this.state.businessDate}
+                    dataFilterParam={this.calcRuleFilter}
+                  />
+                }
+                {
+                  !this.state.showReportGrid &&
+                  this.props.cell_rules &&
+                  this.state.showDrillDownRules &&
+                  !this.state.showDrillDownData &&
+                  this.state.showDrillDownCalcBusinessRules &&
+                  <ViewBusinessRules
+                    showBusinessRuleGrid={true}
+                    flagRuleDrillDown={true}
+                    sourceId={this.businessRuleFilterParam.source_id}
+                    ruleFilterParam={this.businessRuleFilterParam}
+                  />
+                }
+                {
+                  this.state.showReportGrid &&
+                  !this.props.gridDataViewReport &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -701,7 +547,7 @@ class ViewReport extends Component {
                   </div>
                 }
                 {
-                  !this.state.showDataGrid &&
+                  !this.state.showReportGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   this.state.showReportLinkage &&
@@ -713,7 +559,7 @@ class ViewReport extends Component {
                   />
                 }
                 {
-                  !this.state.showDataGrid &&
+                  !this.state.showReportGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -755,14 +601,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportData:(report_id, reporting_date)=>{
       dispatch(actionFetchReportData(report_id, reporting_date))
     },
-    insertSourceData:(data,at) => {
-      dispatch(actionInsertSourceData(data,at));
-    },
-    updateSourceData:(data) => {
-      dispatch(actionUpdateSourceData(data));
-    },
-    deleteFromSourceData:(id,data, at) => {
-      dispatch(actionDeleteFromSourceData(id,data, at));
+    drillDown:(report_id,sheet,cell) => {
+      dispatch(actionDrillDown(report_id,sheet,cell));
     },
     fetchReportLinkage:(source_id,qualifying_key,business_date) => {
       dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
@@ -784,7 +624,9 @@ function mapStateToProps(state){
   return {
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.report_store.reports,
-    gridData: state.captured_report,
+    gridDataViewReport: state.captured_report,
+    gridData: state.view_data_store.gridData,
+    cell_rules: state.report_store.cell_rules,
     report_linkage:state.view_data_store.report_linkage,
     change_history:state.view_data_store.change_history,
     login_details:state.login_store,

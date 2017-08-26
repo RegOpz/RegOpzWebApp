@@ -5,14 +5,22 @@ import {
   DELETE_RULES,
   EXPORT_RULES_CSV
 } from '../actions/BusinessRulesAction';
+import {
+  FETCH_DRILLDOWN_RULES_REPORT
+} from '../actions/ViewDataAction';
 
 // TODO:
 export default function(state=[], action) {
   console.log("Action received: ",action);
   switch(action.type) {
     case FETCH_RULES:
-        state = [];
-      	return state.concat(action.payload.data);
+      return Object.assign({}, state, {
+        gridBusinessRulesData: action.payload.data
+      });
+    case FETCH_DRILLDOWN_RULES_REPORT:
+      return Object.assign({}, state, {
+        gridBusinessRulesData: action.payload.data
+      });
     case INSERT_RULES:
     	state[0].rows.splice(action.meta.at, 0, action.payload.data);
     	return state.splice(0, 1, state);

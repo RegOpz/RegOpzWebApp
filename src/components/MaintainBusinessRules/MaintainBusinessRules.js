@@ -17,6 +17,9 @@ import {
 import {
   actionFetchSources
 } from '../../actions/MaintainReportRuleAction';
+import {
+  actionFetchDrillDownRulesReport
+} from '../../actions/ViewDataAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzFlatGrid from '../RegOpzFlatGrid/RegOpzFlatGrid';
@@ -36,11 +39,11 @@ class MaintainBusinessRules extends Component {
     super(props)
     this.state = {
       sources:null,
-      showDataGrid: false,
+      showBusinessRuleGrid: (this.props.showBusinessRuleGrid ? this.props.showBusinessRuleGrid : false),
       showAddForm: false,
       showToggleColumns: false,
       itemEditable: true,
-      sourceId: null,
+      sourceId: (this.props.sourceId ? this.props.sourceId : null),
       showAuditModal: false,
       showReportLinkage: false,
       showHistory: false,
@@ -48,6 +51,8 @@ class MaintainBusinessRules extends Component {
       tableName: null,
     }
 
+    this.ruleFilterParam=this.props.ruleFilterParam;
+    this.flagRuleDrillDown=this.props.flagRuleDrillDown ? this.props.flagRuleDrillDown : false;
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -99,8 +104,25 @@ class MaintainBusinessRules extends Component {
   }
 
   componentWillMount(){
-    this.props.fetchSources();
+    if(this.flagRuleDrillDown){
+      console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+    } else {
+      this.props.fetchSources();
+    }
   }
+
+  componentWillReceiveProps(nextProps){
+    //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
+    //this.flagDataDrillDown = false;
+    if(nextProps.flagRuleDrillDown && this.ruleFilterParam.cell_calc_ref != nextProps.ruleFilterParam.cell_calc_ref ){
+      console.log("Inside componentWillReceiveProps of MaintainBusinessRules",this.ruleFilterParam);
+      this.flagRuleDrillDown = nextProps.flagRuleDrillDown;
+      this.ruleFilterParam = nextProps.ruleFilterParam;
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+    }
+  }
+
   componentDidUpdate(){
     console.log("componentDidUpdate");
   }
@@ -111,7 +133,7 @@ class MaintainBusinessRules extends Component {
     this.selectedViewColumns=[];
     this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showBusinessRuleGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -144,7 +166,7 @@ class MaintainBusinessRules extends Component {
     if (!toggleValue) {
       this.setState({
         showToggleColumns: true,
-        showDataGrid: false,
+        showBusinessRuleGrid: false,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -153,7 +175,7 @@ class MaintainBusinessRules extends Component {
     else {
       this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showBusinessRuleGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -172,7 +194,7 @@ class MaintainBusinessRules extends Component {
     //console.log(this.selectedViewColumns);
     this.setState({
       showToggleColumns: false,
-      showDataGrid: true,
+      showBusinessRuleGrid: true,
       showAddForm: false,
       showReportLinkage: false,
       showHistory: false,
@@ -268,7 +290,11 @@ class MaintainBusinessRules extends Component {
   }
 
   fetchDataToGrid(event){
-    this.props.fetchBusinesRules(this.state.sourceId,this.currentPage);
+    if(this.flagRuleDrillDown){
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.currentPage);
+    } else {
+      this.props.fetchBusinesRules(this.state.sourceId,this.currentPage);
+    }
   }
 
   handleAdd(event,requestType){
@@ -277,7 +303,7 @@ class MaintainBusinessRules extends Component {
     if(isOpen) {
       this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showBusinessRuleGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -310,7 +336,7 @@ class MaintainBusinessRules extends Component {
           this.requestType = requestType;
           this.setState({
               showToggleColumns: false,
-              showDataGrid: false,
+              showBusinessRuleGrid: false,
               showAddForm: true,
               showReportLinkage: false,
               showHistory: false,
@@ -343,7 +369,7 @@ class MaintainBusinessRules extends Component {
     if(isOpen) {
       this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showBusinessRuleGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -363,7 +389,7 @@ class MaintainBusinessRules extends Component {
         //console.log("Repot Linkage",this.props.report_linkage);
         this.setState({
           showToggleColumns: false,
-          showDataGrid: false,
+          showBusinessRuleGrid: false,
           showAddForm: false,
           showReportLinkage: true,
           showHistory: false,
@@ -378,7 +404,7 @@ class MaintainBusinessRules extends Component {
     if(isOpen) {
       this.setState({
         showToggleColumns: false,
-        showDataGrid: true,
+        showBusinessRuleGrid: true,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: false,
@@ -394,7 +420,7 @@ class MaintainBusinessRules extends Component {
       console.log("Repot Linkage",this.props.change_history);
       this.setState({
         showToggleColumns: false,
-        showDataGrid: false,
+        showBusinessRuleGrid: false,
         showAddForm: false,
         showReportLinkage: false,
         showHistory: true,
@@ -507,92 +533,84 @@ class MaintainBusinessRules extends Component {
   }
 
   render(){
-    if (typeof this.props.dataCatalog != 'undefined') {
-        if (typeof this.props.gridData != 'undefined' ){
-          this.pages = Math.ceil(this.props.gridData.count / 100);
+    if (typeof this.props.dataCatalog != 'undefined' || this.flagRuleDrillDown) {
+        if (typeof this.props.gridBusinessRulesData != 'undefined' ){
+          this.pages = Math.ceil(this.props.gridBusinessRulesData.count / 100);
         }
         return(
           <div>
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
-                      { !this.state.showDataGrid &&
+                      { !this.state.showBusinessRuleGrid &&
+                        !this.flagRuleDrillDown &&
                         !this.state.showAddForm &&
                         !this.state.showToggleColumns &&
                         !this.state.showReportLinkage &&
                         !this.state.showHistory &&
                         <h2>View Business Rules <small>Available Sources</small></h2>
                       }
-                      { (this.state.showDataGrid ||
+                      { (this.state.showBusinessRuleGrid ||
                         this.state.showAddForm ||
                         this.state.showToggleColumns ||
                         this.state.showReportLinkage ||
                         this.state.showHistory ) &&
+                        !this.flagRuleDrillDown &&
                         <h2>View Business Rules <small>{' Rules for Source '}</small>
                           <small>{this.state.sourceId + ' '}</small>
                           <small><i className="fa fa-file-text"></i></small>
                           <small>{' Source File: ' + this.state.sourceFileName}</small>
                         </h2>
                       }
-                      <div className="row">
-                        <ul className="nav navbar-right panel_toolbox">
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-rss"></i><small>{' Data Feeds '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
-                                <Link to="/dashboard/maintain-business-rules" onClick={()=>{this.setState({ showDataGrid: false, showAddForm: false, });}}>
-                                    <i className="fa fa-bars"></i>{' All Sources'}
-                                </Link>
-                              </li>
-                              <li>
-                                <a href="#"></a>
-                                <DataSourceList
-                                  dataCatalog={this.props.dataCatalog}
-                                  navMenu={true}
-                                  handleDataFileClick={this.handleDataFileClick}
-                                  />
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
-                        <ul className="nav navbar-right panel_toolbox">
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-spinner"></i><small>{' Button Style '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="Simplified"; this.forceUpdate();}}>
-                                    <i className="fa fa-toggle-off"></i>{' Simplified'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="None";this.forceUpdate();}}>
-                                    <i className="fa fa-toggle-on"></i>{' Multi Colour'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="btn-default";this.forceUpdate();}}>
-                                    <i className="fa fa-square-o"></i>{' Default'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="btn-primary";this.forceUpdate();}}>
-                                    <i className="fa fa-square"></i>{' Primary'}
-                                </a>
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
-                      </div>
+                      {
+                        this.flagRuleDrillDown &&
+                        <h2>Drilldown Cell Rules <small>{' for Cell '}</small>
+                          <small><i className="fa fa-tag"></i></small>
+                          <small>{' ' + this.ruleFilterParam.cell_id}</small>
+                          <small>Calculation Ref</small>
+                          <small><i className="fa fa-cube"></i></small>
+                          <small>{ this.ruleFilterParam.cell_calc_ref }</small>
+                        </h2>
+                      }
+                      {
+                        !this.flagRuleDrillDown &&
+                        <div className="row">
+                          <ul className="nav navbar-right panel_toolbox">
+                            <li>
+                              <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <i className="fa fa-rss"></i><small>{' Data Feeds '}</small>
+                                <i className="fa fa-caret-down"></i>
+                              </a>
+                              <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                                <li>
+                                  <Link to="/dashboard/maintain-business-rules"
+                                    onClick={()=>{this.setState({
+                                                                  showToggleColumns: false,
+                                                                  showBusinessRuleGrid: false,
+                                                                  showAddForm: false,
+                                                                  showReportLinkage: false,
+                                                                  showHistory: false,
+                                                                });}}>
+                                      <i className="fa fa-bars"></i>{' All Sources'}
+                                  </Link>
+                                </li>
+                                <li>
+                                  <a href="#"></a>
+                                  <DataSourceList
+                                    dataCatalog={this.props.dataCatalog}
+                                    navMenu={true}
+                                    handleDataFileClick={this.handleDataFileClick}
+                                    />
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </div>
+                      }
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
-                { !this.state.showDataGrid &&
+                { !this.state.showBusinessRuleGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -603,8 +621,8 @@ class MaintainBusinessRules extends Component {
                     handleDataFileClick={this.handleDataFileClick}
                     />
                 }
-                { this.state.showDataGrid &&
-                  this.props.gridData &&
+                { this.state.showBusinessRuleGrid &&
+                  this.props.gridBusinessRulesData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -620,29 +638,29 @@ class MaintainBusinessRules extends Component {
                       />
                 }
                 {
-                  !this.state.showDataGrid &&
-                  this.props.gridData &&
+                  !this.state.showBusinessRuleGrid &&
+                  this.props.gridBusinessRulesData &&
                   !this.state.showAddForm &&
                   this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
                   !this.state.showHistory &&
                     <ShowToggleColumns
-                        columns={this.props.gridData.cols}
+                        columns={this.props.gridBusinessRulesData.cols}
                         saveSelection={this.displaySelectedColumns}
                         selectedViewColumns={this.selectedViewColumns}
                         handleClose={this.handleToggle}
                       />
                 }
                 {
-                  this.state.showDataGrid &&
-                  this.props.gridData &&
+                  this.state.showBusinessRuleGrid &&
+                  this.props.gridBusinessRulesData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
                   !this.state.showHistory &&
                     <RegOpzFlatGrid
-                     columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
-                     dataSource={this.props.gridData.rows}
+                     columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridBusinessRulesData.cols}
+                     dataSource={this.props.gridBusinessRulesData.rows}
                      onSelectRow={this.handleSelectRow.bind(this)}
                      onUpdateRow = {this.handleUpdateRow.bind(this)}
                      onSort = {()=>{}}
@@ -657,9 +675,9 @@ class MaintainBusinessRules extends Component {
                     />
                 }
                 {
-                  !this.state.showDataGrid &&
+                  !this.state.showBusinessRuleGrid &&
                   this.state.showAddForm &&
-                  this.props.gridData &&
+                  this.props.gridBusinessRulesData &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
                   !this.state.showHistory &&
@@ -671,8 +689,8 @@ class MaintainBusinessRules extends Component {
                       />
                 }
                 {
-                  this.state.showDataGrid &&
-                  !this.props.gridData &&
+                  this.state.showBusinessRuleGrid &&
+                  !this.props.gridBusinessRulesData &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -682,7 +700,7 @@ class MaintainBusinessRules extends Component {
                   </div>
                 }
                 {
-                  !this.state.showDataGrid &&
+                  !this.state.showBusinessRuleGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   this.props.report_linkage &&
@@ -695,7 +713,7 @@ class MaintainBusinessRules extends Component {
                     />
                 }
                 {
-                  !this.state.showDataGrid &&
+                  !this.state.showBusinessRuleGrid &&
                   !this.state.showAddForm &&
                   !this.state.showToggleColumns &&
                   !this.state.showReportLinkage &&
@@ -737,6 +755,9 @@ const mapDispatchToProps = (dispatch) => {
     fetchBusinesRules: (source_id,page, order) => {
       dispatch(actionFetchBusinessRules(source_id,page, order))
     },
+    fetchDrillDownRulesReport:(rules,source_id,page)=>{
+      dispatch(actionFetchDrillDownRulesReport(rules,source_id,page))
+    },
     insertBusinessRule: (data, at) => {
       dispatch(actionInsertBusinessRule(data, at))
     },
@@ -759,11 +780,11 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 function mapStateToProps(state){
-  console.log("On mapState ", state.view_data_store);
+  console.log("On mapState ", state,state.view_data_store);
   return {
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.view_data_store.sources,
-    gridData: state.business_rules[0],
+    gridBusinessRulesData: state.business_rules.gridBusinessRulesData,
     report_linkage:state.report_linkage,
     change_history:state.def_change_store.audit_list,
     login_details:state.login_store,

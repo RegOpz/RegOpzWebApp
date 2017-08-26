@@ -116,6 +116,7 @@ class AddData extends Component {
                   { this.renderFields(this.form_cols) }
 
                   { this.form_cols &&
+                    !this.readOnly &&
                     //Create Audit form comment seperately to keep it seperate from update info columns,
                     //so that not to pollute what to send to the backend for updating
 

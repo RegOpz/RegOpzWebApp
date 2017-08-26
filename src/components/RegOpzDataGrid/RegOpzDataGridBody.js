@@ -25,7 +25,7 @@ export default class RegOpzDataGridBody extends Component {
             <div id="gridBody">
                 {
                     this.data.map(function(item,index){
-                        console.log("Cell,value,index",item.cell,item.value,index);
+                        //console.log("Cell,value,index",item.cell,item.value,index);
                         let cell = item.cell;
                         let value = item.value;
                         let coord = this.getRealCoords(cell);

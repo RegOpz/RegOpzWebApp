@@ -147,9 +147,12 @@ export function actionSetDisplayCols(cols,table_name){
 }
 
 export function actionFetchDataChangeHistory(table_name, id_list, business_date) {
+  let url = BASE_URL + "workflow/data-change/get-audit-list?table_name=" + table_name;
+  url = url + (id_list ? "&id_list=" + id_list : "");
+  url = url + (business_date ? "&business_date=" + business_date : "");
   return {
     type: FETCH_CHANGE_HISTORY,
-    payload: axios.get(`${BASE_URL}workflow/data-change/get-audit-list?table_name=${table_name}&id_list=${id_list}&business_date=${business_date}`)
+    payload: axios.get(url)
   }
 }
 

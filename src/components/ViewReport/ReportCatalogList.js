@@ -157,7 +157,7 @@ class ReportCatalogList extends Component {
                 <tr>
                   <th>Report ID</th>
                   <th>Reporting Date</th>
-                  <th>Period</th>
+                  <th>Data Period</th>
                   <th>Report status</th>
                   <th>Prepared by</th>
                   <th>Prepared on</th>
@@ -185,7 +185,7 @@ class ReportCatalogList extends Component {
                     </td>
                     <td>{moment(item.as_of_reporting_date).format("DD-MMM-YYYY")}</td>
                     <td>
-                      {moment(item.reporting_date.toString().substring(0,8)).format("DD-MMM-YYYY") + "-" + moment(item.reporting_date.toString().substring(8,8)).format("DD-MMM-YYYY")}
+                      {moment(item.reporting_date.toString().substring(0,8)).format("DD-MMM-YYYY") + " to " + moment(item.reporting_date.toString().substring(8,16)).format("DD-MMM-YYYY")}
                     </td>
                     <td>{item.report_create_status}</td>
                     <td>{item.report_created_by}</td>

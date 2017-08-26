@@ -8,7 +8,8 @@ import {
   FETCH_SOURCE,
   FETCH_REPORT_BY_DATE,
   FETCH_CHANGE_HISTORY,
-  EXPORT_DATA_CSV
+  EXPORT_DATA_CSV,
+  FETCH_DRILLDOWN_REPORT
 } from '../actions/ViewDataAction';
 import {
   FETCH_SOURCES
@@ -51,6 +52,10 @@ export default function(state=[], action) {
     case FETCH_SOURCES:
       return Object.assign({},state,{
         sources:action.payload.data.source_suggestion
+      });
+    case FETCH_DRILLDOWN_REPORT:
+      return Object.assign({},state,{
+        gridData:action.payload.data
       });
     case EXPORT_DATA_CSV:
       window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;

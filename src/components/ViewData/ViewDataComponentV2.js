@@ -8,6 +8,7 @@ import {
   //actionFetchDates,
   actionFetchSource,
   actionFetchReportFromDate,
+  actionFetchDrillDownReport,
   actionInsertSourceData,
   actionUpdateSourceData,
   actionDeleteFromSourceData,
@@ -37,7 +38,7 @@ class ViewDataComponentV2 extends Component {
       startDate:moment().subtract(1,'months').format("YYYYMMDD"),
       endDate:moment().format('YYYYMMDD'),
       sources:null,
-      showDataGrid: false,
+      showDataGrid: (this.props.showDataGrid ? this.props.showDataGrid : false),
       showAddForm: false,
       showToggleColumns: false,
       itemEditable: true,
@@ -48,6 +49,8 @@ class ViewDataComponentV2 extends Component {
       showHistory: false,
     }
 
+    this.dataFilterParam=this.props.dataFilterParam;
+    this.flagDataDrillDown=this.props.flagDataDrillDown ? this.props.flagDataDrillDown : false;
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -100,10 +103,28 @@ class ViewDataComponentV2 extends Component {
 
   componentWillMount(){
     //this.props.fetchDates(this.state.startDate ? moment(this.state.startDate).format('YYYYMMDD') : "19000101",this.state.endDate ? moment(this.state.endDate).format('YYYYMMDD') : "30200101", 'data_catalog');
-    this.props.fetchSource(moment(this.state.startDate).format('YYYYMMDD') ,moment(this.state.endDate).format('YYYYMMDD') , 'Data');
+    if(this.flagDataDrillDown){
+      console.log("Inside componentWillMount of ViewDataComponentV2");
+      this.props.fetchDrillDownReport(this.dataFilterParam);
+    } else {
+      this.props.fetchSource(moment(this.state.startDate).format('YYYYMMDD') ,moment(this.state.endDate).format('YYYYMMDD') , 'Data');
+    }
   }
+
+  componentWillReceiveProps(nextProps){
+    //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
+    //this.flagDataDrillDown = false;
+    if(nextProps.flagDataDrillDown && this.dataFilterParam.params.drill_kwargs.cell_calc_ref != nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref ){
+      console.log("Inside componentWillReceiveProps of ViewDataComponentV2",nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref);
+      this.flagDataDrillDown = nextProps.flagDataDrillDown;
+      this.dataFilterParam=nextProps.dataFilterParam;
+      this.props.fetchDrillDownReport(this.dataFilterParam);
+    }
+  }
+
   componentDidUpdate(){
     console.log("Dates",this.state.startDate)
+    this.isNextPropRun = !this.isNextPropRun;
   }
 
   handleDataFileClick(item) {
@@ -278,7 +299,12 @@ class ViewDataComponentV2 extends Component {
   }
 
   fetchDataToGrid(event){
-    this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.currentPage);
+    if(this.flagDataDrillDown){
+      this.dataFilterParam.params.drill_kwargs.page = this.currentPage;
+      this.props.fetchDrillDownReport(this.dataFilterParam);
+    } else {
+      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.currentPage);
+    }
   }
 
   handleAdd(event,requestType){
@@ -363,22 +389,31 @@ class ViewDataComponentV2 extends Component {
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select atleast one record");
       } else {
-        let selectedKeys=null;
+        let selectedKeys='';
+        let source_id = 0 ;
+        if (this.dataFilterParam){
+          source_id = this.dataFilterParam.params.drill_kwargs.source_id;
+          console.log("Inside true");
+        } else {
+          source_id = this.state.sourceId;
+        }
         this.selectedItems.map((item,index)=>{
-          selectedKeys += (selectedKeys ? ',' + item.id : item.id)
+          console.log("Inthe iterator loop for selectedItems", source_id);
+          selectedKeys += (selectedKeys!='' ? ',(' + source_id + ',' + item.id + ',' + item.business_date + ')' : '(' + source_id + ',' + item.id + ',' + item.business_date + ')')
         })
-        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate);
         //console.log("Repot Linkage",this.props.report_linkage);
+        this.selectedItems = this.flatGrid.deSelectAll();
         this.setState({
-          showToggleColumns: false,
-          showDataGrid: false,
-          showAddForm: false,
-          showReportLinkage: true,
-          showHistory: false,
-        });
+              showToggleColumns: false,
+              showDataGrid: false,
+              showAddForm: false,
+              showReportLinkage: true,
+              showHistory: false,
+            },
+              this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate)
+          );
       }
     }
-    this.selectedItems = this.flatGrid.deSelectAll();
   }
 
   handleHistoryClick(event) {
@@ -392,21 +427,28 @@ class ViewDataComponentV2 extends Component {
         showHistory: false,
       });
     } else {
-      let selectedKeys=null;
+      let selectedKeys='';
       this.selectedItems.map((item,index)=>{
-        selectedKeys += (selectedKeys ? ',' + item.id : item.id)
+        selectedKeys += (selectedKeys!='' ? ',(' + item.id + ',' + item.business_date + ')': '(' + item.id + ',' + item.business_date + ')')
       })
-      this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys,this.state.businessDate);
       console.log("Repot Linkage",this.props.change_history);
+      this.selectedItems = this.flatGrid.deSelectAll();
       this.setState({
-        showToggleColumns: false,
-        showDataGrid: false,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: true,
-      });
+            showToggleColumns: false,
+            showDataGrid: false,
+            showAddForm: false,
+            showReportLinkage: false,
+            showHistory: true,
+          },
+            ()=>{
+              if (selectedKeys){
+                this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys);
+              } else {
+                this.props.fetchDataChangeHistory(this.props.gridData.table_name,null,this.state.businessDate);
+              }
+            }
+        );
     }
-    this.selectedItems = this.flatGrid.deSelectAll();
   }
 
   handleExportCSV(event) {
@@ -519,7 +561,7 @@ class ViewDataComponentV2 extends Component {
   }
 
   render(){
-    if (typeof this.props.dataCatalog != 'undefined') {
+    if (typeof this.props.dataCatalog != 'undefined' || this.flagDataDrillDown) {
         if (typeof this.props.gridData != 'undefined' ){
           this.pages = Math.ceil(this.props.gridData.count / 100);
         }
@@ -529,6 +571,7 @@ class ViewDataComponentV2 extends Component {
               <div className="x_panel">
                 <div className="x_title">
                       { !this.state.showDataGrid &&
+                        !this.flagDataDrillDown &&
                         !this.state.showAddForm &&
                         !this.state.showToggleColumns &&
                         !this.state.showReportLinkage &&
@@ -542,68 +585,59 @@ class ViewDataComponentV2 extends Component {
                         this.state.showToggleColumns ||
                         this.state.showReportLinkage ||
                         this.state.showHistory ) &&
+                        !this.flagDataDrillDown &&
                         <h2>View Data <small>{' Data for Source '}</small>
                           <small><i className="fa fa-file-text"></i></small>
                           <small>{this.state.sourceId }</small>
                           <small>{' Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }
-                      <div className="row">
-                        <ul className="nav navbar-right panel_toolbox">
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-rss"></i><small>{' Data Feeds '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
-                                <Link to="/dashboard/view-data" onClick={()=>{this.setState({ showDataGrid: false, showAddForm: false, });}}>
-                                    <i className="fa fa-bars"></i>{' All Data Feeds'}
-                                </Link>
-                              </li>
-                              <li>
-                                <a href="#"></a>
-                                <DataCatalogList
-                                  dataCatalog={this.props.dataCatalog}
-                                  navMenu={true}
-                                  handleDataFileClick={this.handleDataFileClick}
-                                  dateFilter={this.handleDateFilter}
-                                  />
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
-                        <ul className="nav navbar-right panel_toolbox">
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-spinner"></i><small>{' Button Style '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="Simplified"; this.forceUpdate();}}>
-                                    <i className="fa fa-toggle-off"></i>{' Simplified'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="None";this.forceUpdate();}}>
-                                    <i className="fa fa-toggle-on"></i>{' Multi Colour'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="btn-default";this.forceUpdate();}}>
-                                    <i className="fa fa-square-o"></i>{' Default'}
-                                </a>
-                              </li>
-                              <li>
-                                <a onClick={(event)=>{this.buttonClassOverride="btn-primary";this.forceUpdate();}}>
-                                    <i className="fa fa-square"></i>{' Primary'}
-                                </a>
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
-                      </div>
+                      {
+                        this.flagDataDrillDown &&
+                        <h2>Drilldown Data <small>{' for Cell '}</small>
+                          <small><i className="fa fa-tag"></i></small>
+                          <small>{' ' + this.dataFilterParam.params.drill_kwargs.cell_id}</small>
+                          <small>Calculation Ref</small>
+                          <small><i className="fa fa-cube"></i></small>
+                          <small>{ this.dataFilterParam.params.drill_kwargs.cell_calc_ref }</small>
+                        </h2>
+                      }
+                      {
+                        !this.flagDataDrillDown &&
+                        <div className="row">
+                          <ul className="nav navbar-right panel_toolbox">
+                            <li>
+                              <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <i className="fa fa-rss"></i><small>{' Data Feeds '}</small>
+                                <i className="fa fa-caret-down"></i>
+                              </a>
+                              <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                                <li>
+                                  <Link to="/dashboard/view-data"
+                                    onClick={()=>{this.setState({
+                                                                  showToggleColumns: false,
+                                                                  showDataGrid: false,
+                                                                  showAddForm: false,
+                                                                  showReportLinkage: false,
+                                                                  showHistory: false,
+                                                                });}}>
+                                      <i className="fa fa-bars"></i>{' All Data Feeds'}
+                                  </Link>
+                                </li>
+                                <li>
+                                  <a href="#"></a>
+                                  <DataCatalogList
+                                    dataCatalog={this.props.dataCatalog}
+                                    navMenu={true}
+                                    handleDataFileClick={this.handleDataFileClick}
+                                    dateFilter={this.handleDateFilter}
+                                    />
+                                </li>
+                              </ul>
+                            </li>
+                          </ul>
+                        </div>
+                      }
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
@@ -758,6 +792,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     fetchReportFromDate:(source_id,business_date,page)=>{
       dispatch(actionFetchReportFromDate(source_id,business_date,page))
+    },
+    fetchDrillDownReport:(drill_info)=>{
+      dispatch(actionFetchDrillDownReport(drill_info))
     },
     insertSourceData:(data,at) => {
       dispatch(actionInsertSourceData(data,at));

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
+import { Tab, Tabs } from 'react-bootstrap';
 import { bindActionCreators, dispatch } from 'redux';
 import RegOpzDataGridHeader from './RegOpzDataGridHeader';
 import RegOpzDataGridSideMarker from './RegOpzGridSideMarker';
@@ -13,27 +14,33 @@ class RegOpzReportGrid extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isModalOpen:false
+      isModalOpen:false,
+      selectedSheet: 0,
     };
     this.numberofCols = 52;
     this.numberofRows = 1000;
     this.data = [];
-    this.selectedSheet = 0;
     this.report_id = this.props.report_id;
     this.reporting_date = this.props.reporting_date;
     this.gridData = this.props.gridData;
     this.cell_format_yn = 'Y';
-    this.selectedCell = null;
+    this.selectedCell = {};
     this.selectedSheetName = null;
     this.gridHight = 0;
     this.gridWidth = 0;
     this.rulesIdAsSubQuery = "";
     this.linkageData = null;
+    this.tabBody = null;
+    this.renderTabs = this.renderTabs.bind(this);
+    this.alphaSequence = this.alphaSequence.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
       //TODO
       this.gridData = nextProps.gridData;
+      this.report_id = nextProps.report_id;
+      this.reporting_date = nextProps.reporting_date;
+      console.log("Inside componentWillReceiveProps reggrid",this.gridData)
   }
 
   alphaSequence(i) {
@@ -44,103 +51,119 @@ class RegOpzReportGrid extends Component {
 
   render(){
     if (this.gridData.length > 0) {
-      this.data = this.gridData[this.selectedSheet].matrix;
-      this.selectedSheetName = this.gridData[this.selectedSheet]['sheet'];
-      let row_attr = this.gridData[this.selectedSheet].row_attr;
-      let col_attr = this.gridData[this.selectedSheet].col_attr;
-      console.log('no of rows...', row_attr, row_attr.length);
-      this.numberofRows = Object.keys(row_attr).length;
-      this.numberofCols = Object.keys(col_attr).length;
-      this.gridHight = 0;
-      this.gridWidth = 0;
-      [... Array(parseInt(this.numberofRows))].map(function(item,index){
-          //var stylex = {};
-          if(typeof(row_attr[(index+1)+""]) != 'undefined') {
-            this.gridHight += parseInt(row_attr[(index+1)+""].height) * 2;
-          }
-      }.bind(this));
-      [... Array(parseInt(this.numberofCols))].map(function(item,index){
-          //var stylex = {};
-          if(typeof(col_attr[this.alphaSequence(index)]) != 'undefined'){
-            this.gridWidth += parseInt(col_attr[this.alphaSequence(index)]['width']) * 9 + 1;
-          }
-      }.bind(this));
-      console.log('grid hight',this.gridHight);
-      if( typeof this.props.audit_list != 'undefined' && this.props.audit_list.length ){
-        this.linkageData = this.props.audit_list;
-      }
       return(
         <div className="reg_gridHolder">
-          <div>
-            <div className="row">
-              <div className="row reg_sheet_buttons_holder">
-                <div className="btn-group">
-                  <button className="btn btn-success btn-sm">Showing <i className="fa fa-cube"></i> {this.selectedSheetName}</button>
-                  {
-                    this.gridData.map((item,index) => {
-                      return(
-                        <button
-                          key={index}
-                          target={index}
-                          type="button"
-                          className="btn btn-warning btn-xs"
-                          onClick={(event) => {
-                            this.selectedSheet = event.target.getAttribute("target");
-                            this.forceUpdate();
-                          }}
-                        >
-                          {item['sheet']}
-                        </button>
-                      )
-                    })
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        <div className="data_grid_container">
-          <RegOpzDataGridHeader
-            numberofCols={this.numberofCols}
-            colAttr={this.gridData[this.selectedSheet].col_attr}
-          />
-          <div className="clearfix"></div>
-          <RegOpzDataGridSideMarker
-            numberofRows={this.numberofRows}
-            rowAttr={this.gridData[this.selectedSheet].row_attr}
-          />
-          <div className="reg_grid_drawing_container">
-              <RegOpzDataGridHorizontalLines
-                numberofRows={this.numberofRows}
-                height={this.gridHight}
-                width={this.gridWidth}
-                rowAttr={this.gridData[this.selectedSheet].row_attr}
-              />
-              <RegOpzDataGridVerticalLines
-                numberofCols={this.numberofCols}
-                height={this.gridHight}
-                width={this.gridWidth}
-                colAttr={this.gridData[this.selectedSheet].col_attr}
-              />
-              <RegOpzDataGridBody
-                data={this.data}
-                colAttr={this.gridData[this.selectedSheet].col_attr}
-                rowAttr={this.gridData[this.selectedSheet].row_attr}
-                onSelect = {
-                  (item) => {
-                    this.selectedCell = item;
-                    console.log("On select",item);
-                  }
-                }
-              />
-          </div>
-        </div>
+          <Tabs
+            defaultActiveKey={0}
+            activeKey={this.state.selectedSheet}
+            onSelect={(key) => {
+                this.setState({selectedSheet:key});
+                //this.renderTabs(key);
+            }}
+            >
+            {
+              this.gridData.map((item,index) => {
+                console.log("Inside dridData map");
+                return(
+                    <Tab
+                      eventKey={index}
+                      title={item['sheet']}
+                    >
+                      {
+                        (()=>{
+                          if(this.state.selectedSheet == index){
+                            // reseting the selectedCell when chanding the tab of the report
+                            this.selectedCell = {};
+                            this.props.handleSelectCell(this.selectedCell);
+                            return (this.renderTabs(index));
+                          }
+                        })()
+                      }
+                    </Tab>
+                )
+              })
+            }
+          </Tabs>
       </div>
       )
     } else {
       return(
-        <h1>Loading...</h1>
+        <h4>Loading...</h4>
       )
     }
+  }
+
+  renderTabs(index){
+    //let index = this.state.selectedSheet;
+    this.data = this.gridData[index].matrix;
+    this.selectedSheetName = this.gridData[index]['sheet'];
+    let row_attr = this.gridData[index].row_attr;
+    let col_attr = this.gridData[index].col_attr;
+    console.log('no of rows...', row_attr, row_attr.length);
+    this.numberofRows = Object.keys(row_attr).length;
+    this.numberofCols = Object.keys(col_attr).length;
+    this.gridHight = 0;
+    this.gridWidth = 0;
+    [... Array(parseInt(this.numberofRows))].map(function(item,index){
+        //var stylex = {};
+        if(typeof(row_attr[(index+1)+""]) != 'undefined') {
+          this.gridHight += parseInt(row_attr[(index+1)+""].height) * 2;
+        }
+    }.bind(this));
+    [... Array(parseInt(this.numberofCols))].map(function(item,index){
+        //var stylex = {};
+        if(typeof(col_attr[this.alphaSequence(index)]) != 'undefined'){
+          this.gridWidth += parseInt(col_attr[this.alphaSequence(index)]['width']) * 9 + 1;
+        }
+    }.bind(this));
+    console.log('grid hight',this.gridHight);
+    if( typeof this.props.audit_list != 'undefined' && this.props.audit_list.length ){
+      this.linkageData = this.props.audit_list;
+    }
+    return(
+      <div className="data_grid_container">
+        <RegOpzDataGridHeader
+          numberofCols={this.numberofCols}
+          colAttr={this.gridData[index].col_attr}
+        />
+        <div className="clearfix"></div>
+        <RegOpzDataGridSideMarker
+          numberofRows={this.numberofRows}
+          rowAttr={this.gridData[index].row_attr}
+        />
+        <div className="reg_grid_drawing_container">
+            <RegOpzDataGridHorizontalLines
+              numberofRows={this.numberofRows}
+              height={this.gridHight}
+              width={this.gridWidth}
+              rowAttr={this.gridData[index].row_attr}
+            />
+            <RegOpzDataGridVerticalLines
+              numberofCols={this.numberofCols}
+              height={this.gridHight}
+              width={this.gridWidth}
+              colAttr={this.gridData[index].col_attr}
+            />
+            <RegOpzDataGridBody
+              data={this.data}
+              colAttr={this.gridData[index].col_attr}
+              rowAttr={this.gridData[index].row_attr}
+              onSelect = {
+                (item) => {
+                  this.selectedCell = {
+                    cell: item,
+                    sheetName: this.selectedSheetName,
+                    reportId: this.report_id,
+                    reportingDate: this.reporting_date
+                  };
+                  //console.log("On select",this.selectedCell);
+                  this.props.handleSelectCell(this.selectedCell);
+                }
+              }
+            />
+        </div>
+      </div>
+    );
   }
 }
 

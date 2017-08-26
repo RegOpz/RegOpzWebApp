@@ -1,6 +1,6 @@
 import {
   FETCH_CAPTURED_REPORT,
-  DRILL_DOWN
+  //DRILL_DOWN
 } from '../actions/CaptureReportAction';
 import {
   DELETE_MAINTAIN_RULE_DATA
@@ -13,10 +13,10 @@ export default function(state=[], action){
     case FETCH_CAPTURED_REPORT:
       state = [];
       return state.concat(action.payload.data);
-    case DRILL_DOWN:
-      return Object.assign({}, state, {
-        drill_down_result: action.payload.data
-      });
+    // case DRILL_DOWN:
+    //   return Object.assign({}, state, {
+    //     drill_down_result: action.payload.data
+    //   });
     case DELETE_MAINTAIN_RULE_DATA:
       console.log('In capturereport reducer for delete cell calc rules',
       state.drill_down_result.cell_rules.length, state.drill_down_result.cell_rules,
