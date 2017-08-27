@@ -64,11 +64,11 @@ class ViewReport extends Component {
     this.selectedViewColumns=[];
     this.operationName=null;
     this.buttons=[
-      {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
-      {title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success"},
-      {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
-      {title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info"},
-      {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
+      { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+      { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleReportLinkClick.bind(this) },
+      { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportCSV.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
@@ -77,13 +77,8 @@ class ViewReport extends Component {
     this.handleDateFilter = this.handleDateFilter.bind(this);
     this.actionButtonClicked = this.actionButtonClicked.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
-    this.handleRefreshGrid = this.handleRefreshGrid.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
     this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
-    this.handleReportLinkClick = this.handleReportLinkClick.bind(this);
-    this.handleHistoryClick = this.handleHistoryClick.bind(this);
-    this.handleExportCSV = this.handleExportCSV.bind(this);
-    this.handleDetails = this.handleDetails.bind(this);
     this.handleCalcRuleClicked = this.handleCalcRuleClicked.bind(this);
     this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
@@ -182,7 +177,7 @@ class ViewReport extends Component {
       case "History":
         this.handleHistoryClick(event);
         break;
-      case "Deselect":
+      case "Deselect": // Is it being used? If not, remove the whole method.
         this.selectedItems = this.flatGrid.deSelectAll();
         break;
       case "Export":

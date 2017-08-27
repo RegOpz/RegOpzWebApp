@@ -66,6 +66,7 @@ class RegOpzReportGrid extends Component {
                 console.log("Inside dridData map");
                 return(
                     <Tab
+                      key={index}
                       eventKey={index}
                       title={item['sheet']}
                     >
