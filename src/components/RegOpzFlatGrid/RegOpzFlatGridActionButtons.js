@@ -67,7 +67,6 @@ class RegOpzFlatGridActionButtons extends Component {
                                 if (typeof item.onClick === 'function') {
                                     item.onClick();
                                 }
-                                this.buttonClicked(event,item.title);
                             }
                           }
                           className={ this.handleClassName(item) }
