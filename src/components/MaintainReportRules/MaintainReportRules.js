@@ -29,6 +29,7 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import DrillDownRules from '../DrillDown/DrillDownRules';
+import AddReportAggRules from './AddReportAggRules';
 import ViewData from '../ViewData/ViewDataComponentV2';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
@@ -379,7 +380,11 @@ class MaintainReportRules extends Component {
                       );
                   } else if (this.state.showAggRuleDetails) {
                       content.push(
-                          <h1> Not implemented yet. </h1>
+                          <AddReportAggRules
+                            request="view"
+                            handleClose={this.handleDetails.bind(this)}
+                            {...this.aggRuleData}
+                          />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
                       content.push(
@@ -516,9 +521,9 @@ function mapStateToProps(state){
     gridDataViewReport: state.captured_report,
     gridData: state.view_data_store.gridData,
     cell_rules: state.report_store.cell_rules,
-    report_linkage:state.view_data_store.report_linkage,
-    change_history:state.view_data_store.change_history,
-    login_details:state.login_store,
+    report_linkage: state.view_data_store.report_linkage,
+    change_history: state.view_data_store.change_history,
+    login_details: state.login_store,
   }
 }
 

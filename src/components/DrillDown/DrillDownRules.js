@@ -123,6 +123,7 @@ class DrillDownRules extends Component {
                     onClick={
                       (event)=>{
                         this.props.handleAggeRuleClicked(event,item);
+                        this.showRulesPanel=!this.showRulesPanel;
                       }
                     }>
                     <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>

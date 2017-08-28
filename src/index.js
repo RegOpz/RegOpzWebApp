@@ -117,7 +117,7 @@ ReactDOM.render(
                     <Route path="view-report" name="View Report" component={ViewReport} />
                     <Route path="create-report" name="Create Report" component={CreateReport} />
                     <Route path="drill-down" name="DrillDown" component={DrillDown} />
-                    <Route path="maintain-report-rules" name="Maintain Report Rules" component={MaintainReportRules} />
+                    <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
                     <Route path="maintain-report-rules/add-report-rules" name="Add Report Rules" component={AddReportRules} />
                     <Route path="maintain-report-rules/add-report-agg-rules" name="Add Report Aggregate Rules" component={AddReportAggRules} />
                     <Route path="maintain-sources" name="Maintain Sources" component={MaintainSources} />

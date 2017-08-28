@@ -14,13 +14,13 @@ class AddReportAggRules extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      requestType: this.props.location.query['request'],
-      viewOnly:null,
+      requestType: this.props.request,
+      viewOnly: this.props.request === 'view' ? true : false,
       form: {
         id: null,
-        report_id: this.props.location.query['report_id'],
-        sheet_id: this.props.location.query['sheet_id'],
-        cell_id: this.props.location.query['cell_id'],
+        report_id: this.props.report_id,
+        sheet_id: this.props.sheet_id,
+        cell_id: this.props.cell_id,
         comp_agg_ref: null,
         reporting_scale: null,
         rounding_option: null,
@@ -35,12 +35,11 @@ class AddReportAggRules extends Component {
     // this.aggRulesList = new RegExp('[A-Z0-9]+') Options are included
     //this.aggRulesPattern = /(\w+([\+\-\*\/]\w+)?)|(\(\w+\))/g;
     this.aggRulesPattern = /[\+\-\*\/\(\)\[\]\{\}\^]/g;
-    this.state.viewOnly=this.props.location.query['request']=='view'?"true":"";
   }
 
- componentWillMount(){
+ componentWillMount() {
   //console.log('Before assignment.....',this.state.form);
-  Object.assign(this.state.form, this.props.drill_down_result.comp_agg_rules[0]);
+  Object.assign(this.state.form, this.props.cell_rules.comp_agg_rules[0]);
   //console.log(this.props.drill_down_result.comp_agg_rules[0]);
   //console.log(this.state.form);
  }
@@ -235,7 +234,7 @@ class AddReportAggRules extends Component {
 
                   <div className="form-group">
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                      <button type="button" className="btn btn-primary" onClick={this.handleCancel.bind(this)}>
+                      <button type="button" className="btn btn-primary" onClick={this.props.handleClose}>
                         Cancel</button>
                       {
                         (()=>{
@@ -282,14 +281,9 @@ class AddReportAggRules extends Component {
       this.props.updateRuleData(this.state.form.id,data);
     }
 
-    hashHistory.push(`/dashboard/drill-down?report_id=${this.state.form.report_id}&sheet=${encodeURI(this.state.form.sheet_id)}&cell=${this.state.form.cell_id}`);
+    this.props.handleClose();
   }
 
-  handleCancel() {
-    const url=`/dashboard/drill-down?report_id=${this.state.form.report_id}&sheet=${this.state.form.sheet_id}&cell=${this.state.form.cell_id}`;
-    const encodedUrl = encodeURI(url);
-    hashHistory.push(encodedUrl);
-  }
   checkRuleValidity(event){
     var nstr = ''
     var str = event.target.value;
@@ -320,7 +314,7 @@ class AddReportAggRules extends Component {
 
 function mapStateToProps(state) {
   return{
-    drill_down_result:state.captured_report.drill_down_result
+    cell_rules: state.report_store.cell_rules
   };
 }
 
