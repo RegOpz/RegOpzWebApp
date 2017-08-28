@@ -461,11 +461,7 @@ class ViewReport extends Component {
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li>
                                 <Link to="/dashboard/view-report"
-                                  onClick={()=>{this.setState({
-                                                                showReportGrid: false,
-                                                                showAddForm: false,
-                                                                showDrillDownRules: false,
-                                                              });}}
+                                  onClick={()=>{ this.setState({ display: false }) }}
                                 >
                                     <i className="fa fa-bars"></i>{' All Report List'}
                                 </Link>

@@ -1,240 +1,562 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { WithContext as ReactTags } from 'react-tag-input';
-import Breadcrumbs from 'react-breadcrumbs';
-import {connect} from 'react-redux';
-import {bindActionCreators, dispatch} from 'redux';
+import { connect } from 'react-redux';
+import { bindActionCreators, dispatch } from 'redux';
+import { Link } from 'react-router';
 import _ from 'lodash';
 import {
   actionFetchReportTemplate
 } from '../../actions/MaintainReportRuleAction';
-import Collapsible from '../CollapsibleModified/Collapsible';
-require('./MaintainReportRules.css');
+import {
+  //actionFetchDates,
+  actionFetchReportCatalog,
+  actionFetchReportLinkage,
+  actionFetchDataChangeHistory,
+  actionExportCSV,
+  actionApplyRules,
+} from '../../actions/ViewDataAction';
+import {
+  actionFetchReportData,
+  actionDrillDown
+} from '../../actions/CaptureReportAction';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
+import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
+import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
+import ReportCatalogList from './ReportRuleCatalog';
+import AuditModal from '../AuditModal/AuditModal';
+import ModalAlert from '../ModalAlert/ModalAlert';
+import DataReportLinkage from '../ViewData/DataReportLinkage';
+import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import DrillDownRules from '../DrillDown/DrillDownRules';
+import ViewData from '../ViewData/ViewDataComponentV2';
+import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainReportRules extends Component {
   constructor(props){
-    super(props);
-    this.tags = {
-        countryTags: [],
-        countrySuggestions: [],
-        reportTags: [],
-        reportSuggestions: []
-    };
-    this.handleDeleteReport = this.handleDeleteReport.bind(this);
-    this.handleAdditionReport = this.handleAdditionReport.bind(this);
-    this.handleDragReport = this.handleDragReport.bind(this);
+    super(props)
+    this.state = {
+      startDate:moment().subtract(1,'months').format("YYYYMMDD"),
+      endDate:moment().format('YYYYMMDD'),
+      sources:null,
+      itemEditable: true,
+      reportId: null,
+      reportingDate: null,
+      businessDate: null,
 
-    this.handleDeleteCountry = this.handleDeleteCountry.bind(this);
-    this.handleAdditionCountry = this.handleAdditionCountry.bind(this);
-    this.handleDragCountry = this.handleDragCountry.bind(this);
+      showDrillDownData: false,
+      showAggRuleDetails: false,
+      showDrillDownCalcBusinessRules: false,
 
-    this.searchAnywhere = this.searchAnywhere.bind(this);
-  }
-  searchAnywhere(textInputValue, possibleSuggestionsArray) {
-    var lowerCaseQuery = textInputValue.toLowerCase()
-
-    return possibleSuggestionsArray.filter(function(suggestion)  {
-        return suggestion.toLowerCase().includes(lowerCaseQuery)
-    })
-  }
-  convertTagsToString(tags){
-    let selectedTags = [];
-    for(let i = 0; i < tags.length; i++){
-      selectedTags.push(tags[i].text)
+      display: false
     }
-    return selectedTags.toString();
+
+    this.pages=0;
+    this.currentPage=0;
+    this.dataSource = null;
+    this.calcRuleFilter = {};
+    this.businessRuleFilterParam = {};
+    this.selectedCell={};
+    this.selectedItems = [];
+    this.selectedIndexOfGrid = 0;
+    this.form_data={};
+    this.selectedViewColumns=[];
+    this.operationName=null;
+    this.buttons=[
+      { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+      { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleReportLinkClick.bind(this) },
+      { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportCSV.bind(this) },
+    ];
+    this.buttonClassOverride = "None";
+
+    this.renderDynamic = this.renderDynamic.bind(this);
+
+    this.handleReportClick = this.handleReportClick.bind(this);
+    this.handleDateFilter = this.handleDateFilter.bind(this);
+    this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
+    this.checkDisabled = this.checkDisabled.bind(this);
+    this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
+    this.handleCalcRuleClicked = this.handleCalcRuleClicked.bind(this);
+    this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
+    this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
+
+    this.handleSelectCell = this.handleSelectCell.bind(this);
+    this.handleSelectRow = this.handleSelectRow.bind(this);
+    this.handleFullSelect = this.handleFullSelect.bind(this);
+    this.handleUpdateRow = this.handleUpdateRow.bind(this);
+    this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
+    this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
+
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
   }
-  handleDeleteReport(i) {
-      let tags = this.tags.reportTags;
-      tags.splice(i, 1);
-      this.setState({reportTags: tags});
-      let reports = this.convertTagsToString(this.tags.reportTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchReportTemplateList(reports ? reports:'ALL', country ? country:'ALL');
+
+  componentWillMount() {
+      this.props.fetchReportTemplateList();
+  }
+
+  componentDidUpdate() {
+    console.log("Dates",this.state.startDate)
+  }
+
+  handleReportClick(item) {
+    console.log("selected item",item);
+    this.currentPage = 0;
+    this.selectedViewColumns=[];
+    this.setState({
+        display: "showReportGrid",
+        reportId: item.report_id,
+        reportingDate: item.reporting_date,
+        businessDate: item.as_of_reporting_date,
+     },
+      ()=>{ this.props.fetchReportData(this.state.reportId) }
+    );
+  }
+
+  handleDateFilter(dates) {
+    this.setState({
+      startDate: dates.startDate,
+      endDate: dates.endDate
+    },
+      //since setState is asynchronus this gurantees that fetch is executed after setState is executed
+      ()=>{this.props.fetchReportCatalog(this.state.startDate,this.state.endDate)}
+    );
+    // console.log("Dates",dates)
+    // this.props.fetchSource(dates.startDate,dates.endDate,"Data");
+  }
+  checkDisabled(item) {
+    console.log("checkDisabled",item );
+    switch (item){
+      case "Add":
+        return !this.writeOnly;
+      case "Copy":
+        return !this.writeOnly;
+      case "Delete":
+        return (!this.writeOnly || !this.state.itemEditable);
+      default:
+        console.log("No specific checkDisabled has been defined for ",item);
+    }
 
   }
 
-  handleAdditionReport(tag) {
-      let tags = this.tags.reportTags;
-      tags.push({
-          id: tags.length + 1,
-          text: tag.toLocaleUpperCase()
+  displaySelectedColumns(columns) {
+    var selectedColumns = [];
+    for (let i = 0; i < columns.length; i++)
+      if (columns[i].checked)
+        selectedColumns.push(columns[i].name);
+
+    this.selectedViewColumns = selectedColumns;
+    //console.log(selectedColumns);
+    //console.log(this.selectedViewColumns);
+    this.setState({
+      showReportLinkage: false,
+      showHistory: false,
+      showDrillDownRules: false,
+    });
+  }
+
+  handleRefreshGrid(event){
+    //this.selectedItems = this.flatGrid.deSelectAll();
+    //this.currentPage = 0;
+    this.setState({itemEditable:true});
+    this.fetchDataToGrid(event);
+  }
+
+
+  fetchDataToGrid(event){
+    this.props.fetchReportData(this.state.reportId);
+  }
+
+  handleDetails(event){
+    //TODO
+    let isOpen = this.state.display === "showDrillDownRules";
+    if(isOpen){
+      this.setState({
+        display: "showReportGrid",
+        showDrillDownData: false,
+        showDrillDownCalcBusinessRules: false,
       });
-      this.setState({reportTags: tags});
-      let reports = this.convertTagsToString(this.tags.reportTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchReportTemplateList(reports ? reports:'ALL', country ? country:'ALL');
-  }
-
-  handleDragReport(tag, currPos, newPos) {
-      let tags = this.tags.reportTags;
-      // mutate array
-      tags.splice(currPos, 1);
-      tags.splice(newPos, 0, tag);
-      // re-render
-      this.setState({ reportTags: tags });
-  }
-  handleDeleteCountry(i) {
-      let tags = this.tags.countryTags;
-      tags.splice(i, 1);
-      this.setState({countryTags: tags});
-      let reports = this.convertTagsToString(this.tags.reportTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchReportTemplateList(reports ? reports:'ALL', country ? country:'ALL');
-  }
-
-  handleAdditionCountry(tag) {
-      let tags = this.tags.countryTags;
-      tags.push({
-          id: tags.length + 1,
-          text: tag.toLocaleUpperCase()
-      });
-      this.setState({countryTags: tags});
-      let reports = this.convertTagsToString(this.tags.reportTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchReportTemplateList(reports ? reports:'ALL', country ? country:'ALL');
-  }
-
-  handleDragCountry(tag, currPos, newPos) {
-      let tags = this.tags.countryTags;
-
-      // mutate array
-      tags.splice(currPos, 1);
-      tags.splice(newPos, 0, tag);
-
-      // re-render
-      this.setState({ countryTags: tags });
-  }
-  componentWillMount(){
-    this.props.fetchReportTemplateList();
-  }
-  render() {
-      if(typeof this.props.report_template_list == 'undefined'){
-        return(
-          <h1>Loading...</h1>
-        )
+    } else {
+      //console.log("handleSelectCell",this.selectedCell.cell);
+      if(!this.selectedCell.cell){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select a cell for details");
+      } else {
+        //this.buttons=this.dataButtons;
+        this.setState({
+          display: "showDrillDownRules",
+          showDrillDownData: false,
+          showDrillDownCalcBusinessRules: false,
+          },
+          this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
+        );
       }
-      this.tags.countrySuggestions = [];
-      this.tags.reportSuggestions = [];
-      this.props.report_template_list.country_suggestion.map(function(country,index){
-        this.tags.countrySuggestions.push(country.country)
-      }.bind(this))
+    }
 
-      this.props.report_template_list.report_suggestion.map(function(report,index){
-        this.tags.reportSuggestions.push(report.report_id)
-      }.bind(this))
-      const { reportTags, reportSuggestions } = this.tags;
-      const { countryTags, countrySuggestions } = this.tags;
-      console.log('before coolapsible countrylist',this.props.report_template_list);
-      return (
-          <div className="reg_maintain_report_rules_container container">
-            <Breadcrumbs
-              routes={this.props.routes}
-              params={this.props.params}
-              wrapperClass="breadcrumb"
-            />
-            <div className="row">
-              <div className="col col-lg-6">
-                <ReactTags
-                    tags={reportTags}
-                    suggestions={reportSuggestions}
-                    handleDelete={this.handleDeleteReport}
-                    handleAddition={this.handleAdditionReport}
-                    handleDrag={this.handleDragReport}
-                    handleFilterSuggestions={this.searchAnywhere}
-                    allowDeleteFromEmptyInput={false}
-                    autocomplete={true}
-                    minQueryLength={1}
-                    placeholder="Enter Report ID"
-                    classNames={{
-                      tagInput: 'tagInputClass',
-                      tagInputField: 'tagInputFieldClass form-control',
-                      suggestions: 'suggestionsClass',
-                    }}
-                />
-              </div>
-              <div className="col col-lg-6">
-                <ReactTags
-                    tags={countryTags}
-                    suggestions={countrySuggestions}
-                    handleDelete={this.handleDeleteCountry}
-                    handleAddition={this.handleAdditionCountry}
-                    handleDrag={this.handleDragCountry}
-                    handleFilterSuggestions={this.searchAnywhere}
-                    allowDeleteFromEmptyInput={false}
-                    autocomplete={true}
-                    minQueryLength={1}
-                    placeholder="Enter Country"
-                    classNames={{
-                      tagInput: 'tagInputClass',
-                      tagInputField: 'tagInputFieldClass form-control',
-                      suggestions: 'suggestionsClass',
-                    }}
-                />
-              </div>
-            </div>
-            {
-                  this.props.report_template_list.country.map(function(countrylist,countrylistindex){
+  }
+  handleSelectCell(cell){
+    console.log("handleSelectCell",cell);
+    this.selectedCell = cell;
+  }
+
+  handleCalcRuleClicked(event,calcRuleFilter){
+    console.log("Clicked calcRuleFilter",calcRuleFilter);
+    this.calcRuleFilter = calcRuleFilter;
+    this.setState({
+        showDrillDownData : true,
+        showDrillDownCalcBusinessRules : false,
+        showAggRuleDetails: false
+      });
+
+  }
+
+  handleBusinessRuleClicked(event,businessRuleFilterParam){
+    console.log("Clicked ruleFilterParam",businessRuleFilterParam);
+    this.businessRuleFilterParam = businessRuleFilterParam;
+    this.setState({
+        showDrillDownData : false,
+        showDrillDownCalcBusinessRules : true,
+        showAggRuleDetails: false
+      });
+
+  }
+
+  handleAggeRuleClicked(event,item){
+    console.log("Clicked ruleFilterParam",item);
+    this.aggRuleData = item;
+    // TODO AddReportAggRules as form and then pass aggRuleData
+    this.setState({
+        showDrillDownData : false,
+        showDrillDownCalcBusinessRules : false,
+        showAggRuleDetails: true
+      });
+
+  }
+
+  handleSelectRow(indexOfGrid){
+    console.log("Inside Single select....",this.selectedItems.length);
+    if(this.selectedItems.length == 1){
+      this.selectedIndexOfGrid = indexOfGrid;
+      this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
+      console.log("Inside Single select ", indexOfGrid);
+    }
+
+  }
+
+
+  handleUpdateRow(row){
+    this.operationName = "UPDATE";
+    this.updateInfo = row;
+    this.setState({ showAuditModal: true });
+  }
+
+  handleReportLinkClick() {
+    let isOpen = this.state.display === "showReportLinkage";
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      });
+    } else {
+      if(this.selectedItems.length < 1){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select atleast one record");
+      } else {
+        let selectedKeys=null;
+        this.selectedItems.map((item,index)=>{
+          selectedKeys += (selectedKeys ? ',' + item.id : item.id)
+        })
+        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate);
+        //console.log("Repot Linkage",this.props.report_linkage);
+        this.setState({
+          display: "showReportLinkage"
+        });
+      }
+    }
+    this.selectedItems = this.flatGrid.deSelectAll();
+  }
+
+  handleHistoryClick() {
+    let isOpen = this.state.display === "showHistory";
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      });
+    } else {
+      let selectedKeys=null;
+      this.selectedItems.map((item,index)=>{
+        selectedKeys += (selectedKeys ? ',' + item.id : item.id)
+      })
+      this.props.fetchDataChangeHistory(this.props.gridDataViewReport.table_name,selectedKeys,this.state.businessDate);
+      console.log("Repot Linkage",this.props.change_history);
+      this.setState({
+        display: "showHistory"
+      });
+    }
+    this.selectedItems = this.flatGrid.deSelectAll();
+  }
+
+  handleExportCSV(event) {
+    let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
+    this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
+  }
+
+  handleFullSelect(items){
+    console.log("Selected Items ", items);
+
+    this.selectedItems = items;
+    //this.props.setDisplayCols(this.props.gridDataViewReport.cols,this.props.gridDataViewReport.table_name);
+    //this.props.setDisplayData(this.selectedItems[0]);
+
+  }
+
+  handleModalOkayClick(event){
+    // TODO
+  }
+
+  handleAuditOkayClick(auditInfo){
+    //TODO
+  }
+
+  renderDynamic(displayOption) {
+      switch (displayOption) {
+          case "showReportGrid":
+              if (this.props.gridDataViewReport) {
                   return(
-                  <div className="maintain_rep_rules_accordion_holder" >
-                    <Collapsible trigger={countrylist.country} >
-                      {
-                        this.props.report_template_list.country[countrylistindex].report.map(function(reportlist,reportlistindex){
-                          return(
-                            <Collapsible trigger={reportlist.report_id} key={reportlist.reportlistindex} >
-                              <table className="table">
-                                <thead>
-                                  <tr>
-                                    <th>Report ID</th>
-                                    <th>Report Valid From</th>
-                                    <th>Report Valid To</th>
-                                    <th>Updated By</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {
-                                    this.props.report_template_list.country[countrylistindex].report[reportlistindex].reportversions.map(function(reportversion,reportversionindex){
-                                      return(
-                                        <tr>
-                                          <td><a href={`#/dashboard/data-grid?report_id=${reportversion.report_id}`}>{reportversion.report_id}</a></td>
-                                          <td>{reportversion.valid_from}</td>
-                                          <td>{reportversion.valid_to}</td>
-                                          <td>{reportversion.last_updated_by}</td>
-                                        </tr>
-                                        )
-                                      }.bind(this))
-                                  }
-                                </tbody>
-                              </table>
-                            </Collapsible>
-                          )
-                        }.bind(this))
-                      }
-                    </Collapsible>
+                      <div>
+                          <RegOpzFlatGridActionButtons
+                            editable={this.writeOnly}
+                            checkDisabled={this.checkDisabled}
+                            buttons={this.buttons}
+                            dataNavigation={false}
+                            pageNo={this.currentPage}
+                            buttonClassOverride={this.buttonClassOverride}
+                          />
+                          <RegOpzReportGrid
+                            report_id={this.state.reportId}
+                            reporting_date={this.state.reportingDate}
+                            gridData={this.props.gridDataViewReport}
+                            handleSelectCell={ this.handleSelectCell.bind(this) }
+                            ref={
+                               (flatGrid) => {
+                                 this.flatGrid = flatGrid;
+                               }
+                             }
+                          />
+                      </div>
+                  );
+              }
+              return(
+                  <div>
+                    <h4>Loading ....</h4>
                   </div>
-                )
-              }.bind(this))
-            }
-          </div>
-      )
+              );
+          case "showDrillDownRules":
+              if (this.props.cell_rules) {
+                  let content = [
+                      <DrillDownRules
+                        cellRules = {this.props.cell_rules}
+                        readOnly = {this.readOnly}
+                        selectedCell = {this.selectedCell}
+                        handleClose={ this.handleDetails.bind(this) }
+                        reportingDate={this.state.reportingDate}
+                        handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }
+                        handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
+                        handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
+                      />
+                  ];
+                  if (this.state.showDrillDownData) {
+                      content.push(
+                          <ViewData
+                            showDataGrid={true}
+                            flagDataDrillDown={true}
+                            sourceId={this.state.sourceId}
+                            businessDate={this.state.businessDate}
+                            dataFilterParam={this.calcRuleFilter}
+                          />
+                      );
+                  } else if (this.state.showAggRuleDetails) {
+                      content.push(
+                          <h1> Not implemented yet. </h1>
+                      );
+                  } else if (this.state.showDrillDownCalcBusinessRules) {
+                      content.push(
+                          <ViewBusinessRules
+                            showBusinessRuleGrid={true}
+                            flagRuleDrillDown={true}
+                            sourceId={this.businessRuleFilterParam.source_id}
+                            ruleFilterParam={this.businessRuleFilterParam}
+                          />
+                      );
+                  }
+                  return content;
+              }
+              break;
+          case "showReportLinkage":
+              return(
+                  <DataReportLinkage
+                    data={ this.props.report_linkage }
+                    ruleReference={ "" }
+                    handleClose={ this.handleReportLinkClick.bind(this) }
+                  />
+              );
+          case "showHistory":
+              if (this.props.change_history) {
+                  return(
+                      <DefAuditHistory
+                        data={ this.props.change_history }
+                        historyReference={ "" }
+                        handleClose={ this.handleHistoryClick.bind(this) }
+                       />
+                  );
+              }
+              break;
+          default:
+              return(
+                  <ReportCatalogList
+                    dataCatalog={this.props.dataCatalog}
+                    navMenu={false}
+                    handleReportClick={this.handleReportClick}
+                    dateFilter={this.handleDateFilter}
+                    applyRules={this.props.applyRules}
+                    />
+              );
+      }
+  }
 
+  render(){
+    if (typeof this.props.dataCatalog !== 'undefined') {
+        if (typeof this.props.gridDataViewReport != 'undefined' ){
+          this.pages = Math.ceil(this.props.gridDataViewReport.count / 100);
+        }
+        return(
+          <div>
+            <div className="row form-container">
+              <div className="x_panel">
+                <div className="x_title">
+                    {
+                        ((displayOption) => {
+                            if (displayOption) {
+                                return(
+                                    <h2>View Report Rules <small>Available Report Rules for </small>
+                                      <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
+                                    </h2>
+                                );
+                            }
+                            return(
+                                <h2>Maintain Report Rules <small>{' Report '}</small>
+                                  <small><i className="fa fa-file-text"></i></small>
+                                  <small>{this.state.reportId }</small>
+                                  <small>{' as on Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
+                                </h2>
+                            );
+                        })(this.state.display)
+                    }
+                      <div className="row">
+                        <ul className="nav navbar-right panel_toolbox">
+                          <li>
+                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                              <i className="fa fa-rss"></i><small>{' Reports '}</small>
+                              <i className="fa fa-caret-down"></i>
+                            </a>
+                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                              <li>
+                                <Link to="/dashboard/maintain-report-rules"
+                                  onClick={()=>{ this.setState({ display: false }) }}
+                                >
+                                    <i className="fa fa-bars"></i>{' All Report List'}
+                                </Link>
+                              </li>
+                              <li>
+                                <ReportCatalogList
+                                  dataCatalog={this.props.dataCatalog}
+                                  navMenu={true}
+                                  handleReportClick={this.handleReportClick}
+                                  dateFilter={this.handleDateFilter}
+                                  />
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
+                      </div>
+                    <div className="clearfix"></div>
+                </div>
+                <div className="x_content">
+                {
+                    this.renderDynamic(this.state.display)
+                }
+                </div>
+            </div>
+          </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
+
+          < AuditModal showModal={this.state.showAuditModal}
+            onClickOkay={this.handleAuditOkayClick}
+          />
+        </div>
+      );
+    } else {
+      return(
+        <h4> Loading.....</h4>
+      );
+    }
   }
 }
+
+function mapStateToProps(state){
+  console.log("On mapState ", state, state.view_data_store, state.report_store);
+  return {
+    //data_date_heads:state.view_data_store.dates,
+    dataCatalog: state.maintain_report_rules_store.report_template_list,
+    gridDataViewReport: state.captured_report,
+    gridData: state.view_data_store.gridData,
+    cell_rules: state.report_store.cell_rules,
+    report_linkage:state.view_data_store.report_linkage,
+    change_history:state.view_data_store.change_history,
+    login_details:state.login_store,
+  }
+}
+
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchReportTemplateList:(reports,country)=>{
-      dispatch(actionFetchReportTemplate(reports,country))
+        dispatch(actionFetchReportTemplate(reports,country))
+    },
+    fetchCapturedReport:(report_id, reporting_date) => {
+        dispatch(actionFetchReportData(report_id, reporting_date));
+    },
+    fetchReportCatalog:(startDate,endDate)=>{
+      dispatch(actionFetchReportCatalog(startDate,endDate))
+    },
+    fetchReportData:(report_id, reporting_date)=>{
+      dispatch(actionFetchReportData(report_id, reporting_date))
+    },
+    drillDown:(report_id,sheet,cell) => {
+      dispatch(actionDrillDown(report_id,sheet,cell));
+    },
+    fetchReportLinkage:(source_id,qualifying_key,business_date) => {
+      dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
+    },
+    fetchDataChangeHistory:(table_name,id_list,business_date) => {
+      dispatch(actionFetchDataChangeHistory(table_name,id_list,business_date));
+    },
+    exportCSV:(table_name,business_ref,sql) => {
+      dispatch(actionExportCSV(table_name,business_ref,sql));
+    },
+    applyRules:(source_info) => {
+      dispatch(actionApplyRules(source_info));
     },
   }
 }
-function mapStateToProps(state){
-  console.log("on map state",state);
-  return {
-    report_template_list:state.maintain_report_rules_store.report_template_list
-  }
-}
+
 const VisibleMaintainReportRules = connect(
   mapStateToProps,
   mapDispatchToProps
 )(MaintainReportRules);
+
 export default VisibleMaintainReportRules;
