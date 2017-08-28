@@ -179,6 +179,7 @@ class MaintainReportRules extends Component {
         display: "showReportGrid",
         showDrillDownData: false,
         showDrillDownCalcBusinessRules: false,
+        showAggRuleDetails: false
       });
     } else {
       //console.log("handleSelectCell",this.selectedCell.cell);
@@ -191,6 +192,7 @@ class MaintainReportRules extends Component {
           display: "showDrillDownRules",
           showDrillDownData: false,
           showDrillDownCalcBusinessRules: false,
+          showAggRuleDetails: false
           },
           this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
         );
@@ -225,8 +227,8 @@ class MaintainReportRules extends Component {
 
   }
 
-  handleAggeRuleClicked(event,item){
-    console.log("Clicked ruleFilterParam",item);
+  handleAggeRuleClicked(event, item){
+    console.log("Clicked ruleFilterParam", item);
     this.aggRuleData = item;
     // TODO AddReportAggRules as form and then pass aggRuleData
     this.setState({
@@ -360,6 +362,7 @@ class MaintainReportRules extends Component {
                       <DrillDownRules
                         cellRules = {this.props.cell_rules}
                         readOnly = {this.readOnly}
+                        addRulesBtn = {true}
                         selectedCell = {this.selectedCell}
                         handleClose={ this.handleDetails.bind(this) }
                         reportingDate={this.state.reportingDate}
@@ -381,7 +384,7 @@ class MaintainReportRules extends Component {
                   } else if (this.state.showAggRuleDetails) {
                       content.push(
                           <AddReportAggRules
-                            request="view"
+                            writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             {...this.aggRuleData}
                           />

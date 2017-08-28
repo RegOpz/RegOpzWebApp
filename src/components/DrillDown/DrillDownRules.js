@@ -88,12 +88,35 @@ class DrillDownRules extends Component {
 
     );
   }
+
   renderAggRules(cellRules) {
     console.log("Modal linkage data", cellRules);
     if (cellRules.comp_agg_rules.length == 0 )
       return (
         <div>
           <h5>No Agrregation Rule defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
+          {
+              ((addRulesBtn) => {
+                  if (addRulesBtn) {
+                      return(
+                          <button
+                            type="button"
+                            disabled={this.disabled}
+                            className="btn btn-primary btn-sm"
+                            onClick={
+                              (event)=>{
+                                let item = { report_id: this.selectedCell.reportId, cell_id: this.selectedCell.cell, sheet_id: this.selectedCell.sheetName, dml_allowed: 'Y' };
+                                this.props.handleAggeRuleClicked(event, item);
+                                this.showRulesPanel=!this.showRulesPanel;
+                              }
+                            }
+                          >
+                              Add Formula
+                          </button>
+                      );
+                  }
+              })(this.props.addRulesBtn)
+          }
         </div>
       )
     else {
@@ -122,7 +145,7 @@ class DrillDownRules extends Component {
                     className="btn btn-link btn-xs"
                     onClick={
                       (event)=>{
-                        this.props.handleAggeRuleClicked(event,item);
+                        this.props.handleAggeRuleClicked(event, item);
                         this.showRulesPanel=!this.showRulesPanel;
                       }
                     }>
