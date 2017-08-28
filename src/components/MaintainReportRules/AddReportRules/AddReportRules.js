@@ -25,15 +25,11 @@ class AddReportRules extends Component {
         aggRefTags:[],
         rulesSuggestions: [],
         fieldsSuggestions:[],
-        requestType: this.props.location.query['request'],
-        ruleIndex: this.props.location.query['index'],
-        readOnly: null,
-        viewOnly:null,
         form:{
           cell_calc_ref:null,
-          report_id: this.props.location.query['report_id'],
-          sheet_id: this.props.location.query['sheet'],
-          cell_id:this.props.location.query['cell'],
+          report_id: this.props.report_id,
+          sheet_id: this.props.sheet,
+          cell_id:this.props.cell,
           source_id:null,
           cell_business_rules:null,
           aggregation_ref:null,
@@ -47,8 +43,7 @@ class AddReportRules extends Component {
           comment:null
         }
     };
-    this.state.readOnly = this.state.requestType=="update"|| this.state.requestType=="view"?"readonly":"";
-    this.state.viewOnly=this.state.requestType=="view"?"readonly":"";
+
     this.handleDelete = this.handleDelete.bind(this);
     this.handleAddition = this.handleAddition.bind(this);
     this.handleDrag = this.handleDrag.bind(this);
@@ -58,16 +53,33 @@ class AddReportRules extends Component {
     this.handleAggRefDrag = this.handleAggRefDrag.bind(this);
 
     this.searchAnywhere = this.searchAnywhere.bind(this);
+
+    this.ruleIndex = this.props.index;
+    this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
+    this.writeOnly = this.props.writeOnly;
   }
 
   componentWillMount() {
     this.props.fetchSources();
-    if(typeof this.state.ruleIndex != 'undefined') {
-      Object.assign(this.state.form , this.props.drill_down_result.cell_rules[this.state.ruleIndex]);
+    if (typeof this.state.ruleIndex !== 'undefined') {
+      Object.assign(this.state.form, this.props.cell_rules.cell_rules[this.ruleIndex]);
       this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
       this.initialiseFormFields();
     }
   }
+
+  componentWillReceiveProps(nextProps) {
+      if (typeof nextProps.index !== 'undefined') {
+          this.ruleIndex = nextProps.index;
+          Object.assign(this.state.form, nextProps.cell_rules.cell_rules[this.ruleIndex]);
+          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+          this.initialiseFormFields();
+
+          this.dml_allowed = nextProps.dml_allowed;
+          this.writeOnly = nextProps.writeOnly;
+      }
+  }
+
   searchAnywhere(textInputValue, possibleSuggestionsArray) {
     var lowerCaseQuery = textInputValue.toLowerCase()
 
@@ -183,6 +195,9 @@ class AddReportRules extends Component {
       }
 
   render(){
+
+    this.viewOnly = ! (this.writeOnly && this.dml_allowed);
+
     this.state.rulesSuggestions = [];
     this.state.fieldsSuggestions = [];
     const { rulesTags, rulesSuggestions,aggRefTags, fieldsSuggestions } = this.state;
@@ -472,7 +487,7 @@ class AddReportRules extends Component {
 
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button" className="btn btn-primary" onClick={()=>{this.handleCancel()}}>
+                    <button type="button" className="btn btn-primary" onClick={()=>{this.props.handleClose()}}>
                       Cancel</button>
                     {
                       (()=>{
@@ -490,11 +505,6 @@ class AddReportRules extends Component {
         </div>
       )
     }
-  }
-
-  handleCancel(event){
-    console.log('inside cancel');
-    hashHistory.push(`/dashboard/drill-down?report_id=${this.state.form.report_id}&sheet=${encodeURI(this.state.form.sheet_id)}&cell=${this.state.form.cell_id}`)
   }
 
   handleSubmit(event){
@@ -526,7 +536,7 @@ class AddReportRules extends Component {
       this.props.updateRuleData(this.state.form.id,data);
     }
 
-    hashHistory.push(`/dashboard/drill-down?report_id=${this.state.form.report_id}&sheet=${encodeURI(this.state.form.sheet_id)}&cell=${this.state.form.cell_id}`);
+    this.props.handleClose();
   }
 }
 function mapStateToProps(state){
@@ -535,7 +545,7 @@ function mapStateToProps(state){
     sources:state.maintain_report_rules_store.sources,
     business_rule: state.maintain_report_rules_store.business_rules,
     source_table_columns: state.maintain_report_rules_store.source_table_columns,
-    drill_down_result:state.captured_report.drill_down_result,
+    cell_rules: state.report_store.cell_rules
   }
 }
 const mapDispatchToProps = (dispatch) => {

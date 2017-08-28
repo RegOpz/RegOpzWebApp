@@ -216,6 +216,7 @@ class DrillDownRules extends Component {
                           let calcRuleFilter = {
                                   params:{
                                     drill_kwargs: {
+                                      index: index,
                                       report_id: item.report_id,
                                       sheet_id: item.sheet_id,
                                       cell_id: item.cell_id,
@@ -226,7 +227,7 @@ class DrillDownRules extends Component {
                                     }
                                   }
                                 }
-                          this.props.handleCalcRuleClicked(event,calcRuleFilter);
+                          this.props.handleCalcRuleClicked(event, calcRuleFilter);
                           this.showRulesPanel=!this.showRulesPanel;
                         }
                       }>

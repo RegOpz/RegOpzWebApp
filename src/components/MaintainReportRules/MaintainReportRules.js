@@ -30,7 +30,7 @@ import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import DrillDownRules from '../DrillDown/DrillDownRules';
 import AddReportAggRules from './AddReportAggRules';
-import ViewData from '../ViewData/ViewDataComponentV2';
+import AddReportRules from './AddReportRules/AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
 
@@ -373,12 +373,10 @@ class MaintainReportRules extends Component {
                   ];
                   if (this.state.showDrillDownData) {
                       content.push(
-                          <ViewData
-                            showDataGrid={true}
-                            flagDataDrillDown={true}
-                            sourceId={this.state.sourceId}
-                            businessDate={this.state.businessDate}
-                            dataFilterParam={this.calcRuleFilter}
+                          <AddReportRules
+                            writeOnly={this.writeOnly}
+                            handleClose={this.handleDetails.bind(this)}
+                            {...this.calcRuleFilter.params.drill_kwargs}
                           />
                       );
                   } else if (this.state.showAggRuleDetails) {
