@@ -26,6 +26,7 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import DrillDownRules from '../DrillDown/DrillDownRules';
+import AddReportAggRules from '../MaintainReportRules/AddReportAggRules';
 import ViewData from '../ViewData/ViewDataComponentV2';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
@@ -376,7 +377,11 @@ class ViewReport extends Component {
                       );
                   } else if (this.state.showAggRuleDetails) {
                       content.push(
-                          <h1> Not implemented yet. </h1>
+                          <AddReportAggRules
+                            writeOnly={false}
+                            handleClose={this.handleDetails.bind(this)}
+                            {...this.aggRuleData}
+                          />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
                       content.push(
