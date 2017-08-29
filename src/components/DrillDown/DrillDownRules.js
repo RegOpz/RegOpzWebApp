@@ -278,6 +278,28 @@ class DrillDownRules extends Component {
           }
           </tbody>
         </table>
+        {
+            ((addRulesBtn) => {
+                if (addRulesBtn) {
+                    return(
+                        <button
+                          type="button"
+                          disabled={this.disabled}
+                          className="btn btn-primary btn-sm"
+                          onClick={
+                            (event)=>{
+                              let item = { report_id: this.selectedCell.reportId, cell_id: this.selectedCell.cell, sheet_id: this.selectedCell.sheetName, dml_allowed: 'Y' };
+                              this.props.handleAggeRuleClicked(event, item);
+                              this.showRulesPanel=!this.showRulesPanel;
+                            }
+                          }
+                        >
+                            Add New Rule
+                        </button>
+                    );
+                }
+            })(this.props.addRulesBtn)
+        }
         </div>
       </div>
       )

@@ -38,8 +38,6 @@ class MaintainReportRules extends Component {
   constructor(props){
     super(props)
     this.state = {
-      startDate:moment().subtract(1,'months').format("YYYYMMDD"),
-      endDate:moment().format('YYYYMMDD'),
       sources:null,
       itemEditable: true,
       reportId: null,
@@ -76,7 +74,6 @@ class MaintainReportRules extends Component {
     this.renderDynamic = this.renderDynamic.bind(this);
 
     this.handleReportClick = this.handleReportClick.bind(this);
-    this.handleDateFilter = this.handleDateFilter.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
     this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
@@ -117,17 +114,6 @@ class MaintainReportRules extends Component {
     );
   }
 
-  handleDateFilter(dates) {
-    this.setState({
-      startDate: dates.startDate,
-      endDate: dates.endDate
-    },
-      //since setState is asynchronus this gurantees that fetch is executed after setState is executed
-      ()=>{this.props.fetchReportCatalog(this.state.startDate,this.state.endDate)}
-    );
-    // console.log("Dates",dates)
-    // this.props.fetchSource(dates.startDate,dates.endDate,"Data");
-  }
   checkDisabled(item) {
     console.log("checkDisabled",item );
     switch (item){
@@ -425,7 +411,6 @@ class MaintainReportRules extends Component {
                     dataCatalog={this.props.dataCatalog}
                     navMenu={false}
                     handleReportClick={this.handleReportClick}
-                    dateFilter={this.handleDateFilter}
                     applyRules={this.props.applyRules}
                     />
               );
@@ -468,11 +453,11 @@ class MaintainReportRules extends Component {
                               <i className="fa fa-caret-down"></i>
                             </a>
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
+                              <li style={{ "padding": "5px" }}>
                                 <Link to="/dashboard/maintain-report-rules"
                                   onClick={()=>{ this.setState({ display: false }) }}
                                 >
-                                    <i className="fa fa-bars"></i>{' All Report List'}
+                                    <i className="fa fa-bars"></i> All Report List
                                 </Link>
                               </li>
                               <li>
@@ -480,7 +465,6 @@ class MaintainReportRules extends Component {
                                   dataCatalog={this.props.dataCatalog}
                                   navMenu={true}
                                   handleReportClick={this.handleReportClick}
-                                  dateFilter={this.handleDateFilter}
                                   />
                               </li>
                             </ul>

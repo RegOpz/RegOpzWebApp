@@ -52,12 +52,14 @@ class AddReportAggRules extends Component {
     this.viewOnly = ! (this.writeOnly && this.dml_allowed);
     return(
       <div className="row form-container" >
-        <div className="col col-lg-12">
+        <div className="x_panel">
           <div className="x_title">
             <h2>Maintain report rule <small>Add a new aggregation rule</small></h2>
             <div className="clearfix"></div>
           </div>
-          <form className="form-horizontal form-label-left" onSubmit={this.handleSubmit.bind(this)}>
+
+          <div className="x_content">
+           <form className="form-horizontal form-label-left" onSubmit={this.handleSubmit.bind(this)}>
 
             <div className="form-group">
               <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="report-id">Report ID <span className="required">*</span></label>
@@ -254,9 +256,8 @@ class AddReportAggRules extends Component {
                     </div>
                   </div>
 
-
           </form>
-
+         </div>
         </div>
       </div>
     );

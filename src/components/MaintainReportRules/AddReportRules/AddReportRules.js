@@ -230,14 +230,14 @@ class AddReportRules extends Component {
       }
       console.log('in render',this.state)
       return(
-        <div className="row">
-          <div className="col col-lg-12">
+        <div className="row form-container">
+          <div className="x_panel">
             <div className="x_title">
               <h2>Maintain report rule <small>Add a new rule</small></h2>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              <br />
+              
               <form className="form-horizontal form-label-left"
                 onSubmit={this.handleSubmit.bind(this)}
               >
