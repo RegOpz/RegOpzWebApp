@@ -54,26 +54,29 @@ class AddReportRules extends Component {
 
     this.searchAnywhere = this.searchAnywhere.bind(this);
 
-    this.ruleIndex = this.props.index;
+    this.ruleIndex = typeof this.props.index !== 'undefined' ? this.props.index : -1;
     this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
     this.writeOnly = this.props.writeOnly;
   }
 
   componentWillMount() {
     this.props.fetchSources();
-    if (typeof this.state.ruleIndex !== 'undefined') {
-      Object.assign(this.state.form, this.props.cell_rules.cell_rules[this.ruleIndex]);
-      this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-      this.initialiseFormFields();
+    if (typeof this.ruleIndex !== 'undefined') {
+        if (this.ruleIndex !== -1) {
+          Object.assign(this.state.form, this.props.cell_rules.cell_rules[this.ruleIndex]);
+          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+          this.initialiseFormFields();
+        }
     }
   }
 
   componentWillReceiveProps(nextProps) {
-      if (typeof nextProps.index !== 'undefined') {
+      if (typeof nextProps.index !== 'undefined' && this.ruleIndex !== nextProps.index) {
           this.ruleIndex = nextProps.index;
-          Object.assign(this.state.form, nextProps.cell_rules.cell_rules[this.ruleIndex]);
-          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-          this.initialiseFormFields();
+          if (this.ruleIndex !== -1) {
+            Object.assign(this.state.form, nextProps.cell_rules.cell_rules[this.ruleIndex]);
+            this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+          }
 
           this.dml_allowed = nextProps.dml_allowed;
           this.writeOnly = nextProps.writeOnly;
@@ -180,6 +183,9 @@ class AddReportRules extends Component {
         //this.state.form = this.props.drill_down_result.cell_rules[this.state.ruleIndex];
         if(this.state.rulesTags.length == 0){
           const {cell_business_rules}=this.state.form;
+          if (typeof cell_business_rules === 'undefined' || cell_business_rules === null) {
+              return;
+          }
           let rulesTagsArray=cell_business_rules.split(',');
           rulesTagsArray.map((item,index)=>{
             if(item!=''){
@@ -233,11 +239,11 @@ class AddReportRules extends Component {
         <div className="row form-container">
           <div className="x_panel">
             <div className="x_title">
-              <h2>Maintain report rule <small>Add a new rule</small></h2>
+              <h2>Maintain report rule <small>{ this.ruleIndex === -1 ? 'Add' : 'Edit' } a report rule</small></h2>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              
+
               <form className="form-horizontal form-label-left"
                 onSubmit={this.handleSubmit.bind(this)}
               >
@@ -516,7 +522,7 @@ class AddReportRules extends Component {
       table_name:"report_calc_def",
       update_info:this.state.form
     };
-    data['change_type']=this.state.requestType=='add'?'INSERT':(this.state.requestType=='update'?'UPDATE':'VIEW');
+    data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
 
     let audit_info={
       id:this.state.form.id,
@@ -529,10 +535,10 @@ class AddReportRules extends Component {
     data['audit_info']=audit_info;
 
     console.log('inside submit',this.state.form);
-    if(this.state.requestType == "add"){
+    if(data['change_type'] == "INSERT"){
       this.props.insertRuleData(data);
     }
-    else if (this.state.requestType == "update"){
+    else if (data['change_type'] == "UPDATE"){
       this.props.updateRuleData(this.state.form.id,data);
     }
 

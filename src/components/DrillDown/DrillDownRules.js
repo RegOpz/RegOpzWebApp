@@ -105,7 +105,13 @@ class DrillDownRules extends Component {
                             className="btn btn-primary btn-sm"
                             onClick={
                               (event)=>{
-                                let item = { report_id: this.selectedCell.reportId, cell_id: this.selectedCell.cell, sheet_id: this.selectedCell.sheetName, dml_allowed: 'Y' };
+                                let item = {
+                                    index: -1,
+                                    report_id: this.selectedCell.reportId,
+                                    cell_id: this.selectedCell.cell,
+                                    sheet_id: this.selectedCell.sheetName,
+                                    dml_allowed: 'Y'
+                                };
                                 this.props.handleAggeRuleClicked(event, item);
                                 this.showRulesPanel=!this.showRulesPanel;
                               }
@@ -145,8 +151,8 @@ class DrillDownRules extends Component {
                     className="btn btn-link btn-xs"
                     onClick={
                       (event)=>{
-                        this.props.handleAggeRuleClicked(event, item);
-                        this.showRulesPanel=!this.showRulesPanel;
+                        this.props.handleAggeRuleClicked(event, {...item, index: 0});
+                        this.showRulesPanel = !this.showRulesPanel;
                       }
                     }>
                     <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
@@ -287,11 +293,23 @@ class DrillDownRules extends Component {
                           disabled={this.disabled}
                           className="btn btn-primary btn-sm"
                           onClick={
-                            (event)=>{
-                              let item = { report_id: this.selectedCell.reportId, cell_id: this.selectedCell.cell, sheet_id: this.selectedCell.sheetName, dml_allowed: 'Y' };
-                              this.props.handleCalcRuleClicked(event, item);
-                              this.showRulesPanel=!this.showRulesPanel;
-                            }
+                            (event) => {
+                                let calcRuleFilter = {
+                                  params:{
+                                    drill_kwargs: {
+                                        index: -1,
+                                        report_id: this.selectedCell.reportId,
+                                        sheet: this.selectedCell.sheetName,
+                                        cell: this.selectedCell.cell,
+                                        reporting_date: this.reportingDate,
+                                        in_use: 'Y',
+                                        page: 0
+                                    }
+                                  }
+                                }
+                                this.props.handleCalcRuleClicked(event, calcRuleFilter);
+                                this.showRulesPanel=!this.showRulesPanel;
+                             }
                           }
                         >
                             Add New Rule

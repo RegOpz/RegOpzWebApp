@@ -34,16 +34,22 @@ class AddReportAggRules extends Component {
         //this.aggRulesPattern = /(\w+([\+\-\*\/]\w+)?)|(\(\w+\))/g;
         this.aggRulesPattern = /[\+\-\*\/\(\)\[\]\{\}\^]/g;
 
+        this.ruleIndex = this.props.index;
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
         this.writeOnly = this.props.writeOnly;
     }
 
     componentWillMount() {
-        Object.assign(this.state.form, this.props.cell_rules.comp_agg_rules[0]);
+        if (ruleIndex !== -1) {
+            Object.assign(this.state.form, this.props.cell_rules.comp_agg_rules[this.ruleIndex]);
+        }
     }
 
     componentWillReceiveProps(nextProps) {
-        Object.assign(this.state.form, nextProps.cell_rules.comp_agg_rules[0]);
+        this.ruleIndex = nextProps.ruleIndex
+        if (ruleIndex !== -1) {
+            Object.assign(this.state.form, nextProps.cell_rules.comp_agg_rules[this.ruleIndex]);
+        }
         this.dml_allowed = nextProps.dml_allowed;
         this.writeOnly = nextProps.writeOnly;
     }
@@ -270,7 +276,7 @@ class AddReportAggRules extends Component {
       table_name: "report_comp_agg_def",
       update_info: this.state.form
     };
-    data["change_type"]=this.state.requestType == "add"?"INSERT":"UPDATE";
+    data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
 
     let audit_info={
       table_name:data["table_name"],
@@ -282,7 +288,7 @@ class AddReportAggRules extends Component {
 
     data['audit_info']=audit_info;
 
-    if (this.state.requestType == "add") {
+    if (data['change_type'] == "INSERT") {
       this.props.insertRuleData(data);
     } else {
       this.props.updateRuleData(this.state.form.id,data);
