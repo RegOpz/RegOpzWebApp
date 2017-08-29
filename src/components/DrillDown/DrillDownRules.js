@@ -289,7 +289,7 @@ class DrillDownRules extends Component {
                           onClick={
                             (event)=>{
                               let item = { report_id: this.selectedCell.reportId, cell_id: this.selectedCell.cell, sheet_id: this.selectedCell.sheetName, dml_allowed: 'Y' };
-                              this.props.handleAggeRuleClicked(event, item);
+                              this.props.handleCalcRuleClicked(event, item);
                               this.showRulesPanel=!this.showRulesPanel;
                             }
                           }

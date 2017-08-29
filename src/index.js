@@ -29,8 +29,6 @@ import ViewDataComponent from './components/ViewData/ViewDataComponent';
 import ViewReport from './components/ViewReport/ViewReport';
 import DrillDown from './components/DrillDown/DrillDown';
 import MaintainReportRules from './components/MaintainReportRules/MaintainReportRules';
-import AddReportRules from './components/MaintainReportRules/AddReportRules/AddReportRules';
-import AddReportAggRules from './components/MaintainReportRules/AddReportAggRules';
 import MaintainSources from './components/MaintainSources/MaintainSources';
 import AddSources from './components/MaintainSources/AddSources/AddSources';
 import VarianceAnalysisForm from './components/VarianceAnalysis/VarianceAnalysis';
@@ -118,8 +116,6 @@ ReactDOM.render(
                     <Route path="create-report" name="Create Report" component={CreateReport} />
                     <Route path="drill-down" name="DrillDown" component={DrillDown} />
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
-                    <Route path="maintain-report-rules/add-report-rules" name="Add Report Rules" component={AddReportRules} />
-                    <Route path="maintain-report-rules/add-report-agg-rules" name="Add Report Aggregate Rules" component={AddReportAggRules} />
                     <Route path="maintain-sources" name="Maintain Sources" component={MaintainSources} />
                     <Route path="maintain-sources/add-sources" name="Add Sources" component={AddSources} />
                     <Route path="variance-analysis" name="Variance Analysis" component={authenticate(VarianceAnalysisForm)} />
