@@ -34,20 +34,20 @@ class AddReportAggRules extends Component {
         //this.aggRulesPattern = /(\w+([\+\-\*\/]\w+)?)|(\(\w+\))/g;
         this.aggRulesPattern = /[\+\-\*\/\(\)\[\]\{\}\^]/g;
 
-        this.ruleIndex = this.props.index;
+        this.ruleIndex = typeof this.props.index === 'number' ? this.props.index : -1;
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
         this.writeOnly = this.props.writeOnly;
     }
 
     componentWillMount() {
-        if (ruleIndex !== -1) {
+        if (this.ruleIndex !== -1) {
             Object.assign(this.state.form, this.props.cell_rules.comp_agg_rules[this.ruleIndex]);
         }
     }
 
     componentWillReceiveProps(nextProps) {
         this.ruleIndex = nextProps.ruleIndex
-        if (ruleIndex !== -1) {
+        if (this.ruleIndex !== -1) {
             Object.assign(this.state.form, nextProps.cell_rules.comp_agg_rules[this.ruleIndex]);
         }
         this.dml_allowed = nextProps.dml_allowed;

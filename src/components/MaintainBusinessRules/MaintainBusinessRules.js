@@ -38,15 +38,11 @@ class MaintainBusinessRules extends Component {
   constructor(props){
     super(props)
     this.state = {
+      display: (this.props.showBusinessRuleGrid ? "showBusinessRuleGrid" : false),
       sources:null,
-      showBusinessRuleGrid: (this.props.showBusinessRuleGrid ? this.props.showBusinessRuleGrid : false),
-      showAddForm: false,
-      showToggleColumns: false,
       itemEditable: true,
       sourceId: (this.props.sourceId ? this.props.sourceId : null),
       showAuditModal: false,
-      showReportLinkage: false,
-      showHistory: false,
       sourceFileName: null,
       tableName: null,
     }
@@ -132,11 +128,7 @@ class MaintainBusinessRules extends Component {
     this.currentPage = 0;
     this.selectedViewColumns=[];
     this.setState({
-        showToggleColumns: false,
-        showBusinessRuleGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
+        display: "showBusinessRuleGrid",
         sourceId: item.source_id,
         sourceFileName: item.source_file_name,
         tableName: item.source_table_name,
@@ -162,24 +154,12 @@ class MaintainBusinessRules extends Component {
   }
 
   handleToggle(event) {
-    let toggleValue = this.state.showToggleColumns;
+    let toggleValue = this.state.display == "showToggleColumns";
     if (!toggleValue) {
-      this.setState({
-        showToggleColumns: true,
-        showBusinessRuleGrid: false,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showToggleColumns" });
     }
     else {
-      this.setState({
-        showToggleColumns: false,
-        showBusinessRuleGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showBusinessRuleGrid" });
     }
   }
 
@@ -192,13 +172,7 @@ class MaintainBusinessRules extends Component {
     this.selectedViewColumns = selectedColumns;
     //console.log(selectedColumns);
     //console.log(this.selectedViewColumns);
-    this.setState({
-      showToggleColumns: false,
-      showBusinessRuleGrid: true,
-      showAddForm: false,
-      showReportLinkage: false,
-      showHistory: false,
-    });
+    this.setState({ display: "showBusinessRuleGrid" });
   }
 
   actionButtonClicked(event,itemClicked){
@@ -299,14 +273,10 @@ class MaintainBusinessRules extends Component {
 
   handleAdd(event,requestType){
 
-    let isOpen = this.state.showAddForm;
+    let isOpen = this.state.display === "showAddForm";
     if(isOpen) {
       this.setState({
-        showToggleColumns: false,
-        showBusinessRuleGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
+        display: "showBusinessRuleGrid",
         itemEditable: true,
         },
         ()=>{
@@ -335,11 +305,7 @@ class MaintainBusinessRules extends Component {
           }
           this.requestType = requestType;
           this.setState({
-              showToggleColumns: false,
-              showBusinessRuleGrid: false,
-              showAddForm: true,
-              showReportLinkage: false,
-              showHistory: false,
+              display: "showAddForm",
               itemEditable: itemEditable,
             });
         }
@@ -365,15 +331,9 @@ class MaintainBusinessRules extends Component {
   }
 
   handleReportLinkClick(event) {
-    let isOpen = this.state.showReportLinkage;
+    let isOpen = this.state.display === "showReportLinkage";
     if(isOpen) {
-      this.setState({
-        showToggleColumns: false,
-        showBusinessRuleGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showBusinessRuleGrid" });
       this.selectedKeys = '';
     } else {
       if(this.selectedItems.length < 1){
@@ -387,28 +347,16 @@ class MaintainBusinessRules extends Component {
         this.selectedKeys = selectedKeys;
         this.props.fetchReportLinkage(this.state.sourceId,selectedKeys);
         //console.log("Repot Linkage",this.props.report_linkage);
-        this.setState({
-          showToggleColumns: false,
-          showBusinessRuleGrid: false,
-          showAddForm: false,
-          showReportLinkage: true,
-          showHistory: false,
-        });
+        this.setState({ display: "showReportLinkage" });
       }
     }
     this.selectedItems = this.flatGrid.deSelectAll();
   }
 
   handleHistoryClick(event) {
-    let isOpen = this.state.showHistory;
+    let isOpen = this.state.display === "showHistory";
     if(isOpen) {
-      this.setState({
-        showToggleColumns: false,
-        showBusinessRuleGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showBusinessRuleGrid" });
       this.selectedKeys = '';
     } else {
       let selectedKeys='';
@@ -418,13 +366,7 @@ class MaintainBusinessRules extends Component {
       this.selectedKeys = selectedKeys ? selectedKeys : "undefined";
       this.props.fetchAuditList(this.selectedKeys,"business_rules");
       console.log("Repot Linkage",this.props.change_history);
-      this.setState({
-        showToggleColumns: false,
-        showBusinessRuleGrid: false,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: true,
-      });
+      this.setState({ display: "showHistory" });
     }
     this.selectedItems = this.flatGrid.deSelectAll();
   }
@@ -532,7 +474,161 @@ class MaintainBusinessRules extends Component {
 
   }
 
+  renderTitle(displayOption, flagRuleDrillDown) {
+      let content = [];
+      if (flagRuleDrillDown) {
+          content.push(
+              <h2>Drilldown Cell Rules <small>{' for Cell '}</small>
+                <small><i className="fa fa-tag"></i></small>
+                <small>{' ' + this.ruleFilterParam.cell_id}</small>
+                <small>Calculation Ref</small>
+                <small><i className="fa fa-cube"></i></small>
+                <small>{ this.ruleFilterParam.cell_calc_ref }</small>
+              </h2>
+          );
+      } else {
+          if (displayOption) {
+              content.push(
+                  <h2>View Business Rules <small>{' Rules for Source '}</small>
+                    <small>{this.state.sourceId + ' '}</small>
+                    <small><i className="fa fa-file-text"></i></small>
+                    <small>{' Source File: ' + this.state.sourceFileName}</small>
+                  </h2>
+              );
+          } else {
+              content.push(
+                  <h2>View Business Rules <small>Available Sources</small></h2>
+              );
+          }
+          content.push(
+              <div className="row">
+                <ul className="nav navbar-right panel_toolbox">
+                  <li>
+                    <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                      <i className="fa fa-rss"></i><small>{' Data Feeds '}</small>
+                      <i className="fa fa-caret-down"></i>
+                    </a>
+                    <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                      <li>
+                        <Link to="/dashboard/maintain-business-rules"
+                          onClick={()=>{ this.setState({ display: false }) }}>
+                            <i className="fa fa-bars"></i>{' All Sources'}
+                        </Link>
+                      </li>
+                      <li>
+                        <a href="#"></a>
+                        <DataSourceList
+                          dataCatalog={this.props.dataCatalog}
+                          navMenu={true}
+                          handleDataFileClick={this.handleDataFileClick}
+                          />
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+          );
+      }
+      return content;
+  }
+
+  renderDynamic(displayOption) {
+      switch(displayOption) {
+          case "showBusinessRuleGrid":
+              if (this.props.gridBusinessRulesData) {
+                  return(
+                      <div>
+                        <RegOpzFlatGridActionButtons
+                          editable={this.writeOnly}
+                          buttonClicked={this.actionButtonClicked}
+                          checkDisabled={this.checkDisabled}
+                          buttons={this.buttons}
+                          dataNavigation={true}
+                          pageNo={this.currentPage}
+                          buttonClassOverride={this.buttonClassOverride}
+                          />
+                        <RegOpzFlatGrid
+                         columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridBusinessRulesData.cols}
+                         dataSource={this.props.gridBusinessRulesData.rows}
+                         onSelectRow={this.handleSelectRow.bind(this)}
+                         onUpdateRow = {this.handleUpdateRow.bind(this)}
+                         onSort = {()=>{}}
+                         onFilter = {()=>{}}
+                         onFullSelect = {this.handleFullSelect.bind(this)}
+                         isMultiSelectAllowed = { true }
+                         ref={
+                            (flatGrid) => {
+                                this.flatGrid = flatGrid;
+                            }
+                          }
+                          />
+                      </div>
+                  );
+              }
+              return(
+                  <div>
+                    <h4>Loading ....</h4>
+                  </div>
+              );
+          case "showToggleColumns":
+              if (this.props.gridBusinessRulesData) {
+                  return(
+                      <ShowToggleColumns
+                        columns={this.props.gridBusinessRulesData.cols}
+                        saveSelection={this.displaySelectedColumns}
+                        selectedViewColumns={this.selectedViewColumns}
+                        handleClose={this.handleToggle}
+                      />
+                  );
+              }
+              break;
+          case "showAddForm":
+              if (this.props.gridBusinessRulesData) {
+                  return(
+                      <AddBusinessRule
+                        businessRule={this.form_data}
+                        handleCancel={this.handleAdd}
+                        handleClose={this.handleAdd}
+                        editable={ this.writeOnly && this.state.itemEditable }
+                        />
+                  );
+              }
+              break;
+          case "showReportLinkage":
+              if (this.props.report_linkage) {
+                  return(
+                      <RuleReportLinkage
+                        data={ this.props.report_linkage }
+                        ruleReference={ this.selectedKeys }
+                        handleClose={this.handleReportLinkClick}
+                        />
+                  );
+              }
+              break;
+          case "showHistory":
+              if (this.props.change_history) {
+                  return(
+                      <DefAuditHistory
+                        data={ this.props.change_history }
+                        historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
+                        handleClose={this.handleHistoryClick}
+                        />
+                  );
+              }
+              break;
+          default:
+            return(
+                <DataSourceList
+                  dataCatalog={this.props.dataCatalog}
+                  navMenu={false}
+                  handleDataFileClick={this.handleDataFileClick}
+                  />
+            );
+      }
+  }
+
   render(){
+    console.log("Displaying:", this.state.display);
     if (typeof this.props.dataCatalog != 'undefined' || this.flagRuleDrillDown) {
         if (typeof this.props.gridBusinessRulesData != 'undefined' ){
           this.pages = Math.ceil(this.props.gridBusinessRulesData.count / 100);
@@ -542,188 +638,14 @@ class MaintainBusinessRules extends Component {
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
-                      { !this.state.showBusinessRuleGrid &&
-                        !this.flagRuleDrillDown &&
-                        !this.state.showAddForm &&
-                        !this.state.showToggleColumns &&
-                        !this.state.showReportLinkage &&
-                        !this.state.showHistory &&
-                        <h2>View Business Rules <small>Available Sources</small></h2>
-                      }
-                      { (this.state.showBusinessRuleGrid ||
-                        this.state.showAddForm ||
-                        this.state.showToggleColumns ||
-                        this.state.showReportLinkage ||
-                        this.state.showHistory ) &&
-                        !this.flagRuleDrillDown &&
-                        <h2>View Business Rules <small>{' Rules for Source '}</small>
-                          <small>{this.state.sourceId + ' '}</small>
-                          <small><i className="fa fa-file-text"></i></small>
-                          <small>{' Source File: ' + this.state.sourceFileName}</small>
-                        </h2>
-                      }
-                      {
-                        this.flagRuleDrillDown &&
-                        <h2>Drilldown Cell Rules <small>{' for Cell '}</small>
-                          <small><i className="fa fa-tag"></i></small>
-                          <small>{' ' + this.ruleFilterParam.cell_id}</small>
-                          <small>Calculation Ref</small>
-                          <small><i className="fa fa-cube"></i></small>
-                          <small>{ this.ruleFilterParam.cell_calc_ref }</small>
-                        </h2>
-                      }
-                      {
-                        !this.flagRuleDrillDown &&
-                        <div className="row">
-                          <ul className="nav navbar-right panel_toolbox">
-                            <li>
-                              <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                <i className="fa fa-rss"></i><small>{' Data Feeds '}</small>
-                                <i className="fa fa-caret-down"></i>
-                              </a>
-                              <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                                <li>
-                                  <Link to="/dashboard/maintain-business-rules"
-                                    onClick={()=>{this.setState({
-                                                                  showToggleColumns: false,
-                                                                  showBusinessRuleGrid: false,
-                                                                  showAddForm: false,
-                                                                  showReportLinkage: false,
-                                                                  showHistory: false,
-                                                                });}}>
-                                      <i className="fa fa-bars"></i>{' All Sources'}
-                                  </Link>
-                                </li>
-                                <li>
-                                  <a href="#"></a>
-                                  <DataSourceList
-                                    dataCatalog={this.props.dataCatalog}
-                                    navMenu={true}
-                                    handleDataFileClick={this.handleDataFileClick}
-                                    />
-                                </li>
-                              </ul>
-                            </li>
-                          </ul>
-                        </div>
-                      }
-                    <div className="clearfix"></div>
+                  {
+                    this.renderTitle(this.state.display, this.flagRuleDrillDown)
+                  }
+                  <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
-                { !this.state.showBusinessRuleGrid &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                  <DataSourceList
-                    dataCatalog={this.props.dataCatalog}
-                    navMenu={false}
-                    handleDataFileClick={this.handleDataFileClick}
-                    />
-                }
-                { this.state.showBusinessRuleGrid &&
-                  this.props.gridBusinessRulesData &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <RegOpzFlatGridActionButtons
-                      editable={this.writeOnly}
-                      buttonClicked={this.actionButtonClicked}
-                      checkDisabled={this.checkDisabled}
-                      buttons={this.buttons}
-                      dataNavigation={true}
-                      pageNo={this.currentPage}
-                      buttonClassOverride={this.buttonClassOverride}
-                      />
-                }
                 {
-                  !this.state.showBusinessRuleGrid &&
-                  this.props.gridBusinessRulesData &&
-                  !this.state.showAddForm &&
-                  this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <ShowToggleColumns
-                        columns={this.props.gridBusinessRulesData.cols}
-                        saveSelection={this.displaySelectedColumns}
-                        selectedViewColumns={this.selectedViewColumns}
-                        handleClose={this.handleToggle}
-                      />
-                }
-                {
-                  this.state.showBusinessRuleGrid &&
-                  this.props.gridBusinessRulesData &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <RegOpzFlatGrid
-                     columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridBusinessRulesData.cols}
-                     dataSource={this.props.gridBusinessRulesData.rows}
-                     onSelectRow={this.handleSelectRow.bind(this)}
-                     onUpdateRow = {this.handleUpdateRow.bind(this)}
-                     onSort = {()=>{}}
-                     onFilter = {()=>{}}
-                     onFullSelect = {this.handleFullSelect.bind(this)}
-                     isMultiSelectAllowed = { true }
-                     ref={
-                           (flatGrid) => {
-                             this.flatGrid = flatGrid;
-                           }
-                         }
-                    />
-                }
-                {
-                  !this.state.showBusinessRuleGrid &&
-                  this.state.showAddForm &&
-                  this.props.gridBusinessRulesData &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <AddBusinessRule
-                      businessRule={this.form_data}
-                      handleCancel={this.handleAdd}
-                      handleClose={this.handleAdd}
-                      editable={ this.writeOnly && this.state.itemEditable }
-                      />
-                }
-                {
-                  this.state.showBusinessRuleGrid &&
-                  !this.props.gridBusinessRulesData &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                  <div>
-                    <h4>Loading ....</h4>
-                  </div>
-                }
-                {
-                  !this.state.showBusinessRuleGrid &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  this.props.report_linkage &&
-                  this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                  <RuleReportLinkage
-                    data={ this.props.report_linkage }
-                    ruleReference={ this.selectedKeys }
-                    handleClose={this.handleReportLinkClick}
-                    />
-                }
-                {
-                  !this.state.showBusinessRuleGrid &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  this.props.change_history &&
-                  this.state.showHistory &&
-                  <DefAuditHistory
-                    data={ this.props.change_history }
-                    historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
-                    handleClose={this.handleHistoryClick}
-                    />
+                    this.renderDynamic(this.state.display)
                 }
                 </div>
             </div>
