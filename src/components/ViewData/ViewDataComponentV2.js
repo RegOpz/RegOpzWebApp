@@ -35,18 +35,14 @@ class ViewDataComponentV2 extends Component {
   constructor(props){
     super(props)
     this.state = {
-      startDate:moment().subtract(1,'months').format("YYYYMMDD"),
-      endDate:moment().format('YYYYMMDD'),
-      sources:null,
-      showDataGrid: (this.props.showDataGrid ? this.props.showDataGrid : false),
-      showAddForm: false,
-      showToggleColumns: false,
+      startDate: moment().subtract(1,'months').format("YYYYMMDD"),
+      endDate: moment().format('YYYYMMDD'),
+      sources: null,
+      display: (this.props.showDataGrid ? "showDataGrid" : false),
       itemEditable: true,
       sourceId: null,
       businessDate: null,
-      showAuditModal: false,
-      showReportLinkage: false,
-      showHistory: false,
+      showAuditModal: false
     }
 
     this.dataFilterParam=this.props.dataFilterParam;
@@ -132,11 +128,7 @@ class ViewDataComponentV2 extends Component {
     this.currentPage = 0;
     this.selectedViewColumns=[];
     this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
+        display: "showDataGrid",
         sourceId: item.source_id,
         businessDate: item.business_date
      },
@@ -171,24 +163,12 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleToggle(event) {
-    let toggleValue = this.state.showToggleColumns;
+    let toggleValue = this.state.display === "showToggleColumns";
     if (!toggleValue) {
-      this.setState({
-        showToggleColumns: true,
-        showDataGrid: false,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showToggleColumns" });
     }
     else {
-      this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showDataGrid" });
     }
   }
 
@@ -201,13 +181,7 @@ class ViewDataComponentV2 extends Component {
     this.selectedViewColumns = selectedColumns;
     //console.log(selectedColumns);
     //console.log(this.selectedViewColumns);
-    this.setState({
-      showToggleColumns: false,
-      showDataGrid: true,
-      showAddForm: false,
-      showReportLinkage: false,
-      showHistory: false,
-    });
+    this.setState({ display: "showDataGrid" });
   }
 
   actionButtonClicked(event,itemClicked){
@@ -309,16 +283,9 @@ class ViewDataComponentV2 extends Component {
 
   handleAdd(event,requestType){
 
-    let isOpen = this.state.showAddForm;
+    let isOpen = this.state.display === "showAddForm";
     if(isOpen) {
-      this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-        itemEditable: true,
-        },
+      this.setState({ display: "showDataGrid" },
         ()=>{
               if(this.selectedItems){
                 this.selectedItems = this.flatGrid.deSelectAll();
@@ -345,11 +312,7 @@ class ViewDataComponentV2 extends Component {
           }
           this.requestType = requestType;
           this.setState({
-              showToggleColumns: false,
-              showDataGrid: false,
-              showAddForm: true,
-              showReportLinkage: false,
-              showHistory: false,
+              display: "showAddForm",
               itemEditable: itemEditable,
             });
         }
@@ -375,15 +338,9 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleReportLinkClick(event) {
-    let isOpen = this.state.showReportLinkage;
+    let isOpen = this.state.display === "showReportLinkage";
     if(isOpen) {
-      this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showDataGrid" });
     } else {
       if(this.selectedItems.length < 1){
         this.modalAlert.isDiscardToBeShown = false;
@@ -403,13 +360,7 @@ class ViewDataComponentV2 extends Component {
         })
         //console.log("Repot Linkage",this.props.report_linkage);
         this.selectedItems = this.flatGrid.deSelectAll();
-        this.setState({
-              showToggleColumns: false,
-              showDataGrid: false,
-              showAddForm: false,
-              showReportLinkage: true,
-              showHistory: false,
-            },
+        this.setState({ display: "showReportLinkage" },
               this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate)
           );
       }
@@ -417,15 +368,9 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleHistoryClick(event) {
-    let isOpen = this.state.showHistory;
+    let isOpen = this.state.display === "showHistory";
     if(isOpen) {
-      this.setState({
-        showToggleColumns: false,
-        showDataGrid: true,
-        showAddForm: false,
-        showReportLinkage: false,
-        showHistory: false,
-      });
+      this.setState({ display: "showDataGrid" });
     } else {
       let selectedKeys='';
       this.selectedItems.map((item,index)=>{
@@ -433,13 +378,7 @@ class ViewDataComponentV2 extends Component {
       })
       console.log("Repot Linkage",this.props.change_history);
       this.selectedItems = this.flatGrid.deSelectAll();
-      this.setState({
-            showToggleColumns: false,
-            showDataGrid: false,
-            showAddForm: false,
-            showReportLinkage: false,
-            showHistory: true,
-          },
+      this.setState({ display: "showHistory" },
             ()=>{
               if (selectedKeys){
                 this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys);
@@ -560,7 +499,108 @@ class ViewDataComponentV2 extends Component {
 
   }
 
-  render(){
+  renderDynamic(displayOption) {
+      switch (displayOption) {
+          case "showDataGrid":
+              if (this.props.gridData) {
+                  return(
+                      <div>
+                          <RegOpzFlatGridActionButtons
+                            editable={this.writeOnly}
+                            buttonClicked={this.actionButtonClicked}
+                            checkDisabled={this.checkDisabled}
+                            buttons={this.buttons}
+                            dataNavigation={true}
+                            pageNo={this.currentPage}
+                            buttonClassOverride={this.buttonClassOverride}
+                            />
+                            <RegOpzFlatGrid
+                             columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
+                             dataSource={this.props.gridData.rows}
+                             onSelectRow={this.handleSelectRow.bind(this)}
+                             onUpdateRow = {this.handleUpdateRow.bind(this)}
+                             onSort = {()=>{}}
+                             onFilter = {()=>{}}
+                             onFullSelect = {this.handleFullSelect.bind(this)}
+                             isMultiSelectAllowed = { true }
+                             ref={
+                                   (flatGrid) => {
+                                     this.flatGrid = flatGrid;
+                                   }
+                                 }
+                            />
+                      </div>
+                  );
+              }
+              return(
+                  <div>
+                    <h4>Loading ....</h4>
+                  </div>
+              );
+          case "showToggleColumns":
+              if (this.props.gridData) {
+                  return(
+                      <ShowToggleColumns
+                        columns={this.props.gridData.cols}
+                        saveSelection={this.displaySelectedColumns}
+                        selectedViewColumns={this.selectedViewColumns}
+                        handleClose={this.handleToggle}
+                        />
+                  );
+              }
+              break;
+          case "showAddForm":
+              if (this.props.gridData) {
+                  return(
+                      <AddData
+                        requestType={this.requestType}
+                        form_data={this.form_data}
+                        form_cols={this.selectedViewColumns}
+                        all_cols={this.props.gridData.cols}
+                        businessDate={this.state.businessDate}
+                        table_name={this.props.gridData.table_name}
+                        handleClose={this.handleAdd}
+                        readOnly={(!this.writeOnly || !this.state.itemEditable)}
+                        updateSourceData={this.updateSourceData}
+                        insertSourceData={this.insertSourceData}
+                        />
+                  );
+              }
+              break;
+          case "showReportLinkage":
+              return(
+                  <DataReportLinkage
+                    data={ this.props.report_linkage }
+                    ruleReference={ "" }
+                    handleClose={this.handleReportLinkClick}
+                  />
+              );
+          case "showHistory":
+              if (this.props.change_history) {
+                  return(
+                      <DefAuditHistory
+                        data={ this.props.change_history }
+                        historyReference={ "" }
+                        handleClose={this.handleHistoryClick}
+                        />
+                  );
+              }
+              break;
+          default:
+              return(
+                  <DataCatalogList
+                    dataCatalog={this.props.dataCatalog}
+                    navMenu={false}
+                    handleDataFileClick={this.handleDataFileClick}
+                    dateFilter={this.handleDateFilter}
+                    applyRules={this.props.applyRules}
+                    />
+              );
+      }
+  }
+
+  render() {
+    console.log("Display:", this.state.display);
     if (typeof this.props.dataCatalog != 'undefined' || this.flagDataDrillDown) {
         if (typeof this.props.gridData != 'undefined' ){
           this.pages = Math.ceil(this.props.gridData.count / 100);
@@ -641,127 +681,8 @@ class ViewDataComponentV2 extends Component {
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
-                { !this.state.showDataGrid &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                  <DataCatalogList
-                    dataCatalog={this.props.dataCatalog}
-                    navMenu={false}
-                    handleDataFileClick={this.handleDataFileClick}
-                    dateFilter={this.handleDateFilter}
-                    applyRules={this.props.applyRules}
-                    />
-                }
-                { this.state.showDataGrid &&
-                  this.props.gridData &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <RegOpzFlatGridActionButtons
-                      editable={this.writeOnly}
-                      buttonClicked={this.actionButtonClicked}
-                      checkDisabled={this.checkDisabled}
-                      buttons={this.buttons}
-                      dataNavigation={true}
-                      pageNo={this.currentPage}
-                      buttonClassOverride={this.buttonClassOverride}
-                      />
-                }
                 {
-                  !this.state.showDataGrid &&
-                  this.props.gridData &&
-                  !this.state.showAddForm &&
-                  this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <ShowToggleColumns
-                        columns={this.props.gridData.cols}
-                        saveSelection={this.displaySelectedColumns}
-                        selectedViewColumns={this.selectedViewColumns}
-                        handleClose={this.handleToggle}
-                      />
-                }
-                {
-                  this.state.showDataGrid &&
-                  this.props.gridData &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <RegOpzFlatGrid
-                     columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
-                     dataSource={this.props.gridData.rows}
-                     onSelectRow={this.handleSelectRow.bind(this)}
-                     onUpdateRow = {this.handleUpdateRow.bind(this)}
-                     onSort = {()=>{}}
-                     onFilter = {()=>{}}
-                     onFullSelect = {this.handleFullSelect.bind(this)}
-                     isMultiSelectAllowed = { true }
-                     ref={
-                           (flatGrid) => {
-                             this.flatGrid = flatGrid;
-                           }
-                         }
-                    />
-                }
-                {
-                  !this.state.showDataGrid &&
-                  this.state.showAddForm &&
-                  this.props.gridData &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                    <AddData
-                      requestType={this.requestType}
-                      form_data={this.form_data}
-                      form_cols={this.selectedViewColumns}
-                      all_cols={this.props.gridData.cols}
-                      businessDate={this.state.businessDate}
-                      table_name={this.props.gridData.table_name}
-                      handleClose={this.handleAdd}
-                      readOnly={(!this.writeOnly || !this.state.itemEditable)}
-                      updateSourceData={this.updateSourceData}
-                      insertSourceData={this.insertSourceData}
-                      />
-                }
-                {
-                  this.state.showDataGrid &&
-                  !this.props.gridData &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                  <div>
-                    <h4>Loading ....</h4>
-                  </div>
-                }
-                {
-                  !this.state.showDataGrid &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  this.state.showReportLinkage &&
-                  !this.state.showHistory &&
-                  <DataReportLinkage
-                    data={ this.props.report_linkage }
-                    ruleReference={ "" }
-                    handleClose={this.handleReportLinkClick}
-                  />
-                }
-                {
-                  !this.state.showDataGrid &&
-                  !this.state.showAddForm &&
-                  !this.state.showToggleColumns &&
-                  !this.state.showReportLinkage &&
-                  this.props.change_history &&
-                  this.state.showHistory &&
-                  <DefAuditHistory
-                    data={ this.props.change_history }
-                    historyReference={ "" }
-                    handleClose={this.handleHistoryClick}
-                    />
+                    this.renderDynamic(this.state.display)
                 }
                 </div>
             </div>
