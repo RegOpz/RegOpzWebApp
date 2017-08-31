@@ -113,7 +113,7 @@ ReactDOM.render(
                     <Route path="variance-analysis/variance-chart" name="Variance Analysis Chart" component={VarianceAnalysisChart} />
                     <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(ManageDefChange)} />
                     <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(ManageDataChange)} />
-                    <Route path="manage-roles" name="Role Management" component={ManageRoles} />
+                    <Route path="manage-roles" name="Role Management" component={authenticate(ManageRoles)} />
                     <Route path="manage-roles/add-roles" name="Add Role" component={AddRoles} />
                     <Route path="manage-users" name="User Management" component={ManageUsers} />
                     <Route path="manage-users/edit-user" name="Edit User" component={EditUsers}/>

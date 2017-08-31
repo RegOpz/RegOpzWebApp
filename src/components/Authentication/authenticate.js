@@ -15,7 +15,7 @@ export default function authenticate(ComposedComponent){
         console.log("Render function,Authentication.....",name);
         console.log("Render function called, Authentication.....",this.props.login_details);
         const component=_.find(this.props.login_details.permission,{component:name});
-        if(!component){
+        if(! component) {
           return <div> <h2> You do not have privilege to perform this functionality. Please contact the administrator.</h2></div>
         }
         console.log("Render function called, Authentication.....",component);
