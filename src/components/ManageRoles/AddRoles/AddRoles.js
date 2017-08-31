@@ -21,7 +21,7 @@ class AddRolesComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            role: this.props.location.query['role'],
+            role: this.props.role,
             permissions: null,
             selectedComponent: null,
             showAuditModal: false
@@ -39,7 +39,7 @@ class AddRolesComponent extends Component {
         this.onPermissionSelect = this.onPermissionSelect.bind(this);
         this.goPreviousPage = this.goPreviousPage.bind(this);
         this.onClickOkay = this.onClickOkay.bind(this);
-        this.handleCancel = this.handleCancel.bind(this);
+        this.handleCancel = this.props.handleCancel;
         this.handleDelete = this.handleDelete.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.renderSubmitRole = this.renderSubmitRole.bind(this);
@@ -53,12 +53,8 @@ class AddRolesComponent extends Component {
         this.props.fetchPermissions();
     }
 
-    componentDidMount() {
-      document.title = "RegOpz Dashboard | Add Role";
-    }
-
     render() {
-        if (this.props.location.query['role']) {
+        if (this.props.role) {
             this.dataSource = this.props.form
         }
         if(this.props.permissions != null && typeof this.props.permissions != 'undefined'){
@@ -72,14 +68,8 @@ class AddRolesComponent extends Component {
         console.log("Add Roles:", this.state);
 
         return(
-            <div>
-              <Breadcrumbs
-                routes={this.props.routes}
-                params={this.props.params}
-                wrapperClass="breadcrumb"
-              />
               <div className="row form-container">
-                  <div className="col col-lg-12">
+                  <div className="col col-lg-12 x_panel">
                       <div className="x_title">
                           <h2>Role Management <small>Add a new role</small></h2>
                           <div className="clearfix"></div>
@@ -122,7 +112,7 @@ class AddRolesComponent extends Component {
                                   </button>
                                   <button type="button"
                                   className="btn btn-danger"
-                                  disabled={ !this.props.location.query['role'] }
+                                  disabled={ !this.props.role }
                                   onClick={this.handleDelete}>
                                     Delete
                                   </button>
@@ -142,7 +132,6 @@ class AddRolesComponent extends Component {
                       />
                   </div>
               </div>
-            </div>
         );
     }
 

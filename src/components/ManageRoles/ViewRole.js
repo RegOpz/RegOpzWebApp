@@ -19,9 +19,9 @@ export default class ViewRole extends Component {
                   </h2>
                   <ul className="nav navbar-right panel_toolbox">
                     <li>
-                      <Link key={item.id} to={`/dashboard/manage-roles/add-roles?role=${item.role}`}>
+                      <a onClick={() => this.props.handleButtonClicked(item.role) }>
                         <i className="fa fa-wrench" rel="tooltip" title="Edit Role"></i>
-                      </Link>
+                      </a>
                     </li>
                   </ul>
                   <div className="clearfix"></div>

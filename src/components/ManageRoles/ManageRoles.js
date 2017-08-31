@@ -8,45 +8,60 @@ import {
   actionFetchRoles
 } from '../../actions/RolesAction';
 import ViewRole from './ViewRole';
+import AddRoles from './AddRoles/AddRoles';
 require('./ManageRoles.css');
 
 class ManageRolesComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-        checked: "checked"
+        checked: "checked",
+        display: false
     };
     this.dataSource = null;
-    this.fetchFlag = true;
+    this.selectedRole = null;
+    this.handleEditButtonClicked = this.handleEditButtonClicked.bind(this);
   }
 
   componentWillMount() {
     this.props.fetchPermission();
   }
 
-  componentWillUpdate() {
-    if (this.fetchFlag){
-      this.props.fetchPermission();
-    }
-  }
-
-  componentDidUpdate(){
-    this.fetchFlag =! this.fetchFlag;
-  }
-
   componentDidMount() {
     document.title = "RegOpz Dashboard | Manage Roles";
+  }
+
+  handleEditButtonClicked(role) {
+      this.selectedRole = role;
+      this.setState({ display: "Form" });
+  }
+
+  handleCancel() {
+      this.selectedRole = null;
+      this.setState({ display: false });
+  }
+
+  renderDynamic(displayOption) {
+      switch (displayOption) {
+          case "Form":
+              return(
+                  <AddRoles
+                    role={this.selectedRole}
+                    handleCancel={this.handleCancel.bind(this)}
+                  />
+              );
+          default:
+              return this.renderPermissions();
+      }
   }
 
   render() {
     return(
         <div>
-          <Breadcrumbs
-            routes={this.props.routes}
-            params={this.props.params}
-            wrapperClass="breadcrumb"
-          />
-          { this.renderPermissions() }
+          <h4>Manage Roles</h4>
+          {
+              this.renderDynamic(this.state.display)
+          }
         </div>
     );
   }
@@ -70,19 +85,26 @@ class ManageRolesComponent extends Component {
             ((dataSource) => {
               let role_list = [
                   <div key={-1} className="col-md-4 col-sm-4 col-xs-12">
-                    <Link to="/dashboard/manage-roles/add-roles" className="x_panel tile fixed_height_320 x_panel_blank overflow_hidden">
+                    <div
+                      className="x_panel tile fixed_height_320 x_panel_blank overflow_hidden"
+                      style={{ "cursor": "pointer" }}
+                      onClick={() => this.handleEditButtonClicked(null) }
+                    >
                       <div className="x_content x_content_plush">
                         <h2>Add New Role</h2>
                         <i className="fa fa-plus" rel="tooltip" title="Add New Role"></i>
                       </div>
-                    </Link>
+                    </div>
                   </div>
               ];
               dataSource.map((item, index) => {
                     console.log(index, item);
                     role_list.push(
                       <div key={index} className="col-md-4 col-sm-4 col-xs-12">
-                        <ViewRole item={item}/>
+                        <ViewRole
+                          item={item}
+                          handleButtonClicked={this.handleEditButtonClicked.bind(this)}
+                        />
                       </div>
                       );
                     })
