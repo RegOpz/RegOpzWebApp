@@ -1,3 +1,4 @@
+import {BASE_URL} from '../Constant/constant';
 import {
   FETCH_REPORT_TEMPLATE_LIST,
   FETCH_BUSINESS_RULES_BY_SOURCE_ID,
@@ -6,7 +7,8 @@ import {
   INSERT_MAINTAIN_RULE_DATA,
   UPDATE_MAINTAIN_RULE_DATA,
   DELETE_MAINTAIN_RULE_DATA,
-  EXPORT_REPORT_XLSX
+  EXPORT_REPORT_XLSX,
+  EXPORT_REPORT_RULE_XLSX
 } from '../actions/MaintainReportRuleAction';
 
 // TODO:
@@ -36,10 +38,10 @@ export default function(state=[], action) {
     //return state.splice(0,1,state)
     return state;
   case EXPORT_REPORT_RULE_XLSX:
-    window.location.href = BASE_URL + "../../static/" + response.data.file_name;
+    window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
     return state;
   case EXPORT_REPORT_XLSX:
-    window.location.href = BASE_URL + "../../static/" + response.data.file_name;
+    window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
     return state;
   default:
   	return state;

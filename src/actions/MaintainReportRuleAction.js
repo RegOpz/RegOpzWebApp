@@ -102,7 +102,7 @@ export function actionDeleteRuleData(id, table_name, at,audit_info) {
 }
 
 export function actionExportXlsx(report_id,reporting_date,cell_format_yn){
-  const url = BASE_URL + "document/get-report-export-to-excel??report_id=" + reportId
+  const url = BASE_URL + "document/get-report-export-to-excel?report_id=" + report_id
               + "&reporting_date=" + reporting_date
               + "&cell_format_yn=" + cell_format_yn;
   return{

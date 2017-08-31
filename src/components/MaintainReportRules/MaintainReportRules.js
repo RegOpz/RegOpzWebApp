@@ -5,7 +5,9 @@ import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
 import {
-  actionFetchReportTemplate
+  actionFetchReportTemplate,
+  actionExportXlsx,
+  actionExportRulesXlsx
 } from '../../actions/MaintainReportRuleAction';
 import {
   //actionFetchDates,
@@ -66,8 +68,8 @@ class MaintainReportRules extends Component {
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleReportLinkClick.bind(this) },
-      { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportCSV.bind(this) },
+      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
@@ -292,6 +294,15 @@ class MaintainReportRules extends Component {
     this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
   }
 
+  handleExportRules(event) {
+    this.props.exportRulesXlsx(this.state.reportId);
+  }
+
+  handleExportReport(event) {
+    let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
+    this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
+  }
+
   handleFullSelect(items){
     console.log("Selected Items ", items);
 
@@ -430,7 +441,7 @@ class MaintainReportRules extends Component {
                 <div className="x_title">
                     {
                         ((displayOption) => {
-                            if (displayOption) {
+                            if (!displayOption) {
                                 return(
                                     <h2>View Report Rules <small>Available Report Rules for </small>
                                       <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
@@ -441,7 +452,6 @@ class MaintainReportRules extends Component {
                                 <h2>Maintain Report Rules <small>{' Report '}</small>
                                   <small><i className="fa fa-file-text"></i></small>
                                   <small>{this.state.reportId }</small>
-                                  <small>{' as on Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                                 </h2>
                             );
                         })(this.state.display)
@@ -541,6 +551,12 @@ const mapDispatchToProps = (dispatch) => {
     },
     applyRules:(source_info) => {
       dispatch(actionApplyRules(source_info));
+    },
+    exportXlsx:(report_id,reporting_date,cell_format_yn) => {
+      dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn));
+    },
+    exportRulesXlsx:(report_id) => {
+      dispatch(actionExportRulesXlsx(report_id));
     },
   }
 }
