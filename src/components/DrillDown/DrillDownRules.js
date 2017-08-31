@@ -15,6 +15,7 @@ class DrillDownRules extends Component {
     //this.renderChangeHistory = this.renderChangeHistory.bind(this);
     this.renderAggRules = this.renderAggRules.bind(this);
     this.renderCalcRules = this.renderCalcRules.bind(this);
+    this.renderCalcRulesBtn = this.renderCalcRulesBtn.bind(this);
 
     this.handleCollapse = this.handleCollapse.bind(this);
   }
@@ -189,6 +190,11 @@ class DrillDownRules extends Component {
       return (
         <div>
           <h5>No Source Calculation Rule defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
+          <div>
+          {
+              this.renderCalcRulesBtn()
+          }
+          </div>
         </div>
       )
     else {
@@ -220,6 +226,7 @@ class DrillDownRules extends Component {
                       onClick={
                         (event)=>{
                           let calcRuleFilter = {
+                                  form: item,
                                   params:{
                                     drill_kwargs: {
                                       index: index,
@@ -229,6 +236,7 @@ class DrillDownRules extends Component {
                                       reporting_date: this.reportingDate,
                                       source_id: item.source_id,
                                       cell_calc_ref: item.cell_calc_ref,
+                                      dml_allowed: item.dml_allowed,
                                       page: 0
                                     }
                                   }
@@ -285,42 +293,47 @@ class DrillDownRules extends Component {
           </tbody>
         </table>
         {
-            ((addRulesBtn) => {
-                if (addRulesBtn) {
-                    return(
-                        <button
-                          type="button"
-                          disabled={this.disabled}
-                          className="btn btn-primary btn-sm"
-                          onClick={
-                            (event) => {
-                                let calcRuleFilter = {
-                                  params:{
-                                    drill_kwargs: {
-                                        index: -1,
-                                        report_id: this.selectedCell.reportId,
-                                        sheet: this.selectedCell.sheetName,
-                                        cell: this.selectedCell.cell,
-                                        reporting_date: this.reportingDate,
-                                        in_use: 'Y',
-                                        page: 0
-                                    }
-                                  }
-                                }
-                                this.props.handleCalcRuleClicked(event, calcRuleFilter);
-                                this.showRulesPanel=!this.showRulesPanel;
-                             }
-                          }
-                        >
-                            Add New Rule
-                        </button>
-                    );
-                }
-            })(this.props.addRulesBtn)
+            this.renderCalcRulesBtn()
         }
         </div>
       </div>
       )
+    }
+  }
+
+  renderCalcRulesBtn(){
+    console.log("Inside renderCalcRulesBtn",this.props.addRulesBtn);
+    if (this.props.addRulesBtn) {
+        return(
+            <button
+              type="button"
+              disabled={this.disabled}
+              className="btn btn-primary btn-sm"
+              onClick={
+                (event) => {
+                    let calcRuleFilter = {
+                      form: {},
+                      params:{
+                        drill_kwargs: {
+                            index: -1,
+                            report_id: this.selectedCell.reportId,
+                            sheet: this.selectedCell.sheetName,
+                            cell: this.selectedCell.cell,
+                            reporting_date: this.reportingDate,
+                            in_use: 'N',
+                            dml_allowed: 'Y',
+                            page: 0
+                        }
+                      }
+                    }
+                    this.props.handleCalcRuleClicked(event, calcRuleFilter);
+                    this.showRulesPanel=!this.showRulesPanel;
+                 }
+              }
+            >
+                Add New Rule
+            </button>
+        );
     }
   }
 

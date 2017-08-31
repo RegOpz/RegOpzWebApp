@@ -10,7 +10,7 @@ import {
   actionFetchReportLinkage,
   actionFetchDataChangeHistory,
   actionExportCSV,
-  actionApplyRules,
+  actionGenerateReport,
 } from '../../actions/ViewDataAction';
 import {
   actionFetchReportData,
@@ -422,7 +422,7 @@ class ViewReport extends Component {
                     navMenu={false}
                     handleReportClick={this.handleReportClick}
                     dateFilter={this.handleDateFilter}
-                    applyRules={this.props.applyRules}
+                    generateReport={this.props.generateReport}
                     />
               );
       }
@@ -440,7 +440,7 @@ class ViewReport extends Component {
                 <div className="x_title">
                     {
                         ((displayOption) => {
-                            if (displayOption) {
+                            if (!displayOption) {
                                 return(
                                     <h2>View Report <small>Available Reports for </small>
                                       <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
@@ -531,8 +531,8 @@ const mapDispatchToProps = (dispatch) => {
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
     },
-    applyRules:(source_info) => {
-      dispatch(actionApplyRules(source_info));
+    generateReport: (report_info) => {
+      dispatch(actionGenerateReport(report_info));
     },
   }
 }

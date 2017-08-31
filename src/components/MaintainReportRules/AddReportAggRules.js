@@ -113,14 +113,14 @@ class AddReportAggRules extends Component {
                         readOnly={this.viewOnly}
                         onChange={(event) => {
                           let newState = {...this.state};
-                          if(this.checkRuleValidity(event) == "valid") {
+                          //if(this.checkRuleValidity(event) == "valid") {
                             newState.form.comp_agg_ref = event.target.value;
                             this.setState(newState);
-                          }
-                          else {
-                            alert("Invalid formula, please check");
-                            this.setState(newState);
-                          }
+                          // }
+                          // else {
+                          //   alert("Invalid formula, please check");
+                          //   this.setState(newState);
+                          // }
                          }
                         }
                       />
@@ -282,6 +282,7 @@ class AddReportAggRules extends Component {
       table_name:data["table_name"],
       change_type:data["change_type"],
       change_reference:`Aggregation Rule of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id}`,
+      maker: this.props.login_details.user,
     };
 
     Object.assign(audit_info,this.state.audit_form);
@@ -327,7 +328,8 @@ class AddReportAggRules extends Component {
 
 function mapStateToProps(state) {
   return{
-    cell_rules: state.report_store.cell_rules
+    cell_rules: state.report_store.cell_rules,
+    login_details: state.login_store,
   };
 }
 

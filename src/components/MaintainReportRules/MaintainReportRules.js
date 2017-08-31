@@ -30,7 +30,7 @@ import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import DrillDownRules from '../DrillDown/DrillDownRules';
 import AddReportAggRules from './AddReportAggRules';
-import AddReportRules from './AddReportRules/AddReportRules';
+import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
 
@@ -348,7 +348,7 @@ class MaintainReportRules extends Component {
                       <DrillDownRules
                         cellRules = {this.props.cell_rules}
                         readOnly = {this.readOnly}
-                        addRulesBtn = {true}
+                        addRulesBtn = {this.writeOnly}
                         selectedCell = {this.selectedCell}
                         handleClose={ this.handleDetails.bind(this) }
                         reportingDate={this.state.reportingDate}
@@ -363,6 +363,7 @@ class MaintainReportRules extends Component {
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             {...this.calcRuleFilter.params.drill_kwargs}
+                            formData={this.calcRuleFilter.form}
                           />
                       );
                   } else if (this.state.showAggRuleDetails) {

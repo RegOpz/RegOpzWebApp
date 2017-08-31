@@ -382,8 +382,12 @@ class ViewDataComponentV2 extends Component {
             ()=>{
               if (selectedKeys){
                 this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys);
-              } else {
+              } else if (this.state.businessDate){
                 this.props.fetchDataChangeHistory(this.props.gridData.table_name,null,this.state.businessDate);
+              } else {
+                // this is in the drilldown stage where we would like to see only the history of the related records.
+                selectedKeys = this.props.gridData.sql.replace("a.*"," a.id,a.business_date ");
+                this.props.fetchDataChangeHistory(this.props.gridData.table_name,encodeURI(selectedKeys));
               }
             }
         );

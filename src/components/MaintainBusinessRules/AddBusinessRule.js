@@ -74,6 +74,7 @@ class AddBusinessRule extends Component {
 
   componentWillMount() {
     this.props.fetchSources();
+    console.log("Inside componentWillMount of AddBusinessRule",this.props.businessRule);
     if (this.props.businessRule) {
       Object.assign(this.state.form, this.props.businessRule);
       this.initialiseFormFields();
@@ -285,7 +286,7 @@ class AddBusinessRule extends Component {
             </div>
             <div className="x_content">
               <br />
-              <form className="form-horizontal form-label-left"
+              <form id="businessRuleForm" className="form-horizontal form-label-left"
                 onSubmit={this.handleSubmit}
               >
                 <div className="form-group">
@@ -596,11 +597,11 @@ class AddBusinessRule extends Component {
 
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button" className="btn btn-primary btn-xs" onClick={ this.props.handleCancel }>
+                    <button type="button" className="btn btn-primary" onClick={ this.props.handleCancel }>
                       Cancel</button>
                     {
                       !this.state.readOnly &&
-                      <button type="submit" className="btn btn-success btn-xs" >Submit</button>
+                      <button type="submit" className="btn btn-success" >Submit</button>
                     }
                   </div>
                 </div>

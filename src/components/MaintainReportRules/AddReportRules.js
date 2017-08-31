@@ -14,8 +14,7 @@ import {
   actionFetchSourceColumnList,
   actionInsertRuleData,
   actionUpdateRuleData
-} from '../../../actions/MaintainReportRuleAction';
-import './AddReportRules.css';
+} from '../../actions/MaintainReportRuleAction';
 
 class AddReportRules extends Component {
   constructor(props) {
@@ -61,12 +60,35 @@ class AddReportRules extends Component {
 
   componentWillMount() {
     this.props.fetchSources();
-    if (typeof this.ruleIndex !== 'undefined') {
-        if (this.ruleIndex !== -1) {
-          Object.assign(this.state.form, this.props.cell_rules.cell_rules[this.ruleIndex]);
-          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-          this.initialiseFormFields();
-        }
+    // if (typeof this.ruleIndex !== 'undefined') {
+    //     if (this.ruleIndex !== -1) {
+    //       Object.assign(this.state.form, this.props.cell_rules.cell_rules[this.ruleIndex]);
+    //       this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+    //       this.initialiseFormFields();
+    //     }
+    // }
+    if (this.ruleIndex !== -1) {
+      Object.assign(this.state.form, this.props.formData);
+      this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+      this.initialiseFormFields();
+    } else {
+      let formData = {
+        cell_calc_ref:null,
+        report_id: this.props.report_id,
+        sheet_id: this.props.sheet,
+        cell_id:this.props.cell,
+        source_id:null,
+        cell_business_rules:null,
+        aggregation_ref:null,
+        aggregation_func:null,
+        valid_from:null,
+        valid_to:null,
+        last_updated_by:null,
+        id:null,
+      };
+      Object.assign(this.state.form, formData);
+      Object.assign(this.state.rulesTags,[]);
+      Object.assign(this.state.aggRefTags,[]);
     }
   }
 
@@ -74,11 +96,30 @@ class AddReportRules extends Component {
       if (typeof nextProps.index !== 'undefined' && this.ruleIndex !== nextProps.index) {
           this.ruleIndex = nextProps.index;
           if (this.ruleIndex !== -1) {
-            Object.assign(this.state.form, nextProps.cell_rules.cell_rules[this.ruleIndex]);
+            Object.assign(this.state.form, nextProps.formData);
             this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+            this.initialiseFormFields();
+          } else {
+            let formData = {
+              cell_calc_ref:null,
+              report_id: nextProps.report_id,
+              sheet_id: nextProps.sheet,
+              cell_id:nextProps.cell,
+              source_id:null,
+              cell_business_rules:null,
+              aggregation_ref:null,
+              aggregation_func:null,
+              valid_from:null,
+              valid_to:null,
+              last_updated_by:null,
+              id:null,
+            };
+            Object.assign(this.state.form, formData);
+            Object.assign(this.state.rulesTags,[]);
+            Object.assign(this.state.aggRefTags,[]);
           }
 
-          this.dml_allowed = nextProps.dml_allowed;
+          this.dml_allowed = nextProps.dml_allowed === 'Y' ? true : false;
           this.writeOnly = nextProps.writeOnly;
       }
   }
@@ -181,7 +222,10 @@ class AddReportRules extends Component {
       initialiseFormFields(){
         //this.setState({form: this.props.drill_down_result.cell_rules[this.state.ruleIndex]});
         //this.state.form = this.props.drill_down_result.cell_rules[this.state.ruleIndex];
-        if(this.state.rulesTags.length == 0){
+        console.log("inside initialiseFormFields function",this.state.form.cell_business_rules);
+        Object.assign(this.state.rulesTags,[]);
+        Object.assign(this.state.aggRefTags,[]);
+        //if(this.state.rulesTags.length == 0){
           const {cell_business_rules}=this.state.form;
           if (typeof cell_business_rules === 'undefined' || cell_business_rules === null) {
               return;
@@ -194,15 +238,16 @@ class AddReportRules extends Component {
           })
           console.log("Rules Tags........:",this.state.rulesTags);
           //this.state.rulesTags = [{id:1,text: this.state.form.cell_business_rules}];
-        }
-        if(this.state.aggRefTags.length == 0){
+        //}
+        //if(this.state.aggRefTags.length == 0){
           this.state.aggRefTags.push({id:1,text: this.state.form.aggregation_ref});
-        }
+        //}
       }
 
   render(){
 
-    this.viewOnly = ! (this.writeOnly && this.dml_allowed);
+    this.viewOnly = !(this.writeOnly && this.dml_allowed);
+    console.log("this.writeOnly , this.dml_allowed", this.writeOnly , this.dml_allowed,this.viewOnly);
 
     this.state.rulesSuggestions = [];
     this.state.fieldsSuggestions = [];
@@ -274,7 +319,7 @@ class AddReportRules extends Component {
                       value={this.state.form.cell_calc_ref}
                       type="text"
                       required="required"
-                      readOnly={this.state.viewOnly}
+                      readOnly={this.viewOnly}
                       className="form-control col-md-7 col-xs-12"
                       onChange={
                         (event) => {
@@ -309,7 +354,7 @@ class AddReportRules extends Component {
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     {
                       (()=>{
-                      if(this.state.requestType!='view'){
+                      if(!this.viewOnly){
                          return(
                             <select
                               value = {this.state.form.source_id}
@@ -349,67 +394,41 @@ class AddReportRules extends Component {
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report Rules <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
-                    {
-                      (()=>{
-                        if(this.state.requestType!='view'){
-
-                            return(
-                              <ReactTags tags={rulesTags}
-                              suggestions={rulesSuggestions}
-                              handleDelete={this.handleDelete}
-                              handleAddition={this.handleAddition}
-                              handleDrag={this.handleDrag}
-                              handleFilterSuggestions={this.searchAnywhere}
-                              allowDeleteFromEmptyInput={false}
-                              autocomplete={true}
-                              minQueryLength={1}
-                              classNames={{
-                                tagInput: 'tagInputClass',
-                                tagInputField: 'tagInputFieldClass form-control',
-                                suggestions: 'suggestionsClass',
-                              }}
-                              placeholder="Enter Business Rule"
-                            />);
-                          }
-                          else{
-                              console.log(this.state.form.cell_business_rules);
-                              return(
-                                <input value={this.state.form.cell_business_rules}  type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
-                              );
-
-                          }
-                  })()
-                }
+                    <ReactTags tags={rulesTags}
+                      suggestions={rulesSuggestions}
+                      readOnly={this.viewOnly}
+                      handleDelete={this.handleDelete}
+                      handleAddition={this.handleAddition}
+                      handleDrag={this.handleDrag}
+                      handleFilterSuggestions={this.searchAnywhere}
+                      allowDeleteFromEmptyInput={false}
+                      autocomplete={true}
+                      minQueryLength={1}
+                      classNames={{
+                        tagInput: 'tagInputClass',
+                        tagInputField: 'tagInputFieldClass form-control',
+                        suggestions: 'suggestionsClass',
+                      }}
+                      placeholder="Enter Business Rule"
+                    />
                   </div>
                 </div>
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Aggregation Logic <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
-                    {
-                      (()=>{
-                        if(this.state.requestType!='view'){
-                          return(
-                              <ReactTags tags={aggRefTags}
-                              suggestions={fieldsSuggestions}
-                              handleDelete={this.handleAggRefDelete}
-                              handleAddition={this.handleAggRefAddition}
-                              handleDrag={this.handleAggRefDrag}
-                              classNames={{
-                                tagInput: 'tagInputClass',
-                                tagInputField: 'tagInputFieldClass form-control',
-                                suggestions: 'suggestionsClass',
-                              }}
-                              placeholder="Enter Aggregation Definition"
-                            />
-                        );
-                      }else{
-                        return(
-                          <input value={this.state.form.aggregation_ref}  type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
-                        );
-
-                    }
-                    })()
-                  }
+                    <ReactTags tags={aggRefTags}
+                        suggestions={fieldsSuggestions}
+                        readOnly={this.viewOnly}
+                        handleDelete={this.handleAggRefDelete}
+                        handleAddition={this.handleAggRefAddition}
+                        handleDrag={this.handleAggRefDrag}
+                        classNames={{
+                          tagInput: 'tagInputClass',
+                          tagInputField: 'tagInputFieldClass form-control',
+                          suggestions: 'suggestionsClass',
+                        }}
+                        placeholder="Enter Aggregation Definition"
+                      />
                   </div>
                 </div>
 
@@ -419,7 +438,7 @@ class AddReportRules extends Component {
                     <input
                       type="text"
                       placeholder="Enter Aggregation function"
-                      readOnly={this.state.viewOnly}
+                      readOnly={this.viewOnly}
                       required="required"
                       className="form-control col-md-7 col-xs-12"
                       value={this.state.form.aggregation_func}
@@ -471,7 +490,7 @@ class AddReportRules extends Component {
                       required="required"
                       className="form-control col-md-7 col-xs-12"
                       value={this.state.audit_form.comment}
-                      readOnly={this.state.viewOnly}
+                      readOnly={this.viewOnly}
                       maxLength="1000"
                       minLength="20"
                       onChange={
@@ -497,7 +516,7 @@ class AddReportRules extends Component {
                       Cancel</button>
                     {
                       (()=>{
-                      if(this.state.requestType!='view'){
+                      if(!this.viewOnly){
                         console.log("this.state.requestType........",this.state.requestType);
                         return(<button type="submit" className="btn btn-success" >Submit</button>);
                       }
@@ -529,6 +548,7 @@ class AddReportRules extends Component {
       table_name:data.table_name,
       change_type:data.change_type,
       change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id} [ Source: ${this.state.form.source_id} ]`,
+      maker: this.props.login_details.user,
     };
     Object.assign(audit_info,this.state.audit_form);
 
@@ -551,7 +571,8 @@ function mapStateToProps(state){
     sources:state.maintain_report_rules_store.sources,
     business_rule: state.maintain_report_rules_store.business_rules,
     source_table_columns: state.maintain_report_rules_store.source_table_columns,
-    cell_rules: state.report_store.cell_rules
+    cell_rules: state.report_store.cell_rules,
+    login_details: state.login_store,
   }
 }
 const mapDispatchToProps = (dispatch) => {

@@ -21,13 +21,10 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CaptureReportTemplate from './components/CaptureReportTemplate/CaptureReportTemplate';
 import DashboardIndex from './components/Dashboard/DashBoardIndex';
 import MaintainBusinessRules from './components/MaintainBusinessRules/MaintainBusinessRules';
-import AddBusinessRule from './components/MaintainBusinessRules/AddBusinessRule/AddBusinessRule';
 import custom from '../js/custom';
 import RegOpzDataGrid from './components/RegOpzDataGrid/RegOpzDataGrid';
 import ViewDataComponentV2 from './components/ViewData/ViewDataComponentV2';
-import ViewDataComponent from './components/ViewData/ViewDataComponent';
 import ViewReport from './components/ViewReport/ViewReport';
-import DrillDown from './components/DrillDown/DrillDown';
 import MaintainReportRules from './components/MaintainReportRules/MaintainReportRules';
 import MaintainSources from './components/MaintainSources/MaintainSources';
 import AddSources from './components/MaintainSources/AddSources/AddSources';
@@ -108,13 +105,10 @@ ReactDOM.render(
                     <Route path="capture-report-template" name="Capture Report Template" component={CaptureReportTemplate} />
                     <Route path="data-grid" name="Data Grid" component={RegOpzDataGrid} />
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
-                    <Route path="maintain-business-rules/add-business-rule" component={AddBusinessRule} />
                     <Route path="view-data" name="View Data" component={authenticate(ViewDataComponentV2)} />
                     <Route path="view-data/add-data" name="Add Data" component={AddData} />
-                    <Route path="view-data-on-grid" name="View Data Grid" component={authenticate(ViewDataComponent)} />
                     <Route path="view-report" name="View Report" component={ViewReport} />
                     <Route path="create-report" name="Create Report" component={CreateReport} />
-                    <Route path="drill-down" name="DrillDown" component={DrillDown} />
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
                     <Route path="maintain-sources" name="Maintain Sources" component={MaintainSources} />
                     <Route path="maintain-sources/add-sources" name="Add Sources" component={AddSources} />
