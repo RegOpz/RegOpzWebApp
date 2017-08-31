@@ -158,7 +158,7 @@ export default class RightPane extends Component {
       url: BASE_URL + 'document',
       success: function(response) {
         npro.done();
-        hashHistory.push("/dashboard/data-grid?report_id="+report_id+"&country="+country+"&report_description="+report_description);
+        hashHistory.push("/dashboard/maintain-report-rules"); //?report_id="+report_id+"&country="+country+"&report_description="+report_description);
         console.log(response);
       },
       error:function(response){

@@ -204,7 +204,6 @@ class ReportCatalogList extends Component {
                   <th>Valid Upto</th>
                   <th>Last Updated by</th>
                   <th>Last Updated on</th>
-                  <th>Operations</th>
                 </tr>
               </thead>
               <tbody>
@@ -229,51 +228,7 @@ class ReportCatalogList extends Component {
                     <td>{moment(item.valid_from).format("DD-MMM-YYYY")}</td>
                     <td>{moment(item.valid_to).format("DD-MMM-YYYY")}</td>
                     <td>{item.last_updated_by}</td>
-                    <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>
-                    <td>
-                      <div className="ops_icons">
-                        <div className="btn-group">
-                        <button
-                          className="btn btn-circle btn-link btn-xs"
-                          data-toggle="tooltip"
-                          data-placement="top"
-                          title="Operation Log History"
-                        >
-                          <i className="fa fa-history" aria-hidden="true"></i>
-                        </button>
-                        </div>
-                        <div className="btn-group">
-                        <button
-                          className="btn btn-circle btn-link btn-xs"
-                          data-toggle="tooltip"
-                          data-placement="top"
-                          title="Edit Report Parameters"
-                        >
-                          <i className="fa fa-code" aria-hidden="true"></i>
-                        </button>
-                        </div>
-                        <div className="btn-group">
-                        <button
-                          className="btn btn-circle btn-link btn-xs"
-                          onClick={
-                            (event) => {
-                              let report_info = {
-                                report_id: item.report_id,
-                                report_parameters: item.report_parameters,
-                                reporting_date: item.reporting_date
-                              }
-                              this.props.generateReport(report_info);
-                            }
-                          }
-                          data-toggle="tooltip"
-                          data-placement="top"
-                          title="Re-Generate Report"
-                        >
-                          <i className="fa fa-flash" aria-hidden="true"></i>
-                        </button>
-                        </div>
-                      </div>
-                    </td>
+                    <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>                    
                   </tr>
                 )
               })}
