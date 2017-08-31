@@ -5,7 +5,8 @@ import {
   FETCH_TABLE_COLUMNS_LIST,
   INSERT_MAINTAIN_RULE_DATA,
   UPDATE_MAINTAIN_RULE_DATA,
-  DELETE_MAINTAIN_RULE_DATA
+  DELETE_MAINTAIN_RULE_DATA,
+  EXPORT_REPORT_XLSX
 } from '../actions/MaintainReportRuleAction';
 
 // TODO:
@@ -33,6 +34,12 @@ export default function(state=[], action) {
     action.meta);
     //state.drill_down_result.cell_rules.splice(action.meta.at,1);
     //return state.splice(0,1,state)
+    return state;
+  case EXPORT_REPORT_RULE_XLSX:
+    window.location.href = BASE_URL + "../../static/" + response.data.file_name;
+    return state;
+  case EXPORT_REPORT_XLSX:
+    window.location.href = BASE_URL + "../../static/" + response.data.file_name;
     return state;
   default:
   	return state;

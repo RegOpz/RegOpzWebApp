@@ -10,6 +10,8 @@ export const FETCH_TABLE_COLUMNS_LIST = 'FETCH_TABLE_COLUMNS_LIST';
 export const INSERT_MAINTAIN_RULE_DATA = 'INSERT_MAINTAIN_RULE_DATA';
 export const UPDATE_MAINTAIN_RULE_DATA = 'UPDATE_MAINTAIN_RULE_DATA';
 export const DELETE_MAINTAIN_RULE_DATA = 'DELETE_MAINTAIN_RULE_DATA';
+export const EXPORT_REPORT_XLSX = "EXPORT_REPORT_XLSX";
+export const EXPORT_REPORT_RULE_XLSX = "EXPORT_REPORT_RULE_XLSX";
 
 // TODO:
 export function actionFetchReportTemplate(reports, country) {
@@ -96,5 +98,23 @@ export function actionDeleteRuleData(id, table_name, at,audit_info) {
     payload: payload,
     //payload:axios.delete(BASE_URL + `report-rule/99999999999?table_name=${table_name}`),
     meta: { at:at }
+  }
+}
+
+export function actionExportXlsx(report_id,reporting_date,cell_format_yn){
+  const url = BASE_URL + "document/get-report-export-to-excel??report_id=" + reportId
+              + "&reporting_date=" + reporting_date
+              + "&cell_format_yn=" + cell_format_yn;
+  return{
+    type:EXPORT_REPORT_XLSX,
+    payload:axios.get(url)
+  }
+}
+
+export function actionExportRulesXlsx(report_id){
+  const url = BASE_URL + "document/get-report-rule-export-to-excel?report_id=" + report_id;
+  return{
+    type:EXPORT_REPORT_RULE_XLSX,
+    payload:axios.get(url)
   }
 }
