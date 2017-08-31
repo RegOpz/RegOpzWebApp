@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import { hashHistory, Link } from 'react-router';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
-import Breadcrumbs from 'react-breadcrumbs';
+import _ from 'lodash';
 import {
   actionFetchRoles
 } from '../../actions/RolesAction';
@@ -21,6 +21,9 @@ class ManageRolesComponent extends Component {
     this.dataSource = null;
     this.selectedRole = null;
     this.handleEditButtonClicked = this.handleEditButtonClicked.bind(this);
+
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Roles" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Roles" }) ? true : false;
   }
 
   componentWillMount() {
@@ -32,8 +35,10 @@ class ManageRolesComponent extends Component {
   }
 
   handleEditButtonClicked(role) {
+    if (this.writeOnly) {
       this.selectedRole = role;
       this.setState({ display: "Form" });
+    }
   }
 
   handleCancel() {
@@ -47,7 +52,7 @@ class ManageRolesComponent extends Component {
               return(
                   <AddRoles
                     role={this.selectedRole}
-                    handleCancel={this.handleCancel.bind(this)}
+                    handleClose={this.handleCancel.bind(this)}
                   />
               );
           default:
@@ -83,7 +88,9 @@ class ManageRolesComponent extends Component {
         <div className="row form-container">
         {
             ((dataSource) => {
-              let role_list = [
+              let role_list = [];
+              if (this.writeOnly) {
+                role_list.push(
                   <div key={-1} className="col-md-4 col-sm-4 col-xs-12">
                     <div
                       className="x_panel tile fixed_height_320 x_panel_blank overflow_hidden"
@@ -96,13 +103,15 @@ class ManageRolesComponent extends Component {
                       </div>
                     </div>
                   </div>
-              ];
+                );
+              }
               dataSource.map((item, index) => {
-                    console.log(index, item);
+                    // console.log(index, item);
                     role_list.push(
                       <div key={index} className="col-md-4 col-sm-4 col-xs-12">
                         <ViewRole
                           item={item}
+                          readOnly={!this.writeOnly}
                           handleButtonClicked={this.handleEditButtonClicked.bind(this)}
                         />
                       </div>

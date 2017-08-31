@@ -17,13 +17,16 @@ export default class ViewRole extends Component {
                   <h2>{ item.role }
                     <small>Role Details</small>
                   </h2>
-                  <ul className="nav navbar-right panel_toolbox">
-                    <li>
-                      <a onClick={() => this.props.handleButtonClicked(item.role) }>
-                        <i className="fa fa-wrench" rel="tooltip" title="Edit Role"></i>
-                      </a>
-                    </li>
-                  </ul>
+                  {
+                      this.props.readOnly ||
+                      <ul className="nav navbar-right panel_toolbox">
+                        <li>
+                          <a onClick={() => this.props.handleButtonClicked(item.role) }>
+                            <i className="fa fa-wrench" rel="tooltip" title="Edit Role"></i>
+                          </a>
+                        </li>
+                      </ul>
+                  }
                   <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
@@ -62,7 +65,7 @@ export default class ViewRole extends Component {
                   </div>
                 </div>
                 <div className="x_footer">
-                  Last Updated By: { item.last_updated_by || "John Doe" } on { moment(item.last_updated_on).format("DD-MMM-YYYY") }
+                  Last Updated By: { item.last_updated_by || "John Doe" }
                 </div>
               </div>
             );

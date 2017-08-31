@@ -37,9 +37,9 @@ class AddRolesComponent extends Component {
         this.onTextChange = this.onTextChange.bind(this);
         this.onComponentSelect = this.onComponentSelect.bind(this);
         this.onPermissionSelect = this.onPermissionSelect.bind(this);
-        this.goPreviousPage = this.goPreviousPage.bind(this);
+        this.handleClose = this.props.handleClose;
         this.onClickOkay = this.onClickOkay.bind(this);
-        this.handleCancel = this.props.handleCancel;
+        this.handleCancel = this.handleCancel.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
         this.renderSubmitRole = this.renderSubmitRole.bind(this);
@@ -57,21 +57,19 @@ class AddRolesComponent extends Component {
         if (this.props.role) {
             this.dataSource = this.props.form
         }
-        if(this.props.permissions != null && typeof this.props.permissions != 'undefined'){
+        if (typeof this.props.permissions !== 'undefined' && this.props.permissions !== null){
           this.permissionList = this.props.permissions;
           this.componentList = this.permissionList.map(
             (item) => {
               return { 'component': item.component };
           });
         }
-        console.log("Permissions:", this.permissionList, "Components:", this.componentList);
-        console.log("Add Roles:", this.state);
 
         return(
               <div className="row form-container">
                   <div className="col col-lg-12 x_panel">
                       <div className="x_title">
-                          <h2>Role Management <small>Add a new role</small></h2>
+                      <h2>Role Management <small>{ this.props.role ? "Edit" : "Add" } a role</small></h2>
                           <div className="clearfix"></div>
                       </div>
                       <div className="x_content">
@@ -365,14 +363,9 @@ class AddRolesComponent extends Component {
         }
     }
 
-    goPreviousPage() {
-        const encodedUrl = encodeURI('/dashboard/manage-roles');
-        hashHistory.push(encodedUrl);
-    }
-
     onClickOkay(e) {
         if (this.buttonClicked == 'Cancel') {
-            this.goPreviousPage();
+            this.handleClose();
         } else {
             this.setState({ showAuditModal: true });
         }
@@ -408,7 +401,7 @@ class AddRolesComponent extends Component {
                 console.log("Nothing to commit, no data found!");
             }
         }
-        this.goPreviousPage();
+        this.handleClose();
     }
 
     renderSubmitRole() {
