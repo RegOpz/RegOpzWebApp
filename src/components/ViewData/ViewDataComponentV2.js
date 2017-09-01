@@ -614,21 +614,13 @@ class ViewDataComponentV2 extends Component {
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
-                      { !this.state.showDataGrid &&
+                      { !this.state.display &&
                         !this.flagDataDrillDown &&
-                        !this.state.showAddForm &&
-                        !this.state.showToggleColumns &&
-                        !this.state.showReportLinkage &&
-                        !this.state.showHistory &&
                         <h2>View Data <small>Available Business Data</small>
                           <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }
-                      { (this.state.showDataGrid ||
-                        this.state.showAddForm ||
-                        this.state.showToggleColumns ||
-                        this.state.showReportLinkage ||
-                        this.state.showHistory ) &&
+                      { this.state.display &&
                         !this.flagDataDrillDown &&
                         <h2>View Data <small>{' Data for Source '}</small>
                           <small><i className="fa fa-file-text"></i></small>
@@ -659,11 +651,7 @@ class ViewDataComponentV2 extends Component {
                                 <li>
                                   <Link to="/dashboard/view-data"
                                     onClick={()=>{this.setState({
-                                                                  showToggleColumns: false,
-                                                                  showDataGrid: false,
-                                                                  showAddForm: false,
-                                                                  showReportLinkage: false,
-                                                                  showHistory: false,
+                                                                  display: false,
                                                                 });}}>
                                       <i className="fa fa-bars"></i>{' All Data Feeds'}
                                   </Link>
