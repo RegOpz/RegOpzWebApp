@@ -20,16 +20,11 @@ export default class RightPane extends Component {
   }
   render(){
     return(
-      <div className="row">
-        <Breadcrumbs
-          routes={this.props.routes}
-          params={this.props.params}
-          wrapperClass="breadcrumb"
-        />
+      <div className="row form-container">
         <div className="col-md-12 col-sm-12 col-xs-12">
           <div className="x_panel">
             <div className="x_title">
-              <h2>Drop report template file</h2>
+              <h2>Drop Report Template File <small>Capture Report Template</small></h2>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">

@@ -153,7 +153,8 @@ class DrillDownRules extends Component {
                     onClick={
                       (event)=>{
                         this.props.handleAggeRuleClicked(event, {...item, index: 0});
-                        this.showRulesPanel = !this.showRulesPanel;
+                        //this.showRulesPanel = !this.showRulesPanel;
+                        this.handleCollapse(event);
                       }
                     }>
                     <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
@@ -242,7 +243,8 @@ class DrillDownRules extends Component {
                                   }
                                 }
                           this.props.handleCalcRuleClicked(event, calcRuleFilter);
-                          this.showRulesPanel=!this.showRulesPanel;
+                          //this.showRulesPanel=!this.showRulesPanel;
+                          this.handleCollapse(event);
                         }
                       }>
                       <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
@@ -267,7 +269,8 @@ class DrillDownRules extends Component {
                                   page: 0
                                 }
                           this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
-                          this.showRulesPanel=!this.showRulesPanel;
+                          //this.showRulesPanel=!this.showRulesPanel;
+                          this.handleCollapse(event);
                         }
                       }>
                       <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
@@ -327,7 +330,8 @@ class DrillDownRules extends Component {
                       }
                     }
                     this.props.handleCalcRuleClicked(event, calcRuleFilter);
-                    this.showRulesPanel=!this.showRulesPanel;
+                    //this.showRulesPanel=!this.showRulesPanel;
+                    this.handleCollapse(event);
                  }
               }
             >

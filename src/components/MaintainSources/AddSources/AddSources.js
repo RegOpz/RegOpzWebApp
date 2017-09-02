@@ -28,17 +28,17 @@ class AddSources extends Component {
             rulesSuggestions: [],
             fieldsSuggestions: [],
             form: {
-                source_table_name: this.props.location.query['source_table_name'],
-                source_id: this.props.location.query['source_id'],
-                country: this.props.location.query['country'],
-                id: this.props.location.query['id'],
-                source_description: this.props.location.query['source_description'],
-                source_file_name: this.props.location.query['source_file_name'],
-                source_file_delimiter: this.props.location.query['source_file_delimiter'],
-                last_updated_by: this.props.location.query['last_updated_by']
+                source_table_name: null,
+                source_id: null,
+                country: null,
+                id: null,
+                source_description: null,
+                source_file_name: null,
+                source_file_delimiter: null,
+                last_updated_by: null
             },
-            requestType: this.props.location.query['request'],
-            readOnly: this.props.location.query['request'] == "update" ? "readonly" : "",
+            requestType: this.props.requestType,
+            readOnly: this.props.readOnly,
             additionalSourceFields: [],
             fileDelimiter: ',',
             mandatoryFields: {
@@ -60,13 +60,25 @@ class AddSources extends Component {
     }
 
     componentWillMount() {
-        this.props.fetchSourceFeedColumnList(this.props.location.query['source_table_name']);
+      this.setState({
+            form: this.props.formData,
+            additionalSourceFields: []
+          },
+            ()=>{this.props.fetchSourceFeedColumnList(this.state.form.source_table_name)}
+        );
     }
 
     componentWillReceiveProps(nextProps) {
-        let length = nextProps.source_feeds.source_table_columns.length;
-        if (length <= 5)
-            this.addDefaultRows();
+        if(this.state.form.source_id != nextProps.formData.source_id){
+            this.setState({
+              form: nextProps.formData,
+              additionalSourceFields: [],
+              requestType: nextProps.requestType,
+              readOnly: nextProps.readOnly,
+            },
+              ()=>{this.props.fetchSourceFeedColumnList(this.state.form.source_table_name)}
+          );
+        }
     }
 
     addDefaultRows() {
@@ -133,6 +145,10 @@ class AddSources extends Component {
     }
 
     addRowToSourceTable(fieldName, dataType, disabled) {
+        let length = this.props.source_table_columns.length;
+        console.log("Length......",length);
+        if (length < 5)
+            this.addDefaultRows();
         var additionalSourceFields = [...this.state.additionalSourceFields];
         additionalSourceFields.push({
             Field: fieldName ? fieldName : '',
@@ -201,17 +217,17 @@ class AddSources extends Component {
     }
 
     render() {
-        console.log('field list', this.props.source_feeds);
-        if (typeof (this.props.source_feeds.source_table_columns) == 'undefined') {
+        console.log('field list', this.props.source_table_columns);
+        if (typeof (this.props.source_table_columns) == 'undefined') {
             return (
                 <h1>Loading...</h1>
             )
         } else {
-            console.log('in else', this.props.source_feeds.source_table_columns);
+            console.log('in else', this.props.source_table_columns);
             console.log('Before render ', this.state.requestType, this.state.form.country, this.state.form);
             return (
                 <div className="row">
-                    <div className="col col-lg-12">
+                    <div className="x_panel">
                         <div className="x_title">
                             <h2>Maintain Source <small>Add a new source</small></h2>
                             <div className="clearfix"></div>
@@ -226,13 +242,15 @@ class AddSources extends Component {
                                             placeholder="Enter source table name"
                                             value={this.state.form.source_table_name}
                                             type="text"
-                                            readOnly={this.state.readOnly}
+                                            readOnly={this.state.readOnly || this.state.requestType == "edit" }
                                             required="required"
                                             maxLength="60"
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
                                                 (event) => {
-                                                    this.state.form.source_table_name = event.target.value;
+                                                  let form = this.state.form;
+                                                  form.source_table_name = event.target.value;
+                                                  this.setState({form: form});
                                                 }
                                             }
                                         />
@@ -257,13 +275,15 @@ class AddSources extends Component {
                                     <div className="col-md-6 col-sm-6 col-xs-12">
                                         <input
                                             placeholder="Enter source Description"
-                                            defaultValue={this.state.form.source_description}
+                                            value={this.state.form.source_description}
                                             type="text"
                                             required="required"
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
                                                 (event) => {
-                                                    this.state.form.source_description = event.target.value;
+                                                    let form = this.state.form;
+                                                    form.source_description = event.target.value;
+                                                    this.setState({form: form});
                                                 }
                                             }
                                         />
@@ -274,13 +294,15 @@ class AddSources extends Component {
                                     <div className="col-md-6 col-sm-6 col-xs-12">
                                         <input
                                             placeholder="Enter source File Name"
-                                            defaultValue={this.state.form.source_file_name}
+                                            value={this.state.form.source_file_name}
                                             type="text"
                                             required="required"
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
                                                 (event) => {
-                                                    this.state.form.source_file_name = event.target.value;
+                                                  let form = this.state.form;
+                                                  form.source_file_name = event.target.value;
+                                                  this.setState({form: form});
                                                 }
                                             }
                                         />
@@ -291,14 +313,16 @@ class AddSources extends Component {
                                     <div className="col-md-6 col-sm-6 col-xs-12">
                                         <input
                                             placeholder="Enter source File Data Delimiter"
-                                            defaultValue={this.state.form.source_file_delimiter}
+                                            value={this.state.form.source_file_delimiter}
                                             type="text"
                                             required="required"
                                             maxLength="1"
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
                                                 (event) => {
-                                                    this.state.form.source_file_delimiter = event.target.value;
+                                                  let form = this.state.form;
+                                                  form.source_file_delimiter = event.target.value;
+                                                  this.setState({form: form});
                                                 }
                                             }
                                         />
@@ -317,7 +341,7 @@ class AddSources extends Component {
                                             value={this.state.form.country}
                                             className="form-control col-md-7 col-xs-6"
                                             type="text"
-                                            readOnly={typeof this.props.location.query['country'] != "undefined" ? "readonly" : ""}
+                                            readOnly={this.state.readOnly || this.state.requestType == "edit" }
                                             placeholder="Country"
                                             maxLength="2"
                                             onChange={
@@ -381,7 +405,7 @@ class AddSources extends Component {
                                         </thead>
                                         <tbody>
                                             {
-                                                this.state.requestType != "add" && this.props.source_feeds.source_table_columns.map(function (col, colindex) {
+                                                this.state.requestType != "add" && this.props.source_table_columns.map(function (col, colindex) {
                                                     return (
                                                         <tr>
                                                             <td>{col.Field}</td>
@@ -439,9 +463,9 @@ class AddSources extends Component {
         }
     }
     showTableFieldsList() {
-        console.log(this.props.source_feeds.source_table_columns.length);
-        if (this.props.source_feeds.source_table_columns.length > 0) {
-            this.props.source_feeds.source_table_columns.map(function (col, colindex) {
+        console.log(this.props.source_table_columns.length);
+        if (this.props.source_table_columns.length > 0) {
+            this.props.source_table_columns.map(function (col, colindex) {
                 return (
                     <tr>
                         <td>{col.Field}</td>
@@ -474,17 +498,17 @@ class AddSources extends Component {
             this.props.updateSourceData(this.state.form.id, data);
         }
 
-        hashHistory.push("/dashboard/maintain-sources");
+        this.props.handleClose();
     }
     handleCancel(event) {
         console.log('inside cancel');
-        hashHistory.push("/dashboard/maintain-sources")
+        this.props.handleClose();
     }
 }
 function mapStateToProps(state) {
     console.log("On map state of Add report rule", state);
     return {
-        source_feeds: state.source_feeds,
+        source_table_columns: state.source_feeds.source_table_columns,
     }
 }
 const mapDispatchToProps = (dispatch) => {

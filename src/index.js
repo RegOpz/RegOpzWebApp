@@ -27,7 +27,6 @@ import ViewDataComponentV2 from './components/ViewData/ViewDataComponentV2';
 import ViewReport from './components/ViewReport/ViewReport';
 import MaintainReportRules from './components/MaintainReportRules/MaintainReportRules';
 import MaintainSources from './components/MaintainSources/MaintainSources';
-import AddSources from './components/MaintainSources/AddSources/AddSources';
 import VarianceAnalysisForm from './components/VarianceAnalysis/VarianceAnalysis';
 import VarianceAnalysisGrid from './components/VarianceAnalysis/VarianceAnalysisGrid';
 import VarianceAnalysisChart from './components/VarianceAnalysis/VarianceAnalysisChart';
@@ -39,7 +38,6 @@ import ManageUsers from './components/ManageUsers/ManageUsers';
 import EditUsers from './components/ManageUsers/ModifyUser/ModifyUser';
 import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
-import AddData from './components/ViewData/AddData';
 import ManageDataChange from './components/ManageDataChange/ManageDataChange';
 
 
@@ -106,12 +104,10 @@ ReactDOM.render(
                     <Route path="data-grid" name="Data Grid" component={RegOpzDataGrid} />
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
                     <Route path="view-data" name="View Data" component={authenticate(ViewDataComponentV2)} />
-                    <Route path="view-data/add-data" name="Add Data" component={AddData} />
-                    <Route path="view-report" name="View Report" component={ViewReport} />
-                    <Route path="create-report" name="Create Report" component={CreateReport} />
+                    <Route path="view-report" name="View Report" component={authenticate(ViewReport)} />
+                    <Route path="create-report" name="Create Report" component={authenticate(CreateReport)} />
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
-                    <Route path="maintain-sources" name="Maintain Sources" component={MaintainSources} />
-                    <Route path="maintain-sources/add-sources" name="Add Sources" component={AddSources} />
+                    <Route path="maintain-sources" name="Maintain Sources" component={authenticate(MaintainSources)} />
                     <Route path="variance-analysis" name="Variance Analysis" component={authenticate(VarianceAnalysisForm)} />
                     <Route path="variance-analysis/variance-data-grid" name="Variance Analysis Grid" component={VarianceAnalysisGrid} />
                     <Route path="variance-analysis/variance-chart" name="Variance Analysis Chart" component={VarianceAnalysisChart} />

@@ -1,252 +1,218 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import { WithContext as ReactTags } from 'react-tag-input';
-import {connect} from 'react-redux';
-import {bindActionCreators, dispatch} from 'redux';
-import {
-    Link,
-    hashHistory
-} from 'react-router';
-import Breadcrumbs from 'react-breadcrumbs';
+import { connect } from 'react-redux';
+import { bindActionCreators, dispatch } from 'redux';
+import { Link } from 'react-router';
 import _ from 'lodash';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 import {
   actionFetchSources
 } from '../../actions/MaintainSourcesAction';
-import './MaintainSources.css';
-import Collapsible from '../CollapsibleModified/Collapsible';
+import SourceCatalogList from './SourceCatalog';
+import AddSources from './AddSources/AddSources';
+import AuditModal from '../AuditModal/AuditModal';
+import ModalAlert from '../ModalAlert/ModalAlert';
+require('./MaintainSources.css');
+require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainSources extends Component {
   constructor(props){
-    super(props);
-    this.tags = {
-        countryTags: [],
-        countrySuggestions: [],
-        sourceTags: [],
-        sourceSuggestions: []
-    };
-    this.handleDeleteSource = this.handleDeleteSource.bind(this);
-    this.handleAdditionSource = this.handleAdditionSource.bind(this);
-    this.handleDragSource = this.handleDragSource.bind(this);
-
-    this.handleDeleteCountry = this.handleDeleteCountry.bind(this);
-    this.handleAdditionCountry = this.handleAdditionCountry.bind(this);
-    this.handleDragCountry = this.handleDragCountry.bind(this);
-    this.nextPropsCount = 0;
-
-    this.searchAnywhere = this.searchAnywhere.bind(this);
-  }
-  searchAnywhere(textInputValue, possibleSuggestionsArray) {
-    var lowerCaseQuery = textInputValue.toLowerCase()
-
-    return possibleSuggestionsArray.filter(function(suggestion)  {
-        return suggestion.toLowerCase().includes(lowerCaseQuery)
-    })
-  }
-  convertTagsToString(tags){
-    let selectedTags = [];
-    for(let i = 0; i < tags.length; i++){
-      selectedTags.push(tags[i].text)
+    super(props)
+    this.state = {
+      sources:null,
+      itemEditable: true,
+      display: false,
+      sourceFileName: null
     }
-    return selectedTags.toString();
-  }
-  handleDeleteSource(i) {
-      let tags = this.tags.sourceTags;
-      tags.splice(i, 1);
-      this.setState({sourceTags: tags});
-      console.log('delete source',this.tags);
-      let sources = this.convertTagsToString(this.tags.sourceTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchSources(sources ? sources:'ALL', country ? country:'ALL');
+
+    this.formData = {};
+
+    this.renderDynamic = this.renderDynamic.bind(this);
+
+    this.handleSourceClick = this.handleSourceClick.bind(this);
+    this.handleAddSourceClick = this.handleAddSourceClick.bind(this);
+    this.handleClose = this.handleClose.bind(this);
+    this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
+    this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
+
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Sources" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Manage Sources" }) ? true : false;
   }
 
-  handleAdditionSource(tag) {
-      let tags = this.tags.sourceTags;
-      tags.push({
-          id: tags.length + 1,
-          text: tag.toLocaleUpperCase()
-      });
-      console.log('Add source',this.tags);
-      let sources = this.convertTagsToString(this.tags.sourceTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchSources(sources ? sources:'ALL', country ? country:'ALL');
+  componentWillMount() {
+      this.props.fetchSources();
   }
 
-  handleDragSource(tag, currPos, newPos) {
-      let tags = this.tags.sourceTags;
-      // mutate array
-      tags.splice(currPos, 1);
-      tags.splice(newPos, 0, tag);
-      // re-render
-      this.setState({ sourceTags: tags });
-  }
-  handleDeleteCountry(i) {
-      let tags = this.tags.countryTags;
-      tags.splice(i, 1);
-      this.setState({countryTags: tags});
-      console.log('delete country',this.tags);
-      let sources = this.convertTagsToString(this.tags.sourceTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchSources(sources ? sources:'ALL', country ? country:'ALL');
+  componentDidUpdate() {
+    console.log("Dates",this.state.startDate)
   }
 
-  handleAdditionCountry(tag) {
-      let tags = this.tags.countryTags;
-      tags.push({
-          id: tags.length + 1,
-          text: tag.toLocaleUpperCase()
-      });
-      this.setState({countryTags: tags});
-      console.log('Add country',this.tags);
-      let sources = this.convertTagsToString(this.tags.sourceTags)
-      let country = this.convertTagsToString(this.tags.countryTags)
-      this.props.fetchSources(sources ? sources:'ALL', country ? country:'ALL');
-
+  handleSourceClick(item) {
+    console.log("selected item",item);
+    this.formData=item;
+    this.setState({
+        display: "editSources",
+        sourceFileName: item.source_file_name
+     });
   }
 
-  handleDragCountry(tag, currPos, newPos) {
-      let tags = this.tags.countryTags;
-
-      // mutate array
-      tags.splice(currPos, 1);
-      tags.splice(newPos, 0, tag);
-
-      // re-render
-      this.setState({ countryTags: tags });
+  handleAddSourceClick() {
+    this.formData={
+        source_table_name: null,
+        source_id: null,
+        country: null,
+        id: null,
+        source_description: null,
+        source_file_name: null,
+        source_file_delimiter: null,
+        last_updated_by: null
+      };
+    this.setState({
+        display: "addSources",
+        sourceFileName: "Adding New Source"
+     });
   }
-  componentWillMount(){
-    this.props.fetchSources();
+
+  handleClose() {
+    this.setState({
+          display: false,
+       });
   }
-  componentWillReceiveProps(nextProps){
-    console.log('Inside componentWillReceiveProps',(this.props.source_feeds.sources !== nextProps.source_feeds.sources));
-    if (this.props.source_feeds !== nextProps.source_feeds && this.nextPropsCount == 0) {
-      console.log('Inside if of componentWillReceiveProps',this.props.source_feeds.sources , nextProps.source_feeds.sources);
-      nextProps.fetchSources();
-      this.nextPropsCount = this.nextPropsCount + 1;
-    }
-  };
-  render() {
-      if(this.props.source_feeds.length == 0){
-        return(
-          <h1>Loading...</h1>
-        )
+
+  renderDynamic(displayOption) {
+      switch (displayOption) {
+          case "addSources":
+              return(
+                      <AddSources
+                        formData={ this.formData }
+                        readOnly={ !this.writeOnly }
+                        requestType={ "add" }
+                        handleClose={ this.handleClose.bind(this) }
+                       />
+                  );
+              break;
+          case "editSources":
+              return(
+                      <AddSources
+                        formData={ this.formData }
+                        readOnly={ !this.writeOnly }
+                        requestType={ "edit" }
+                        handleClose={ this.handleClose.bind(this) }
+                       />
+                  );
+              break;
+          default:
+              return(
+                  <SourceCatalogList
+                    sourceCatalog={this.props.sourceCatalog.country}
+                    navMenu={false}
+                    handleSourceClick={this.handleSourceClick}
+                    />
+              );
       }
-      this.tags.countrySuggestions = [];
-      this.tags.sourceSuggestions = [];
-      console.log("on render",this.props.source_feeds)
-      console.log('before country suggestions',this.props.source_feeds.sources.country_suggestion);
-      this.props.source_feeds.sources.country_suggestion.map(function(country,index){
-        this.tags.countrySuggestions.push(country.country)
-      }.bind(this))
+  }
 
-      this.props.source_feeds.sources.source_suggestion.map(function(report,index){
-        this.tags.sourceSuggestions.push(report.source_table_name)
-      }.bind(this))
-      const { sourceTags, sourceSuggestions } = this.tags;
-      const { countryTags, countrySuggestions } = this.tags;
-      console.log('before coolapsible sourcelist',sourceTags,countryTags,this.props.source_feeds.sources);
-      console.log('before coolapsible sourcelist suggestion lists',sourceSuggestions,countrySuggestions);
-      return (
-          <div className="reg_maintain_report_rules_container container">
-            <Breadcrumbs
-              routes={this.props.routes}
-              params={this.props.params}
-              wrapperClass="breadcrumb"
-            />
-            <div className="row">
-              <div className="col col-lg-6">
-                <ReactTags
-                    tags={sourceTags}
-                    suggestions={sourceSuggestions}
-                    handleDelete={this.handleDeleteSource}
-                    handleAddition={this.handleAdditionSource}
-                    handleDrag={this.handleDragSource}
-                    handleFilterSuggestions={this.searchAnywhere}
-                    allowDeleteFromEmptyInput={false}
-                    autocomplete={true}
-                    minQueryLength={1}
-                    placeholder="Enter Source Name"
-                    classNames={{
-                      tagInput: 'tagInputClass',
-                      tagInputField: 'tagInputFieldClass form-control',
-                      suggestions: 'suggestionsClass',
-                    }}
-                />
-              </div>
-              <div className="col col-lg-4">
-                <ReactTags
-                    tags={countryTags}
-                    suggestions={countrySuggestions}
-                    handleDelete={this.handleDeleteCountry}
-                    handleAddition={this.handleAdditionCountry}
-                    handleDrag={this.handleDragCountry}
-                    handleFilterSuggestions={this.searchAnywhere}
-                    allowDeleteFromEmptyInput={false}
-                    autocomplete={true}
-                    minQueryLength={1}
-                    placeholder="Enter Country"
-                    classNames={{
-                      tagInput: 'tagInputClass',
-                      tagInputField: 'tagInputFieldClass form-control',
-                      suggestions: 'suggestionsClass',
-                    }}
-                />
-              </div>
-              <div className="col col-lg-2">
-                  <button className="btn btn-success" onClick={()=>{this.handleNewCountry()}}>New Country</button>
-              </div>
+  handleModalOkayClick(event){
+    // TODO
+  }
+
+  handleAuditOkayClick(auditInfo){
+    //TODO
+  }
+
+  render(){
+    if (typeof this.props.sourceCatalog !== 'undefined') {
+        return(
+          <div>
+            <div className="row form-container">
+              <div className="x_panel">
+                <div className="x_title">
+                    {
+                        ((displayOption) => {
+                            if (!displayOption) {
+                                return(
+                                    <h2>Maintain Sources <small>Available Sources to Maintain Definition</small></h2>
+                                );
+                            }
+                            return(
+                                <h2>Maintain Source <small>{' Source '}</small>
+                                  <small><i className="fa fa-file-text"></i></small>
+                                  <small>{this.state.sourceFileName }</small>
+                                </h2>
+                            );
+                        })(this.state.display)
+                    }
+                    <div className="row">
+                      <ul className="nav navbar-right panel_toolbox">
+                        <li>
+                          <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            <i className="fa fa-rss"></i><small>{' Sources '}</small>
+                            <i className="fa fa-caret-down"></i>
+                          </a>
+                          <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                            <li style={{ "padding": "5px" }}>
+                              <Link to="/dashboard/maintain-sources"
+                                onClick={()=>{ this.setState({ display: false }) }}
+                              >
+                                  <i className="fa fa-bars"></i> All Sources List
+                              </Link>
+                            </li>
+                            <li>
+                              <SourceCatalogList
+                                sourceCatalog={this.props.sourceCatalog.country}
+                                navMenu={true}
+                                handleSourceClick={this.handleSourceClick}
+                                />
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="clearfix"></div>
+                </div>
+                <div className="col col-lg-2">
+                    <button
+                      className="btn btn-success btn-sm"
+                      disabled = { !this.writeOnly }
+                      onClick={()=>{this.handleAddSourceClick()}}>
+                      New Source
+                    </button>
+                </div>
+                <div className="x_content">
+                {
+                    this.renderDynamic(this.state.display)
+                }
+                </div>
             </div>
-            {
-                  this.props.source_feeds.sources.country.map(function(countrylist,countrylistindex){
-                  return(
-                  <div className="maintain_rep_rules_accordion_holder" >
-                    <Collapsible trigger={countrylist.country} key={countrylist.countrylistindex}>
-                      <div className="form-group">
-                        <button className="btn btn-success" onClick={()=>{this.handleAdd(countrylist.country)}}>Add</button>
-                        {
-                            <table className="table">
-                              <thead>
-                                <tr>
-                                  <th>Source ID</th>
-                                  <th>Source Table Name</th>
-                                  <th>Description</th>
-                                  <th>Last modified</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {
-                                  this.props.source_feeds.sources.country[countrylistindex].source.map(function(source,sourceindex){
-                                    return(
-                                      <tr>
-                                        <td><Link to={`/dashboard/maintain-sources/add-sources?request=update&source_table_name=${source.source_table_name}&source_id=${source.source_id}&id=${source.id}&country=${source.country}&source_description=${source.source_description}&source_file_name=${source.source_file_name}&source_file_delimiter=${source.source_file_delimiter}&last_updated_by=${source.last_updated_by}`}>{source.source_id}</Link></td>
-                                        <td><Link to={`/dashboard/maintain-sources/add-sources?request=update&source_table_name=${source.source_table_name}&source_id=${source.source_id}&id=${source.id}&country=${source.country}&source_description=${source.source_description}&source_file_name=${source.source_file_name}&source_file_delimiter=${source.source_file_delimiter}&last_updated_by=${source.last_updated_by}`}>{source.source_table_name}</Link></td>
-                                        <td>{source.source_description}</td>
-                                        <td>{source.last_updated_by}</td>
-                                      </tr>
-                                      )
-                                    }.bind(this))
-                                }
-                              </tbody>
-                            </table>
-                        }
-                      </div>
-                    </Collapsible>
-                  </div>
-                )
-              }.bind(this))
-            }
           </div>
-      )
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
 
-  }
-  handleNewCountry(event){
-    console.log('inside NewCountry');
-    hashHistory.push(`/dashboard/maintain-sources/add-sources?request=add`)
-  }
-  handleAdd(country){
-    console.log('inside Add source for existing country');
-    hashHistory.push(`/dashboard/maintain-sources/add-sources?request=add&country=${country}`)
+          < AuditModal showModal={this.state.showAuditModal}
+            onClickOkay={this.handleAuditOkayClick}
+          />
+        </div>
+      );
+    } else {
+      return(
+        <h4> Loading.....</h4>
+      );
+    }
   }
 }
+
+function mapStateToProps(state){
+  console.log("On mapState ", state, state.view_data_store, state.report_store);
+  return {
+    //data_date_heads:state.view_data_store.dates,
+    sourceCatalog: state.source_feeds.sources,
+    login_details: state.login_store,
+  }
+}
+
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchSources:(sources,country)=>{
@@ -254,14 +220,10 @@ const mapDispatchToProps = (dispatch) => {
     },
   }
 }
-function mapStateToProps(state){
-  console.log("on map state",state);
-  return {
-    source_feeds:state.source_feeds,
-  }
-}
+
 const VisibleMaintainSources = connect(
   mapStateToProps,
   mapDispatchToProps
 )(MaintainSources);
+
 export default VisibleMaintainSources;
