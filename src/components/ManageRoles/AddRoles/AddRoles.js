@@ -205,11 +205,11 @@ class AddRolesComponent extends Component {
                       (() => {
                           let permissionIndex = this.permissionList.findIndex(
                               (item) => {
-                                  return item.component == this.state.selectedComponent;
+                                  return item.component === this.state.selectedComponent;
                               }
                           );
                           console.log("PermissionIndex inside permission list..",permissionIndex,this.permissionList[permissionIndex]);
-                          let permission_list =[];
+                          let permission_list = [];
                           this.permissionList[permissionIndex].permissions.map((item, index) => {
                               permission_list.push(
                                   <li
@@ -220,6 +220,7 @@ class AddRolesComponent extends Component {
                                       id={ item.permission }
                                       name={ item.permission }
                                       value={ item.permission }
+                                      disabled={ this.isEditable(item.permission) }
                                       onChange={ this.onPermissionSelect }
                                       checked={ this.isDefaultChecked(item.permission) }/>
                                     <span className="perm_label">
@@ -267,6 +268,20 @@ class AddRolesComponent extends Component {
             );
             if (typeof selectedPermission !== 'undefined') {
               return !!selectedPermission.permission_id;
+            }
+        }
+        return false;
+    }
+
+    isEditable(permission) {
+        if (this.state.permissions != null) {
+            let selectedPermission = this.state.permissions.find(
+                (item) => {
+                    return item.permission == permission;
+                }
+            );
+            if (typeof selectedPermission !== 'undefined') {
+              return !!selectedPermission.dml_allowed;
             }
         }
         return false;
@@ -323,7 +338,7 @@ class AddRolesComponent extends Component {
         let targetName = e.target.name;
         let selectedComponent = this.state.selectedComponent;
         console.log("Clicked:", targetName, "on", selectedComponent);
-        let permissionId = null;
+        let permissionId = null, in_use = false, dml_allowed = false;
         if (this.permissionList != null) {
           let listElement = this.permissionList.find(
             (item) => {
@@ -338,12 +353,14 @@ class AddRolesComponent extends Component {
             console.log(selectedPermission);
             if (typeof selectedPermission !== 'undefined') {
               permissionId = selectedPermission.permission_id;
+              dml_allowed = selectedPermission.dml_allowed;
             }
           }
         }
         let permissionObj = {
             'permission': targetName,
-            'permission_id': permissionId
+            'permission_id': permissionId,
+            'dml_allowed': dml_allowed
         }
         if (this.state.permissions == null) {
             this.setState({ permissions: [ permissionObj ] });
