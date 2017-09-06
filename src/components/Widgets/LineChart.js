@@ -48,7 +48,6 @@ class LineChartWidget extends Component {
                                         return (
                                             <Line
                                                 onClick={this.props.handleClick}
-                                                name={element.legend}
                                                 dataKey={element.key}
                                             />
                                         );

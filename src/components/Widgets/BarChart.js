@@ -48,7 +48,6 @@ class BarChartWidget extends Component {
                                         return (
                                             <Bar
                                                 onClick={this.props.handleClick}
-                                                name={element.legend}
                                                 dataKey={element.key}
                                                 fill={element.color}
                                             />

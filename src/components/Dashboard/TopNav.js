@@ -2,8 +2,15 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { Link } from 'react-router';
 import LogOut from '../Authentication/Logout';
+import { connect } from 'react-redux';
 
-export default class TopNav extends Component {
+class TopNav extends Component {
+    constructor(props) {
+        super(props);
+
+        console.log('Top Nav Props: ', props);
+    }
+
     render() {
         return (
             <div className="top_nav">
@@ -17,20 +24,15 @@ export default class TopNav extends Component {
                         <ul className="nav navbar-nav navbar-right">
                             <li className="">
                                 <a href="javascript:;" className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                    <img src="images/img.jpg" alt="" />John Smith
+                                    <img src="images/user.png" alt="..." />{this.props.login.user}
                                     <span className=" fa fa-angle-down"></span>
                                 </a>
                                 <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                                     <li>
                                         <Link to="/dashboard/profile">
                                             Profile
+                                            <i className="fa fa-camera-retro pull-right"></i>
                                         </Link>
-                                    </li>
-                                    <li>
-                                        <a href="javascript:;">
-                                            <span className="badge bg-red pull-right">50%</span>
-                                            <span>Settings</span>
-                                        </a>
                                     </li>
                                     <li>
                                         <a href="javascript:;">Help</a>
@@ -51,7 +53,7 @@ export default class TopNav extends Component {
                                         <a>
                                             <span className="image"><img src="images/img.jpg" alt="Profile Image" /></span>
                                             <span>
-                                                <span>John Smith</span>
+                                                <span>{this.props.login.user}</span>
                                                 <span className="time">3 mins ago</span>
                                             </span>
                                             <span className="message">
@@ -63,7 +65,7 @@ export default class TopNav extends Component {
                                         <a>
                                             <span className="image"><img src="images/img.jpg" alt="Profile Image" /></span>
                                             <span>
-                                                <span>John Smith</span>
+                                                <span>{this.props.login.user}</span>
                                                 <span className="time">3 mins ago</span>
                                             </span>
                                             <span className="message">
@@ -75,7 +77,7 @@ export default class TopNav extends Component {
                                         <a>
                                             <span className="image"><img src="images/img.jpg" alt="Profile Image" /></span>
                                             <span>
-                                                <span>John Smith</span>
+                                                <span>{this.props.login.user}</span>
                                                 <span className="time">3 mins ago</span>
                                             </span>
                                             <span className="message">
@@ -87,7 +89,7 @@ export default class TopNav extends Component {
                                         <a>
                                             <span className="image"><img src="images/img.jpg" alt="Profile Image" /></span>
                                             <span>
-                                                <span>John Smith</span>
+                                                <span>{this.props.login.user}</span>
                                                 <span className="time">3 mins ago</span>
                                             </span>
                                             <span className="message">
@@ -112,3 +114,11 @@ export default class TopNav extends Component {
         )
     }
 }
+
+function mapStateToProps(state) {
+    return {
+        login: state.login_store
+    };
+}
+
+export default connect(mapStateToProps)(TopNav);

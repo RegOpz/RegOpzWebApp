@@ -7,8 +7,7 @@ class ProfileLeftPane extends Component {
 
         this.state = {
             editUser: false,
-            userData: this.props.userData,
-            userLink: this.props.userLink
+            userData: this.props.userData
         };
 
         this.enableEditing = this.enableEditing.bind(this);
@@ -19,8 +18,7 @@ class ProfileLeftPane extends Component {
     componentWillReceiveProps(nextProps) {
         this.setState({
             editUser: false,
-            userData: nextProps.userData,
-            userLink: nextProps.userLink
+            userData: nextProps.userData
         });
     }
 
@@ -32,21 +30,21 @@ class ProfileLeftPane extends Component {
 
     saveEditedData() {
         this.setState({ editUser: false });
-        this.props.saveEditedData(this.state.userData, this.state.userLink);
+        this.props.saveEditedData(this.state.userData);
     }
 
-    handleChange(event, typeOfValue, index) {
+    handleChange(event, index) {
         let value = event.target.value;
-        switch (typeOfValue) {
-            case 'INDEX':
-                let userData = this.state.userData;
-                userData[index].dataValue = value;
-                this.setState({ userData: userData });
-                break;
-            case 'USER_LINK':
-                this.setState({ userLink: value });
-                break;
-        }
+        let userData = [...this.state.userData];
+        userData[index].value = value;
+        this.setState({ userData: userData });
+    }
+
+    convertToTitleCase(nameString) {
+        nameString = nameString.trim();
+        return nameString.toLowerCase().split(' ').map(function (word) {
+            return word.replace(word[0], word[0].toUpperCase());
+        }).join(' ');
     }
 
     render() {
@@ -55,7 +53,7 @@ class ProfileLeftPane extends Component {
                 <div className="profile_img">
                     <img className="img-responsive" src={this.props.image} alt="Avatar Image" />
                 </div>
-                <h3>{this.props.username}</h3>
+                <h2>{this.convertToTitleCase(this.props.username)}</h2>
                 {
                     !this.state.editUser &&
                     <div>
@@ -63,19 +61,17 @@ class ProfileLeftPane extends Component {
                             {
                                 this.state.userData.map(element => {
                                     return (
-                                        <li>
-                                            <i className={'fa fa-' + element.iconName}></i>
-                                            {' ' + element.dataValue}
+                                        <li key={element.title}>
+                                            <label className="control-label">
+                                              <span className="required">
+                                                {element.title + ' '}:
+                                              </span>
+                                            </label>
+                                            {' ' + element.value}
                                         </li>
                                     );
                                 })
                             }
-                            <li>
-                                <i className="fa fa-external-link"></i>
-                                <a href={'http://' + this.state.userLink} target="_blank">
-                                    {' ' + this.state.userLink}
-                                </a>
-                            </li>
                         </ul>
                         <button className="btn btn-success" onClick={this.enableEditing}>
                             <i className="fa fa-edit"></i>
@@ -90,33 +86,27 @@ class ProfileLeftPane extends Component {
                             {
                                 this.state.userData.map((element, index) => {
                                     return (
-                                        <li>
+                                        <li key={element.title}>
                                             <form>
+                                                <label className="control-label">
+                                                  <span className="required">
+                                                    {element.title + ' '}:
+                                                  </span>
+                                                </label>
                                                 <FormControl
                                                     type="text"
                                                     placeholder="Enter text"
-                                                    value={element.dataValue}
+                                                    value={element.value}
                                                     onChange={(event) => {
-                                                        this.handleChange(event, 'INDEX', index);
+                                                        this.handleChange(event, index);
                                                     }}
+                                                    disabled={element.title === 'User Name'}
                                                 />
                                             </form>
                                         </li>
                                     )
                                 })
                             }
-                            <li>
-                                <form>
-                                    <FormControl
-                                        type="url"
-                                        placeholder="Enter URL"
-                                        value={this.state.userLink}
-                                        onChange={(event) => {
-                                            this.handleChange(event, 'USER_LINK');
-                                        }}
-                                    />
-                                </form>
-                            </li>
                         </ul>
                         <button className="btn btn-success" onClick={this.saveEditedData}>
                             <i className="fa fa-save"></i>

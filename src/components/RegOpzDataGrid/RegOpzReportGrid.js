@@ -37,6 +37,9 @@ class RegOpzReportGrid extends Component {
 
   componentWillReceiveProps(nextProps){
       //TODO
+      if(this.report_id != nextProps.report_id){
+        this.setState({ selectedSheet: 0 });
+      }
       this.gridData = nextProps.gridData;
       this.report_id = nextProps.report_id;
       this.reporting_date = nextProps.reporting_date;

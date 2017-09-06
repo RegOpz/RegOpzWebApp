@@ -40,7 +40,7 @@ class PieChartWidget extends Component {
                                                 onClick={this.props.handleClick}
                                                 data={this.props.data}
                                                 nameKey="name"
-                                                valueKey={element.key}
+                                                dataKey={element.key}
                                                 fill={element.color}
                                                 innerRadius={element.innerRadius}
                                                 outerRadius={element.outerRadius}

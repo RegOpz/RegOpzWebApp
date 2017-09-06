@@ -1,13 +1,23 @@
 import React, { Component } from 'react';
 import { FormControl, FormGroup, ControlLabel, Button } from 'react-bootstrap';
+import { connect } from 'react-redux';
+import { bindActionCreators, dispatch } from 'redux';
+import { actionFetchALLServices } from './../../actions/CustomizeDashAction';
 
 class AddService extends Component {
     constructor(props) {
         super(props);
 
+        let apis = [];
+        for (let i = 0; i < this.props.apis.length; i++) {
+            apis.push({
+                value: this.props.apis[i],
+                data: this.props.apis[i] + ' Data'
+            });
+        }
         this.state = {
-            APIs: this.props.APIs,
-            currentAPI: this.props.APIs[0].value,
+            APIs: apis,
+            currentAPI: this.props.apis[0],
             currentChart: '1',
             currentTile: '1'
         };
@@ -18,10 +28,22 @@ class AddService extends Component {
         this.handleTileChange = this.handleTileChange.bind(this);
     }
 
+    componentWillMount() {
+        this.props.fetchAllServices();
+    }
+
     componentWillReceiveProps(nextProps) {
+        console.log(nextProps);
+        let apis = [];
+        for (let i = 0; i < nextProps.apis.length; i++) {
+            apis.push({
+                value: nextProps.apis[i],
+                data: nextProps.apis[i] + ' Data'
+            });
+        }
         this.setState({
-            APIs: nextProps.APIs,
-            currentAPI: nextProps.APIs[0].value
+            APIs: apis,
+            currentAPI: nextProps.apis[0]
         });
 
     }
@@ -56,9 +78,9 @@ class AddService extends Component {
                         <ControlLabel>Select API:</ControlLabel>
                         <FormControl componentClass="select" placeholder="Select API:" onChange={this.handleAPIChange}>
                             {
-                                this.props.APIs.map(element => {
+                                this.state.APIs.map(element => {
                                     return (
-                                        <option value={element.value}>{element.data}</option>
+                                        <option value={element.value} key={element.value}>{element.data}</option>
                                     );
                                 })
                             }
@@ -89,4 +111,18 @@ class AddService extends Component {
     }
 }
 
-export default AddService;
+function mapStateToProps(state) {
+    return {
+        apis: state.api_details
+    };
+}
+
+const matchDispatchToProps = (dispatch) => {
+    return {
+        fetchAllServices: () => {
+            dispatch(actionFetchALLServices());
+        }
+    }
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(AddService);
