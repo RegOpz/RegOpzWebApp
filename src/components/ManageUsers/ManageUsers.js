@@ -45,11 +45,6 @@ class ManageUsersComponent extends Component {
     render() {
           return(
               <div>
-                <Breadcrumbs
-                  routes={this.props.routes}
-                  params={this.props.params}
-                  wrapperClass="breadcrumb"
-                />
                 { this.renderDisplay() }
               </div>
           );

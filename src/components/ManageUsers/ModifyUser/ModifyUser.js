@@ -118,6 +118,7 @@ class ModifyUser extends Component {
         this.handleCancel = this.handleCancel.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+        this.handleEditButtonClicked = this.handleEditButtonClicked.bind(this);
     }
 
     componentWillMount() {
@@ -156,11 +157,6 @@ class ModifyUser extends Component {
         //console.log("Inside Modify User Render:", this.dataSource);
         return(
             <div>
-              <Breadcrumbs
-                routes={this.props.routes}
-                params={this.props.params}
-                wrapperClass="breadcrumb"
-              />
               { this.renderForm() }
             </div>
         );
@@ -176,9 +172,9 @@ class ModifyUser extends Component {
         }
         return(
             <div className="row form-container">
-              <div className="col col-lg-12">
+              <div className="x_panel">
                 <div className="x_title">
-                  <h2>User Management <small>Edit a User Permissions</small></h2>
+                  <h2>User Management <small>Edit User and Permissions</small></h2>
                   <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
@@ -276,13 +272,19 @@ class ModifyUser extends Component {
             let permission = roleList.find((item, index) => item.role == selectedRole);
             if (typeof permission !== 'undefined' && permission != null) {
                 return(
-                    <ViewRole item={permission}/>
+                    <ViewRole
+                      item={permission}
+                      handleButtonClicked={this.handleEditButtonClicked.bind(this)}/>
                 );
             }
             return(<h2>No role found!</h2>);
         } else {
             return(<h2>Loading...</h2>);
         }
+    }
+
+    handleEditButtonClicked(role) {
+      hashHistory.push(encodeURI('/dashboard/manage-roles'));
     }
 
     handleFormSubmit(data) {
