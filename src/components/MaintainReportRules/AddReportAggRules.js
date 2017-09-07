@@ -1,5 +1,6 @@
 import React,{Component} from 'react';
 import DatePicker from 'react-datepicker';
+import {Panel,Button} from 'react-bootstrap';
 import {hashHistory,Link} from 'react-router';
 import {connect} from 'react-redux';
 import {dispatch} from 'redux';
@@ -28,7 +29,8 @@ class AddReportAggRules extends Component {
           },
           audit_form:{
             comment:null
-          }
+          },
+          openDataGridCollapsible: false
         }
         // this.aggRulesList = new RegExp('[A-Z0-9]+') Options are included
         //this.aggRulesPattern = /(\w+([\+\-\*\/]\w+)?)|(\(\w+\))/g;
@@ -124,8 +126,23 @@ class AddReportAggRules extends Component {
                          }
                         }
                       />
+                      <Button 
+                        type='button' 
+                        onClick={() => {
+                          let currentState = this.state.openDataGridCollapsible;
+                          this.setState({openDataGridCollapsible: !currentState});
+                        }}
+                      >
+                        Show Data Grid
+                      </Button>
                     </div>
                   </div>
+                  <div className="form-group">
+                    <Panel collapsible expanded={this.state.openDataGridCollapsible}>
+                        {JSON.stringify(this.props.gridData)}
+                    </Panel>
+                  </div>
+
 
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-scale">Reporting Scale<span className="required">*</span></label>

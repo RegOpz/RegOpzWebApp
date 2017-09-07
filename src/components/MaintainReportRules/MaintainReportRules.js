@@ -161,6 +161,7 @@ class MaintainReportRules extends Component {
 
   handleDetails(event){
     //TODO
+    console.log('Showing the details of the selected cell');
     let isOpen = this.state.display === "showDrillDownRules";
     if(isOpen){
       this.setState({
@@ -190,6 +191,7 @@ class MaintainReportRules extends Component {
   }
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
+    console.log(this.props.gridDataViewReport);
     this.selectedCell = cell;
   }
 
@@ -383,6 +385,7 @@ class MaintainReportRules extends Component {
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             {...this.aggRuleData}
+                            gridData={this.props.gridDataViewReport}
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {

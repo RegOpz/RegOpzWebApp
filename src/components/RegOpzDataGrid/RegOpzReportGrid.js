@@ -33,10 +33,18 @@ class RegOpzReportGrid extends Component {
     this.tabBody = null;
     this.renderTabs = this.renderTabs.bind(this);
     this.alphaSequence = this.alphaSequence.bind(this);
+
+    console.log('Inside Constructor');
+    console.log(this.props.gridData);
+    console.log(this.props.report_id);
   }
 
   componentWillReceiveProps(nextProps){
       //TODO
+      console.log('Inside Receive Props');
+      console.log(nextProps.gridData);
+      console.log(nextProps.report_id);
+
       if(this.report_id != nextProps.report_id){
         this.setState({ selectedSheet: 0 });
       }
