@@ -48,7 +48,7 @@ class AddRolesComponent extends Component {
 
     componentWillMount() {
         if (this.state.role != null) {
-            this.props.fetchOne(this.state.role);
+            this.props.fetchOne(this.state.role,"N");
         }
         this.props.fetchPermissions();
     }
@@ -267,7 +267,13 @@ class AddRolesComponent extends Component {
                 }
             );
             if (typeof selectedPermission !== 'undefined') {
-              return !!selectedPermission.permission_id;
+              //return !!selectedPermission.permission_id;
+              if (selectedPermission.status=== 'PENDING'){
+                return true;
+              } else {
+                return !!selectedPermission.permission_id;
+              }
+              //return ((selectedPermission.in_use == 'Y' || selectedPermission.status == 'PENDING')? true : false);
             }
         }
         return false;
@@ -281,7 +287,7 @@ class AddRolesComponent extends Component {
                 }
             );
             if (typeof selectedPermission !== 'undefined') {
-              return !!selectedPermission.dml_allowed;
+              return !!selectedPermission.status;
             }
         }
         return false;
@@ -374,7 +380,7 @@ class AddRolesComponent extends Component {
             if (permissionIndex == -1) {
                 permissions.push(permissionObj);
             } else {
-                permissions[permissionIndex].permission_id = permissions[permissionIndex].permission_id ? null : 1;
+                permissions[permissionIndex].permission_id = permissions[permissionIndex].permission_id ? null : permissionId;
             }
             this.setState({ permissions: permissions });
         }
@@ -452,8 +458,8 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchOne: (role) => {
-        dispatch(actionFetchRoles(role));
+    fetchOne: (role, inUseCheck) => {
+        dispatch(actionFetchRoles(role, inUseCheck));
     },
     fetchPermissions: () => {
         dispatch(actionFetchPermissions());

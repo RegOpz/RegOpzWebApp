@@ -42,20 +42,20 @@ export default class ViewRole extends Component {
                             {
                                 comp.permissions.map((perm, index) => {
                                     let defaultChecked = null;
-                                    if (perm.permission_id) {
+                                    if (perm.permission_id || perm.status=="PENDING") {
                                         defaultChecked = "checked";
+                                        return(
+                                            <div key={index}>
+                                              <input
+                                               type="checkbox"
+                                               defaultChecked={defaultChecked}
+                                               disabled={true}/>
+                                             <span className="perm_label" >
+                                              { perm.permission }
+                                            </span>
+                                          </div>
+                                        );
                                     }
-                                    return(
-                                        <div key={index}>
-                                          <input
-                                           type="checkbox"
-                                           defaultChecked={defaultChecked}
-                                           disabled={true}/>
-                                        <span className="perm_label">
-                                          { perm.permission }
-                                        </span>
-                                      </div>
-                                    );
                                 })
                             }
                           </li>

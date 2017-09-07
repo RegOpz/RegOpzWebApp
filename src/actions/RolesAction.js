@@ -12,11 +12,14 @@ export let DELETE_ROLE_ACTION = 'DELETE_ROLE_ACTION';
 const url = BASE_URL + "roles";
 
 // TODO: Fetch Role Details from API
-export function actionFetchRoles(role) {
+export function actionFetchRoles(role,inUseCheck) {
     let curl = url;
     let actionType = FETCH_ROLE_ACTION;
     if (typeof role !== 'undefined') {
         curl += `/${role}`;
+        if (inUseCheck == "N"){
+          curl += "?inUseCheck="+ inUseCheck
+        }
         actionType = FETCH_ONE_ROLE_ACTION;
     }
     console.log("Fetching roles from API.");
