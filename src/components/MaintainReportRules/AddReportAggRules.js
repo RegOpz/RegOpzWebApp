@@ -8,7 +8,7 @@ import {
   actionInsertRuleData,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
-
+import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
 require('./MaintainReportRules.css');
 
 class AddReportAggRules extends Component {
@@ -107,7 +107,7 @@ class AddReportAggRules extends Component {
 
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Composite Aggregation Reference <span className="required">*</span></label>
-                    <div className="col-md-6 col-sm-6 col-xs-12">
+                    <div className="col-md-4 col-sm-4 col-xs-12">
                       <input
                         value={this.state.form.comp_agg_ref}
                         type="text"
@@ -126,6 +126,8 @@ class AddReportAggRules extends Component {
                          }
                         }
                       />
+                    </div>
+                    <div className="col-md-2 col-sm-2 col-xs-12">
                       <Button 
                         type='button' 
                         onClick={() => {
@@ -136,12 +138,18 @@ class AddReportAggRules extends Component {
                         Show Data Grid
                       </Button>
                     </div>
-                  </div>
-                  <div className="form-group">
+                    </div>
+                    <div className="form-group">
                     <Panel collapsible expanded={this.state.openDataGridCollapsible}>
-                        {JSON.stringify(this.props.gridData)}
+                        <RegOpzReportGrid
+                          gridData={this.props.gridData}
+                          handleSelectCell={(data) => {
+                            // TODO: Display To Row Input Field
+                            console.log(data);
+                          }}
+                        />
                     </Panel>
-                  </div>
+                    </div>
 
 
                   <div className="form-group">
