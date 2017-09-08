@@ -8,7 +8,8 @@ import {
   UPDATE_MAINTAIN_RULE_DATA,
   DELETE_MAINTAIN_RULE_DATA,
   EXPORT_REPORT_XLSX,
-  EXPORT_REPORT_RULE_XLSX
+  EXPORT_REPORT_RULE_XLSX,
+  FETCH_REPORT_CHANGE_HISTORY
 } from '../actions/MaintainReportRuleAction';
 
 // TODO:
@@ -27,6 +28,10 @@ export default function(state=[], action) {
 		return Object.assign({}, state, {
 			sources: action.payload.data
 		});
+  case FETCH_REPORT_CHANGE_HISTORY:
+    return Object.assign({}, state, {
+      change_history: action.payload.data
+    });
   case FETCH_TABLE_COLUMNS_LIST:
   return Object.assign({}, state, {
     source_table_columns:action.payload.data

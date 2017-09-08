@@ -3,16 +3,18 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
+import { Tab, Tabs } from 'react-bootstrap';
 import _ from 'lodash';
 import {
   actionExportXlsx,
-  actionExportRulesXlsx
+  actionExportRulesXlsx,
+  actionFetchReportChangeHistory
 } from '../../actions/MaintainReportRuleAction';
 import {
   //actionFetchDates,
   actionFetchReportCatalog,
-  actionFetchReportLinkage,
-  actionFetchDataChangeHistory,
+  //actionFetchReportLinkage,
+  //actionFetchDataChangeHistory,
   actionExportCSV,
   actionGenerateReport,
 } from '../../actions/ViewDataAction';
@@ -46,10 +48,12 @@ class ViewReport extends Component {
       reportId: null,
       reportingDate: null,
       businessDate: null,
+      selectedAuditSheet: 0,
 
       showDrillDownData: false,
       showAggRuleDetails: false,
       showDrillDownCalcBusinessRules: false,
+      showCellChangeHistory: false,
 
       display: false
     }
@@ -65,6 +69,7 @@ class ViewReport extends Component {
     this.form_data={};
     this.selectedViewColumns=[];
     this.operationName=null;
+    this.flatGrid = null;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
@@ -80,15 +85,12 @@ class ViewReport extends Component {
     this.handleDateFilter = this.handleDateFilter.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
-    this.displaySelectedColumns = this.displaySelectedColumns.bind(this);
     this.handleCalcRuleClicked = this.handleCalcRuleClicked.bind(this);
     this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
+    this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
-    this.handleSelectRow = this.handleSelectRow.bind(this);
-    this.handleFullSelect = this.handleFullSelect.bind(this);
-    this.handleUpdateRow = this.handleUpdateRow.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
@@ -144,22 +146,6 @@ class ViewReport extends Component {
 
   }
 
-  displaySelectedColumns(columns) {
-    var selectedColumns = [];
-    for (let i = 0; i < columns.length; i++)
-      if (columns[i].checked)
-        selectedColumns.push(columns[i].name);
-
-    this.selectedViewColumns = selectedColumns;
-    //console.log(selectedColumns);
-    //console.log(this.selectedViewColumns);
-    this.setState({
-      showReportLinkage: false,
-      showHistory: false,
-      showDrillDownRules: false,
-    });
-  }
-
   handleRefreshGrid(event){
     //this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
@@ -180,7 +166,8 @@ class ViewReport extends Component {
         display: "showReportGrid",
         showDrillDownData: false,
         showDrillDownCalcBusinessRules: false,
-        showAggRuleDetails: false
+        showAggRuleDetails: false,
+        showCellChangeHistory: false,
       });
     } else {
       //console.log("handleSelectCell",this.selectedCell.cell);
@@ -193,7 +180,8 @@ class ViewReport extends Component {
           display: "showDrillDownRules",
           showDrillDownData: false,
           showDrillDownCalcBusinessRules: false,
-          showAggRuleDetails: false
+          showAggRuleDetails: false,
+          showCellChangeHistory: false,
           },
           this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
         );
@@ -212,7 +200,8 @@ class ViewReport extends Component {
     this.setState({
         showDrillDownData : true,
         showDrillDownCalcBusinessRules : false,
-        showAggRuleDetails: false
+        showAggRuleDetails: false,
+        showCellChangeHistory: false,
       });
 
   }
@@ -223,7 +212,8 @@ class ViewReport extends Component {
     this.setState({
         showDrillDownData : false,
         showDrillDownCalcBusinessRules : true,
-        showAggRuleDetails: false
+        showAggRuleDetails: false,
+        showCellChangeHistory: false,
       });
 
   }
@@ -235,51 +225,31 @@ class ViewReport extends Component {
     this.setState({
         showDrillDownData : false,
         showDrillDownCalcBusinessRules : false,
-        showAggRuleDetails: true
+        showAggRuleDetails: true,
+        showCellChangeHistory: false,
       });
 
   }
 
-  handleSelectRow(indexOfGrid){
-    console.log("Inside Single select....",this.selectedItems.length);
-    if(this.selectedItems.length == 1){
-      this.selectedIndexOfGrid = indexOfGrid;
-      this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
-      console.log("Inside Single select ", indexOfGrid);
-    }
-
-  }
-
-
-  handleUpdateRow(row){
-    this.operationName = "UPDATE";
-    this.updateInfo = row;
-    this.setState({ showAuditModal: true });
-  }
-
-  handleReportLinkClick() {
-    let isOpen = this.state.display === "showReportLinkage";
+  handleCellHistoryClicked(event,item){
+    console.log("Clicked handleCellHistoryClicked",item);
+    let isOpen = this.state.showCellChangeHistory;
     if(isOpen) {
       this.setState({
-        display: "showReportGrid"
+        showCellChangeHistory: false
       });
     } else {
-      if(this.selectedItems.length < 1){
-        this.modalAlert.isDiscardToBeShown = false;
-        this.modalAlert.open("Please select atleast one record");
-      } else {
-        let selectedKeys=null;
-        this.selectedItems.map((item,index)=>{
-          selectedKeys += (selectedKeys ? ',' + item.id : item.id)
-        })
-        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate);
-        //console.log("Repot Linkage",this.props.report_linkage);
-        this.setState({
-          display: "showReportLinkage"
-        });
-      }
+      // TODO AddReportAggRules as form and then pass aggRuleData
+      this.setState({
+          showDrillDownData : false,
+          showDrillDownCalcBusinessRules : false,
+          showAggRuleDetails: false,
+          showCellChangeHistory: true
+        },
+        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.cell_id)}
+      );
     }
-    this.selectedItems = this.flatGrid.deSelectAll();
+
   }
 
   handleHistoryClick() {
@@ -289,17 +259,15 @@ class ViewReport extends Component {
         display: "showReportGrid"
       });
     } else {
-      let selectedKeys=null;
-      this.selectedItems.map((item,index)=>{
-        selectedKeys += (selectedKeys ? ',' + item.id : item.id)
-      })
-      this.props.fetchDataChangeHistory(this.props.gridDataViewReport.table_name,selectedKeys,this.state.businessDate);
-      console.log("Repot Linkage",this.props.change_history);
+      //this.props.fetchReportChangeHistory(this.state.reportId);
+      //console.log("Repot Linkage",this.props.change_history);
+      let sheetName = this.props.gridDataViewReport[0].sheet;
       this.setState({
         display: "showHistory"
-      });
+        },
+        ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+      );
     }
-    this.selectedItems = this.flatGrid.deSelectAll();
   }
 
   handleExportCSV(event) {
@@ -314,15 +282,6 @@ class ViewReport extends Component {
   handleExportReport(event) {
     let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
     this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
-  }
-
-  handleFullSelect(items){
-    console.log("Selected Items ", items);
-
-    this.selectedItems = items;
-    //this.props.setDisplayCols(this.props.gridDataViewReport.cols,this.props.gridDataViewReport.table_name);
-    //this.props.setDisplayData(this.selectedItems[0]);
-
   }
 
   handleModalOkayClick(event){
@@ -378,6 +337,7 @@ class ViewReport extends Component {
                         handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }
                         handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
                         handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
+                        handleCellHistoryClicked={ this.handleCellHistoryClicked.bind(this) }
                       />
                   ];
                   if (this.state.showDrillDownData) {
@@ -407,26 +367,61 @@ class ViewReport extends Component {
                             ruleFilterParam={this.businessRuleFilterParam}
                           />
                       );
+                  } else if (this.state.showCellChangeHistory && this.props.change_history) {
+                      content.push(
+                        <DefAuditHistory
+                          data={ this.props.change_history }
+                          historyReference={ "" }
+                          handleClose={ this.handleCellHistoryClicked.bind(this) }
+                         />
+                      );
                   }
                   return content;
               }
               break;
-          case "showReportLinkage":
-              return(
-                  <DataReportLinkage
-                    data={ this.props.report_linkage }
-                    ruleReference={ "" }
-                    handleClose={ this.handleReportLinkClick.bind(this) }
-                  />
-              );
           case "showHistory":
-              if (this.props.change_history) {
+              if (this.props.gridDataViewReport) {
                   return(
-                      <DefAuditHistory
-                        data={ this.props.change_history }
-                        historyReference={ "" }
-                        handleClose={ this.handleHistoryClick.bind(this) }
-                       />
+                    <Tabs
+                      defaultActiveKey={0}
+                      activeKey={this.state.selectedAuditSheet}
+                      onSelect={(key) => {
+                          let sheetName = this.props.gridDataViewReport[key].sheet;
+                          this.setState({selectedAuditSheet:key},
+                          ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+                        );
+                          //this.renderTabs(key);
+                      }}
+                      >
+                      {
+                        this.props.gridDataViewReport.map((item,index) => {
+                          console.log("Inside dridData map");
+                          return(
+                              <Tab
+                                key={index}
+                                eventKey={index}
+                                title={item['sheet']}
+                              >
+                                {
+                                  (()=>{
+                                    if(this.state.selectedAuditSheet == index){
+                                      // reseting the selectedCell when chanding the tab of the report
+                                      //this.selectedCell = {};
+                                      return (
+                                          <DefAuditHistory
+                                            data={ this.props.change_history }
+                                            historyReference={ "" }
+                                            handleClose={ this.handleHistoryClick.bind(this) }
+                                           />
+                                        );
+                                    }
+                                  })()
+                                }
+                              </Tab>
+                          )
+                        })
+                      }
+                    </Tabs>
                   );
               }
               break;
@@ -445,9 +440,7 @@ class ViewReport extends Component {
 
   render(){
     if (typeof this.props.dataCatalog != 'undefined') {
-        if (typeof this.props.gridDataViewReport != 'undefined' ){
-          this.pages = Math.ceil(this.props.gridDataViewReport.count / 100);
-        }
+        //console.log("This grid ref", this.flatGrid);
         return(
           <div>
             <div className="row form-container">
@@ -537,11 +530,8 @@ const mapDispatchToProps = (dispatch) => {
     drillDown:(report_id,sheet,cell) => {
       dispatch(actionDrillDown(report_id,sheet,cell));
     },
-    fetchReportLinkage:(source_id,qualifying_key,business_date) => {
-      dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
-    },
-    fetchDataChangeHistory:(table_name,id_list,business_date) => {
-      dispatch(actionFetchDataChangeHistory(table_name,id_list,business_date));
+    fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
+      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
@@ -566,8 +556,7 @@ function mapStateToProps(state){
     gridDataViewReport: state.captured_report,
     gridData: state.view_data_store.gridData,
     cell_rules: state.report_store.cell_rules,
-    report_linkage:state.view_data_store.report_linkage,
-    change_history:state.view_data_store.change_history,
+    change_history:state.maintain_report_rules_store.change_history,
     login_details:state.login_store,
   }
 }

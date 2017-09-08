@@ -62,6 +62,25 @@ class DrillDownRules extends Component {
               this.showRulesPanel &&
               <div>
                 <div className="x_content">
+                  <button
+                    className="btn btn-primary btn-circle btn-sm"
+                    data-toggle="tooltip"
+                    title="Cell Rules Change History"
+                    onClick={
+                      (event)=>{
+                        let item = {
+                            report_id: this.selectedCell.reportId,
+                            cell_id: this.selectedCell.cell,
+                            sheet_name: this.selectedCell.sheetName,
+                        };
+                        this.props.handleCellHistoryClicked(event, item);
+                        this.showRulesPanel=!this.showRulesPanel;
+                      }
+                    }
+                    >
+                    <i className="fa fa-history"></i>
+                    {" Change History"}
+                  </button>
                   <div className="x_panel">
                     <div className="x_title">
                       <h2>Agrregation Details</h2>

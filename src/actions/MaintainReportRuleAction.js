@@ -12,6 +12,7 @@ export const UPDATE_MAINTAIN_RULE_DATA = 'UPDATE_MAINTAIN_RULE_DATA';
 export const DELETE_MAINTAIN_RULE_DATA = 'DELETE_MAINTAIN_RULE_DATA';
 export const EXPORT_REPORT_XLSX = "EXPORT_REPORT_XLSX";
 export const EXPORT_REPORT_RULE_XLSX = "EXPORT_REPORT_RULE_XLSX";
+export const FETCH_REPORT_CHANGE_HISTORY = "FETCH_REPORT_CHANGE_HISTORY";
 
 // TODO:
 export function actionFetchReportTemplate(reports, country) {
@@ -116,5 +117,15 @@ export function actionExportRulesXlsx(report_id){
   return{
     type:EXPORT_REPORT_RULE_XLSX,
     payload:axios.get(url)
+  }
+}
+
+export function actionFetchReportChangeHistory(report_id, sheet_id, cell_id) {
+  let url = BASE_URL + "report-rule/audit-list?report_id=" + report_id;
+  url = url + (sheet_id ? "&sheet_id=" + sheet_id : "");
+  url = url + (cell_id ? "&cell_id=" + cell_id : "");
+  return {
+    type: FETCH_REPORT_CHANGE_HISTORY,
+    payload: axios.get(url)
   }
 }
