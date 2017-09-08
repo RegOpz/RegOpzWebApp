@@ -129,7 +129,8 @@ class AddReportAggRules extends Component {
                     </div>
                     <div className="col-md-2 col-sm-2 col-xs-12">
                       <Button 
-                        type='button' 
+                        type='button'
+                        disabled={this.viewOnly}
                         onClick={() => {
                           let currentState = this.state.openDataGridCollapsible;
                           this.setState({openDataGridCollapsible: !currentState});
