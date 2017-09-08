@@ -40,6 +40,8 @@ class AddReportAggRules extends Component {
         this.ruleIndex = typeof this.props.index === 'number' ? this.props.index : -1;
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
         this.writeOnly = this.props.writeOnly;
+
+        this.updateRuleFormula = this.updateRuleFormula.bind(this);
     }
 
     componentWillMount() {
@@ -55,6 +57,30 @@ class AddReportAggRules extends Component {
         }
         this.dml_allowed = nextProps.dml_allowed;
         this.writeOnly = nextProps.writeOnly;
+    }
+
+    updateRuleFormula(data){
+      data = data.cell;
+      if(!this.ruleInputField)
+        return;
+      var form = this.state.form;
+      var currentFormula = form.comp_agg_rule ? form.comp_agg_rule : '';
+      if(currentFormula != '' && (this.ruleInputField.selectionStart || this.ruleInputField.selectionStart == '0')){
+        let startPos = this.ruleInputField.selectionStart;
+        let endPos = this.ruleInputField.selectionEnd;
+        currentFormula = currentFormula.substring(0, startPos) +
+          data +
+          currentFormula.substring(endPos, currentFormula.length);
+        this.ruleInputField.selectionStart = startPos + data.length;
+        this.ruleInputField.selectionEnd = startPos + data.length;
+      }
+      else
+        currentFormula += data;
+      
+        form.comp_agg_rule = currentFormula;
+      this.setState({form: form});
+
+      this.ruleInputField.focus();
     }
 
   render() {
@@ -150,6 +176,9 @@ class AddReportAggRules extends Component {
                           // }
                          }
                         }
+                        ref={(element) => {
+                          this.ruleInputField = element;
+                        }}
                       />
                     </div>
                     {
@@ -177,9 +206,8 @@ class AddReportAggRules extends Component {
                           <RegOpzReportGrid
                             gridData={this.props.gridData}
                             report_id={this.state.form.report_id}
-                            handleSelectCell={(data) => {
-                              // TODO: Display To Row Input Field
-                              console.log(data);
+                            handleSelectCell={(cell) => {
+                              this.updateRuleFormula(cell);
                             }}
                           />
                       </Panel>

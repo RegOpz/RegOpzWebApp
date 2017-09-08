@@ -18,6 +18,7 @@ import { connect } from 'react-redux';
 import { actionValidateExp } from './../../actions/RuleAssistAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
+import FormulaMappings from './FormulaMapping';
 
 class RuleAssist extends Component {
     constructor(props) {
@@ -102,11 +103,21 @@ class RuleAssist extends Component {
 
     handleFormFieldClick(element) {
         let currentFormula = this.state.currentFormula ? this.state.currentFormula : "";
-        currentFormula += ' [' + element + '] ';
+        if ( currentFormula != "" && (this.formulaInput.selectionStart || this.formulaInput.selectionStart == '0')) {
+            let startPos = this.formulaInput.selectionStart;
+            let endPos = this.formulaInput.selectionEnd;
+            currentFormula = currentFormula.substring(0, startPos) +
+                element +
+                currentFormula.substring(endPos, this.state.currentFormula.length);
+            this.formulaInput.selectionStart = startPos + element.length;
+            this.formulaInput.selectionEnd = startPos + element.length;
+        }
+        else
+            currentFormula += element;
         this.setState({
-            currentFormula: currentFormula,
-            validationState: false,
+            currentFormula: currentFormula
         });
+        this.formulaInput.focus();
     }
 
     updateFormula(event) {
@@ -445,7 +456,7 @@ class RuleAssist extends Component {
     }
 
     renderPythonLogic() {
-        let operators = ['equal', 'not equal', 'begins', 'ends', 'contains', '>', '<', '>=', '<=', '(', ')', '+', '-', '/', 'DERIVED'];
+        let operators = Object.keys(FormulaMappings);
         return (
             <div className="x_panel">
                 <div className="x_title">
@@ -469,7 +480,7 @@ class RuleAssist extends Component {
                                     name={item}
                                     disabled={!this.state.readOnly}
                                     className="btn btn-default btn-xs"
-                                    onClick={() => { this.handleFormFieldClick(item); }}
+                                    onClick={() => { this.handleFormFieldClick(FormulaMappings[item]); }}
                                     key={item}
                                 >
                                     {item}
@@ -477,13 +488,14 @@ class RuleAssist extends Component {
                             );
                         })
                     }
-                    <FormControl
-                        componentClass="textarea"
+                    <textarea
+                        className="form-control"
                         type="text"
                         disabled={!this.state.readOnly}
                         value={this.state.currentFormula}
                         onChange={this.updateFormula}
                         placeholder='Enter a formula here...'
+                        ref={(textArea) => { this.formulaInput = textArea }}
                     />
                 </div>
             </div>
