@@ -21,6 +21,7 @@ class AddReportAggRules extends Component {
             sheet_id: this.props.sheet_id,
             cell_id: this.props.cell_id,
             comp_agg_ref: null,
+            comp_agg_rule: null,
             reporting_scale: null,
             rounding_option: null,
             valid_from: null,
@@ -106,7 +107,7 @@ class AddReportAggRules extends Component {
                   </div>
 
                   <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Composite Aggregation Reference <span className="required">*</span></label>
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation Reference <span className="required">*</span></label>
                     <div className="col-md-4 col-sm-4 col-xs-12">
                       <input
                         value={this.state.form.comp_agg_ref}
@@ -127,31 +128,63 @@ class AddReportAggRules extends Component {
                         }
                       />
                     </div>
-                    <div className="col-md-2 col-sm-2 col-xs-12">
-                      <Button 
-                        type='button'
-                        disabled={this.viewOnly}
-                        onClick={() => {
-                          let currentState = this.state.openDataGridCollapsible;
-                          this.setState({openDataGridCollapsible: !currentState});
-                        }}
-                      >
-                        Show Data Grid
-                      </Button>
-                    </div>
-                    </div>
-                    <div className="form-group">
-                    <Panel collapsible expanded={this.state.openDataGridCollapsible}>
-                        <RegOpzReportGrid
-                          gridData={this.props.gridData}
-                          handleSelectCell={(data) => {
-                            // TODO: Display To Row Input Field
-                            console.log(data);
-                          }}
-                        />
-                    </Panel>
-                    </div>
+                  </div>
 
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation Logic <span className="required">*</span></label>
+                    <div className="col-md-4 col-sm-4 col-xs-12">
+                      <input
+                        value={this.state.form.comp_agg_rule}
+                        type="text"
+                        className="form-control col-md-7 col-xs-12"
+                        readOnly={this.viewOnly}
+                        onChange={(event) => {
+                          let newState = {...this.state};
+                          //if(this.checkRuleValidity(event) == "valid") {
+                            newState.form.comp_agg_rule = event.target.value;
+                            this.setState(newState);
+                          // }
+                          // else {
+                          //   alert("Invalid formula, please check");
+                          //   this.setState(newState);
+                          // }
+                         }
+                        }
+                      />
+                    </div>
+                    {
+                      this.props.gridData &&
+                      !this.viewOnly &&
+                      <div className="col-md-2 col-sm-2 col-xs-12">
+                        <Button
+                          type='button'
+                          disabled={this.viewOnly}
+                          onClick={() => {
+                            let currentState = this.state.openDataGridCollapsible;
+                            this.setState({openDataGridCollapsible: !currentState});
+                          }}
+                        >
+                          Show Data Grid
+                        </Button>
+                      </div>
+                    }
+                    </div>
+                    {
+                      this.props.gridData &&
+                      !this.viewOnly &&
+                      <div className="form-group">
+                      <Panel collapsible expanded={this.state.openDataGridCollapsible}>
+                          <RegOpzReportGrid
+                            gridData={this.props.gridData}
+                            report_id={this.state.form.report_id}
+                            handleSelectCell={(data) => {
+                              // TODO: Display To Row Input Field
+                              console.log(data);
+                            }}
+                          />
+                      </Panel>
+                      </div>
+                    }
 
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-scale">Reporting Scale<span className="required">*</span></label>
@@ -259,7 +292,7 @@ class AddReportAggRules extends Component {
                       <input
                         value={this.state.form.last_updated_by}
                         type="text"
-                        readOnly={this.viewOnly}
+                        readOnly="true"
                         className="form-control col-md-7 col-xs-12"
                         onChange={(event) => {
                           let newState = {...this.state};

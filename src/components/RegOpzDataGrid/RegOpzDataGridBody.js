@@ -25,9 +25,10 @@ export default class RegOpzDataGridBody extends Component {
             <div id="gridBody">
                 {
                     this.data.map(function(item,index){
-                        //console.log("Cell,value,index",item.cell,item.value,index);
+                        //console.log("Cell,value,index",item.cell,item.value,index,item);
                         let cell = item.cell;
                         let value = item.value;
+                        let drillDown = item.drill_down;
                         let coord = this.getRealCoords(cell);
                         let merged = item.merged;
                         var stylex = {};
@@ -93,7 +94,7 @@ export default class RegOpzDataGridBody extends Component {
                                 <span
                                   onClick={
                                     (event) => {
-                                      this.handleCellClick(event);
+                                      this.handleCellClick(event,drillDown);
                                     }
                                   }
                                   target={cell}
@@ -105,10 +106,14 @@ export default class RegOpzDataGridBody extends Component {
             </div>
         )
     }
-    handleCellClick(event){
+    handleCellClick(event,drillDown){
       $(".reg_cell > span").removeClass("reg_cell_selected");
       $(event.target).addClass("reg_cell_selected");
-      this.selectedCell = event.target.getAttribute("target");
+      this.selectedCell = {
+                    cell: event.target.getAttribute("target"),
+                    drillDown: drillDown
+                  };
+      //console.log("handleCellClick",this.selectedCell);
       this.props.onSelect(this.selectedCell);
     }
     alphaSequence(i) {

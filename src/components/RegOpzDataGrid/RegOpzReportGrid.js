@@ -162,8 +162,10 @@ class RegOpzReportGrid extends Component {
               rowAttr={this.gridData[index].row_attr}
               onSelect = {
                 (item) => {
+                  //console.log("item",item);
                   this.selectedCell = {
-                    cell: item,
+                    cell: item.cell,
+                    drillDown: item.drillDown,
                     sheetName: this.selectedSheetName,
                     reportId: this.report_id,
                     reportingDate: this.reporting_date
