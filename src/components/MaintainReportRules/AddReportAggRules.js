@@ -254,6 +254,7 @@ class AddReportAggRules extends Component {
                       <div className="form-group">
                       <Panel
                         collapsible
+                        bsClass=""
                         expanded={this.state.openDataGridCollapsible}
                         >
                           <RegOpzFlatGridActionButtons
