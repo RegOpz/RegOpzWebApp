@@ -180,6 +180,7 @@ class ViewReport extends Component {
         display: "showReportGrid",
         showDrillDownData: false,
         showDrillDownCalcBusinessRules: false,
+        showAggRuleDetails: false
       });
     } else {
       //console.log("handleSelectCell",this.selectedCell.cell);
@@ -192,6 +193,7 @@ class ViewReport extends Component {
           display: "showDrillDownRules",
           showDrillDownData: false,
           showDrillDownCalcBusinessRules: false,
+          showAggRuleDetails: false
           },
           this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
         );
