@@ -6,7 +6,9 @@ export const FETCH_DATA_RECORD_DETAIL='FETCH_DATA_RECORD_DETAIL';
 export const POST_DATA_AUDIT_DECISION='POST_DATA_AUDIT_DECISION';
 
 export function actionFetchDataAuditList(idList,tableName){
-  const url=BASE_URL+`workflow/data-change/get-audit-list?id_list=${idList}&table_name=${tableName}`;
+  let url=BASE_URL+"workflow/data-change/get-audit-list?1=1";
+  url += idList ? "&id_list=" + idList : "" ;
+  url += tableName ? "&table_name="+tableName : "" ;
   const request=axios.get(url);
 
   return {
