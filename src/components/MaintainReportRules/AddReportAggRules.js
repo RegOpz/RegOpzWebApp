@@ -8,6 +8,7 @@ import {
   actionInsertRuleData,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
+import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
 require('./MaintainReportRules.css');
 
@@ -36,12 +37,14 @@ class AddReportAggRules extends Component {
         // this.aggRulesList = new RegExp('[A-Z0-9]+') Options are included
         //this.aggRulesPattern = /(\w+([\+\-\*\/]\w+)?)|(\(\w+\))/g;
         this.aggRulesPattern = /[\+\-\*\/\(\)\[\]\{\}\^]/g;
+        this.buttons=[];
 
         this.ruleIndex = typeof this.props.index === 'number' ? this.props.index : -1;
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
         this.writeOnly = this.props.writeOnly;
 
         this.updateRuleFormula = this.updateRuleFormula.bind(this);
+        this.handleSelectCell = this.handleSelectCell.bind(this);
     }
 
     componentWillMount() {
@@ -57,30 +60,73 @@ class AddReportAggRules extends Component {
         }
         this.dml_allowed = nextProps.dml_allowed;
         this.writeOnly = nextProps.writeOnly;
+        this.buttons = nextProps.buttons;
     }
 
-    updateRuleFormula(data){
-      data = data.cell;
+    handleSelectCell(data){
+      console.log("handleSelectCell",data);
+      let newState = {...this.state}
+      if(data.drillDown){
+        this.buttons=[];
+        //console.log("inside if handleSelectCell",data);
+        data.drillDown.comp_agg_rules.map((item,index)=>{
+          if(this.props.cell_id != item.cell_id){
+            this.buttons.push({
+                title: item.cell_id + " Aggregation Rule: " + item.comp_agg_rule,
+                name: item.comp_agg_ref,
+                iconClass: 'fa-paperclip',
+                checkDisabled: 'No',
+                className: "btn-success",
+              })
+          }
+        })
+        data.drillDown.cell_rules.map((item,index)=>{
+          this.buttons.push({
+              title: item.cell_id + " Rule: " + item.cell_business_rules + " Aggregation: " + item.aggregation_func + "(" + item.aggregation_ref +")",
+              name: item.cell_calc_ref,
+              iconClass: 'fa-tag',
+              checkDisabled: 'No',
+              className: "btn-info",
+            })
+        })
+        this.setState(newState);
+        if(!this.ruleInputField)
+          return;
+        this.ruleInputField.selectionStart = newState.form.comp_agg_rule.length;
+        this.ruleInputField.selectionEnd = newState.form.comp_agg_rule.length;
+        this.ruleInputField.focus();
+      }
+      console.log("At the end of handle select");
+    }
+    updateRuleFormula(event,elementRef){
+      console.log("updateRuleFormula",elementRef);
       if(!this.ruleInputField)
         return;
-      var form = this.state.form;
-      var currentFormula = form.comp_agg_rule ? form.comp_agg_rule : '';
+      let form = this.state.form;
+      let currentFormula = form.comp_agg_rule ? form.comp_agg_rule : '';
       if(currentFormula != '' && (this.ruleInputField.selectionStart || this.ruleInputField.selectionStart == '0')){
         let startPos = this.ruleInputField.selectionStart;
         let endPos = this.ruleInputField.selectionEnd;
         currentFormula = currentFormula.substring(0, startPos) +
-          data +
+          elementRef +
           currentFormula.substring(endPos, currentFormula.length);
-        this.ruleInputField.selectionStart = startPos + data.length;
-        this.ruleInputField.selectionEnd = startPos + data.length;
+        this.ruleInputField.selectionStart = startPos + elementRef.length;
+        this.ruleInputField.selectionEnd = startPos + elementRef.length;
       }
-      else
-        currentFormula += data;
-      
-        form.comp_agg_rule = currentFormula;
-      this.setState({form: form});
+      else{
+        currentFormula += elementRef;
+        this.ruleInputField.selectionStart = currentFormula.length;
+        this.ruleInputField.selectionEnd = currentFormula.length;
+        this.ruleInputField.focus();
+      }
+
+
+      form.comp_agg_rule = currentFormula;
+      this.setState({form});
 
       this.ruleInputField.focus();
+      console.log("updateRuleFormula buttons",this.buttons);
+
     }
 
   render() {
@@ -158,8 +204,8 @@ class AddReportAggRules extends Component {
 
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation Logic <span className="required">*</span></label>
-                    <div className="col-md-4 col-sm-4 col-xs-12">
-                      <input
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <textarea
                         value={this.state.form.comp_agg_rule}
                         type="text"
                         className="form-control col-md-7 col-xs-12"
@@ -185,16 +231,20 @@ class AddReportAggRules extends Component {
                       this.props.gridData &&
                       !this.viewOnly &&
                       <div className="col-md-2 col-sm-2 col-xs-12">
-                        <Button
-                          type='button'
+                        <button
+                          type="button"
                           disabled={this.viewOnly}
+                          className="btn btn-primary btn-sm"
                           onClick={() => {
                             let currentState = this.state.openDataGridCollapsible;
                             this.setState({openDataGridCollapsible: !currentState});
+                            this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
+                            this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
+                            this.ruleInputField.focus();
                           }}
                         >
-                          Show Data Grid
-                        </Button>
+                          {this.state.openDataGridCollapsible ? "Hide" : "Show"} Data Grid
+                        </button>
                       </div>
                     }
                     </div>
@@ -202,13 +252,21 @@ class AddReportAggRules extends Component {
                       this.props.gridData &&
                       !this.viewOnly &&
                       <div className="form-group">
-                      <Panel collapsible expanded={this.state.openDataGridCollapsible}>
+                      <Panel
+                        collapsible
+                        expanded={this.state.openDataGridCollapsible}
+                        >
+                          <RegOpzFlatGridActionButtons
+                            editable={this.writeOnly}
+                            checkDisabled={this.checkDisabled}
+                            buttons={this.buttons}
+                            dataNavigation={false}
+                            buttonClicked={this.updateRuleFormula}
+                          />
                           <RegOpzReportGrid
                             gridData={this.props.gridData}
                             report_id={this.state.form.report_id}
-                            handleSelectCell={(cell) => {
-                              this.updateRuleFormula(cell);
-                            }}
+                            handleSelectCell={this.handleSelectCell.bind(this)}
                           />
                       </Panel>
                       </div>
@@ -322,12 +380,6 @@ class AddReportAggRules extends Component {
                         type="text"
                         readOnly="true"
                         className="form-control col-md-7 col-xs-12"
-                        onChange={(event) => {
-                          let newState = {...this.state};
-                          newState.form.last_updated_by = event.target.value;
-                          this.setState(newState);
-                          }
-                        }
                       />
                     </div>
                   </div>

@@ -55,10 +55,12 @@ class RegOpzFlatGridActionButtons extends Component {
             <div className="ops_icons">
               {
                   this.buttons.map((item,index)=>{
+                    let name = item.name ? item.name : item.title;
                     return(
                       <div className="btn-group">
                         <button
                           key={index}
+                          type="button"
                           data-toggle="tooltip"
                           data-placement="top"
                           title={item.title}
@@ -67,14 +69,14 @@ class RegOpzFlatGridActionButtons extends Component {
                                 if (typeof item.onClick === 'function') {
                                     item.onClick();
                                 } else {
-                                    this.buttonClicked(event, item.title);
+                                    this.buttonClicked(event, name);
                                 }
                             }
                           }
                           className={ this.handleClassName(item) }
-                          disabled={ item.checkDisabled=="Yes" ? this.checkDisabled(item.title) : false}
+                          disabled={ item.checkDisabled=="Yes" ? this.checkDisabled(name) : false}
                         >
-                          <i className={'fa '+ item.iconClass }></i>{' ' + item.title }
+                          <i className={'fa '+ item.iconClass }></i>{' ' + name }
                         </button>
                       </div>
                     );
