@@ -60,7 +60,6 @@ class AddReportAggRules extends Component {
         }
         this.dml_allowed = nextProps.dml_allowed;
         this.writeOnly = nextProps.writeOnly;
-        this.buttons = nextProps.buttons;
     }
 
     handleSelectCell(data){
@@ -70,7 +69,8 @@ class AddReportAggRules extends Component {
         this.buttons=[];
         //console.log("inside if handleSelectCell",data);
         data.drillDown.comp_agg_rules.map((item,index)=>{
-          if(this.props.cell_id != item.cell_id){
+          //console.log("inside if handleSelectCell data.drillDown.comp_agg_rules.map",this.props.cell_id + this.props.sheet_id,item.cell_id + item.sheet_id);
+          if(this.props.cell_id + this.props.sheet_id != item.cell_id + item.sheet_id){
             this.buttons.push({
                 title: item.cell_id + " Aggregation Rule: " + item.comp_agg_rule,
                 name: item.comp_agg_ref,
