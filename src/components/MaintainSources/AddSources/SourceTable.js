@@ -132,14 +132,13 @@ class SourceTable extends Component {
                             placeholder="select"
                             disabled={this.props.disabled}
                             onChange={(event) => { this.checkVarCharSize(event, this.props.index) }}
-                            defaultValue={this.state.defaultSelectedValue}
+                            value={this.state.defaultSelectedValue}
                         >
                             {
                                 this.state.types.map(element => {
                                     return (
                                         <option
                                             value={element.type}
-
                                             key={element.type}
                                         >
                                             {element.type}
@@ -168,7 +167,6 @@ class SourceTable extends Component {
                         value={this.props.Null}
                         onChange={(event) => { this.props.handleChange(event, 'nullable', this.props.index) }}
                         disabled={this.props.disabled}
-                        defaultValue={"YES"}
                     >
                         <option key="YES" value="YES">YES</option>
                         <option key="NO" value="NO">NO</option>
