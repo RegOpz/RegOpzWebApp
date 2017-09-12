@@ -126,7 +126,14 @@ class DrillDownRules extends Component {
                             onClick={
                               (event)=>{
                                 let item = {
-                                    index: -1,
+                                    id: null,
+                                    comp_agg_ref: null,
+                                    comp_agg_rule: null,
+                                    reporting_scale: null,
+                                    rounding_option: null,
+                                    valid_from: null,
+                                    valid_to: null,
+                                    last_updated_by: null,
                                     report_id: this.selectedCell.reportId,
                                     cell_id: this.selectedCell.cell,
                                     sheet_id: this.selectedCell.sheetName,
@@ -171,7 +178,7 @@ class DrillDownRules extends Component {
                     className="btn btn-link btn-xs"
                     onClick={
                       (event)=>{
-                        this.props.handleAggeRuleClicked(event, {...item, index: 0});
+                        this.props.handleAggeRuleClicked(event, {...item});
                         //this.showRulesPanel = !this.showRulesPanel;
                         this.handleCollapse(event);
                       }

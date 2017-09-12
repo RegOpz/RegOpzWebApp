@@ -68,9 +68,13 @@ class AddReportRules extends Component {
     //     }
     // }
     if (this.ruleIndex !== -1) {
-      Object.assign(this.state.form, this.props.formData);
-      this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-      this.initialiseFormFields();
+      this.setState({form: this.props.formData,
+                      rulesTags: [],
+                      aggRefTags: []},
+                  ()=>{
+                    this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                    this.initialiseFormFields();
+                  });
     } else {
       let formData = {
         cell_calc_ref:null,
@@ -86,9 +90,10 @@ class AddReportRules extends Component {
         last_updated_by:null,
         id:null,
       };
-      Object.assign(this.state.form, formData);
-      Object.assign(this.state.rulesTags,[]);
-      Object.assign(this.state.aggRefTags,[]);
+      this.setState({form: formData,
+                      rulesTags: [],
+                      aggRefTags: []
+                    });
     }
   }
 
@@ -96,9 +101,13 @@ class AddReportRules extends Component {
       if (typeof nextProps.index !== 'undefined' && this.ruleIndex !== nextProps.index) {
           this.ruleIndex = nextProps.index;
           if (this.ruleIndex !== -1) {
-            Object.assign(this.state.form, nextProps.formData);
-            this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-            this.initialiseFormFields();
+            this.setState({form: nextProps.formData,
+                            rulesTags: [],
+                            aggRefTags: []},
+                        ()=>{
+                          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                          this.initialiseFormFields();
+                        });
           } else {
             let formData = {
               cell_calc_ref:null,
@@ -114,9 +123,12 @@ class AddReportRules extends Component {
               last_updated_by:null,
               id:null,
             };
-            Object.assign(this.state.form, formData);
-            Object.assign(this.state.rulesTags,[]);
-            Object.assign(this.state.aggRefTags,[]);
+            this.setState({form: formData,
+                            rulesTags: [],
+                            aggRefTags: []
+                          });
+            // Object.assign(this.state.rulesTags,[]);
+            // Object.assign(this.state.aggRefTags,[]);
           }
 
           this.dml_allowed = nextProps.dml_allowed === 'Y' ? true : false;

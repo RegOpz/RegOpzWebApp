@@ -8,6 +8,9 @@ import {
   actionInsertRuleData,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
+import {
+  actionDrillDown
+} from '../../actions/CaptureReportAction';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
 require('./MaintainReportRules.css');
@@ -32,12 +35,13 @@ class AddReportAggRules extends Component {
           audit_form:{
             comment:null
           },
-          openDataGridCollapsible: false
+          openDataGridCollapsible: false,
+          buttons: [],
         }
         // this.aggRulesList = new RegExp('[A-Z0-9]+') Options are included
         //this.aggRulesPattern = /(\w+([\+\-\*\/]\w+)?)|(\(\w+\))/g;
         this.aggRulesPattern = /[\+\-\*\/\(\)\[\]\{\}\^]/g;
-        this.buttons=[];
+        //this.buttons=[];
 
         this.ruleIndex = typeof this.props.index === 'number' ? this.props.index : -1;
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
@@ -48,55 +52,52 @@ class AddReportAggRules extends Component {
     }
 
     componentWillMount() {
-        if (this.ruleIndex !== -1) {
-            Object.assign(this.state.form, this.props.cell_rules.comp_agg_rules[this.ruleIndex]);
-        }
+      console.log("Inside componentWillMount of AddReportRules",this.props.aggRuleData);
+        this.setState({form: this.props.aggRuleData});
     }
 
     componentWillReceiveProps(nextProps) {
-        this.ruleIndex = nextProps.ruleIndex
-        if (this.ruleIndex !== -1) {
-            Object.assign(this.state.form, nextProps.cell_rules.comp_agg_rules[this.ruleIndex]);
-        }
-        this.dml_allowed = nextProps.dml_allowed;
-        this.writeOnly = nextProps.writeOnly;
+          this.setState({form: nextProps.aggRuleData});
+          let buttons =[];
+          if (nextProps.cell_options){
+            nextProps.cell_options.comp_agg_rules.map((item,index)=>{
+              console.log("inside if handleSelectCell data.drillDown.comp_agg_rules.map",this.state.form.cell_id , this.state.form.sheet_id,item.cell_id + item.sheet_id);
+              if(this.state.form.cell_id + this.state.form.sheet_id != item.cell_id + item.sheet_id){
+                buttons.push({
+                    title: item.cell_id + " Aggregation Rule: " + item.comp_agg_rule,
+                    name: item.comp_agg_ref,
+                    iconClass: 'fa-paperclip',
+                    checkDisabled: 'No',
+                    className: "btn-success",
+                  })
+              }
+            })
+            nextProps.cell_options.cell_rules.map((item,index)=>{
+              buttons.push({
+                  title: item.cell_id + " Rule: " + item.cell_business_rules + " Aggregation: " + item.aggregation_func + "(" + item.aggregation_ref +")",
+                  name: item.cell_calc_ref,
+                  iconClass: 'fa-tag',
+                  checkDisabled: 'No',
+                  className: "btn-info",
+                })
+            })
+          }
+          this.setState({buttons:buttons},()=>{console.log("At the end of setState select",this.state.buttons);});
+          if(!this.ruleInputField)
+            return;
+          this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
+          this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
+          this.ruleInputField.focus();
+        console.log("Inside componentWillReceiveProps");
     }
 
     handleSelectCell(data){
       console.log("handleSelectCell",data);
-      let newState = {...this.state}
-      if(data.drillDown){
-        this.buttons=[];
+      if(data.cell){
+        //this.buttons=[];
         //console.log("inside if handleSelectCell",data);
-        data.drillDown.comp_agg_rules.map((item,index)=>{
-          //console.log("inside if handleSelectCell data.drillDown.comp_agg_rules.map",this.props.cell_id + this.props.sheet_id,item.cell_id + item.sheet_id);
-          if(this.props.cell_id + this.props.sheet_id != item.cell_id + item.sheet_id){
-            this.buttons.push({
-                title: item.cell_id + " Aggregation Rule: " + item.comp_agg_rule,
-                name: item.comp_agg_ref,
-                iconClass: 'fa-paperclip',
-                checkDisabled: 'No',
-                className: "btn-success",
-              })
-          }
-        })
-        data.drillDown.cell_rules.map((item,index)=>{
-          this.buttons.push({
-              title: item.cell_id + " Rule: " + item.cell_business_rules + " Aggregation: " + item.aggregation_func + "(" + item.aggregation_ref +")",
-              name: item.cell_calc_ref,
-              iconClass: 'fa-tag',
-              checkDisabled: 'No',
-              className: "btn-info",
-            })
-        })
-        this.setState(newState);
-        if(!this.ruleInputField)
-          return;
-        this.ruleInputField.selectionStart = newState.form.comp_agg_rule.length;
-        this.ruleInputField.selectionEnd = newState.form.comp_agg_rule.length;
-        this.ruleInputField.focus();
+        this.props.drillDown(data.reportId,data.sheetName,data.cell)
       }
-      console.log("At the end of handle select");
     }
     updateRuleFormula(event,elementRef){
       console.log("updateRuleFormula",elementRef);
@@ -125,12 +126,18 @@ class AddReportAggRules extends Component {
       this.setState({form});
 
       this.ruleInputField.focus();
-      console.log("updateRuleFormula buttons",this.buttons);
+      console.log("updateRuleFormula buttons",this.state.buttons);
 
     }
 
   render() {
     this.viewOnly = ! (this.writeOnly && this.dml_allowed);
+    console.log("Inside render",this.state,this.props.aggRuleData)
+    if(typeof this.state.form == 'undefined') {
+      return(
+        <h4>Loading...</h4>
+      )
+    }
     return(
       <div className="row form-container" >
         <div className="x_panel">
@@ -260,7 +267,7 @@ class AddReportAggRules extends Component {
                           <RegOpzFlatGridActionButtons
                             editable={this.writeOnly}
                             checkDisabled={this.checkDisabled}
-                            buttons={this.buttons}
+                            buttons={this.state.buttons}
                             dataNavigation={false}
                             buttonClicked={this.updateRuleFormula}
                           />
@@ -416,7 +423,7 @@ class AddReportAggRules extends Component {
       table_name: "report_comp_agg_def",
       update_info: this.state.form
     };
-    data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
+    data['change_type'] = this.state.form.id ? "UPDATE" : "INSERT";
 
     let audit_info={
       table_name:data["table_name"],
@@ -468,7 +475,8 @@ class AddReportAggRules extends Component {
 
 function mapStateToProps(state) {
   return{
-    cell_rules: state.report_store.cell_rules,
+    //cell_rules: state.report_store.cell_rules,
+    cell_options: state.report_store.cell_rules,
     login_details: state.login_store,
   };
 }
@@ -480,7 +488,10 @@ const mapDispatchToProps = (dispatch) => {
     },
     updateRuleData:(id, data) => {
       dispatch(actionUpdateRuleData(id, data));
-    }
+    },
+    drillDown:(report_id,sheet,cell) => {
+      dispatch(actionDrillDown(report_id,sheet,cell));
+    },
   };
 }
 

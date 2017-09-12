@@ -68,6 +68,7 @@ class MaintainReportRules extends Component {
     this.form_data={};
     this.selectedViewColumns=[];
     this.operationName=null;
+    this.aggRuleData = null;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
@@ -195,7 +196,7 @@ class MaintainReportRules extends Component {
   }
 
   handleBusinessRuleClicked(event,businessRuleFilterParam){
-    console.log("Clicked ruleFilterParam",businessRuleFilterParam);
+    console.log("Clicked businessRule ruleFilterParam",businessRuleFilterParam);
     this.businessRuleFilterParam = businessRuleFilterParam;
     this.setState({
         showDrillDownData : false,
@@ -207,7 +208,7 @@ class MaintainReportRules extends Component {
   }
 
   handleAggeRuleClicked(event, item){
-    console.log("Clicked ruleFilterParam", item);
+    console.log("Clicked aggRuleData ruleFilterParam", item);
     this.aggRuleData = item;
     // TODO AddReportAggRules as form and then pass aggRuleData
     this.setState({
@@ -215,7 +216,8 @@ class MaintainReportRules extends Component {
         showDrillDownCalcBusinessRules : false,
         showAggRuleDetails: true,
         showCellChangeHistory: false,
-      });
+      },
+      ()=>{console.log("aggRuleData",this.aggRuleData)});
 
   }
 
@@ -343,7 +345,8 @@ class MaintainReportRules extends Component {
                           <AddReportAggRules
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
-                            {...this.aggRuleData}
+                            aggRuleData = { this.aggRuleData }
+                            dml_allowed = { this.aggRuleData.dml_allowed }
                             gridData={this.props.gridDataViewReport}
                           />
                       );

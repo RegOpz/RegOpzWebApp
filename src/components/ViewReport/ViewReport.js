@@ -70,6 +70,7 @@ class ViewReport extends Component {
     this.selectedViewColumns=[];
     this.operationName=null;
     this.flatGrid = null;
+    this.aggRuleData = null;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
@@ -207,7 +208,7 @@ class ViewReport extends Component {
   }
 
   handleBusinessRuleClicked(event,businessRuleFilterParam){
-    console.log("Clicked ruleFilterParam",businessRuleFilterParam);
+    console.log("Clicked businessRule ruleFilterParam",businessRuleFilterParam);
     this.businessRuleFilterParam = businessRuleFilterParam;
     this.setState({
         showDrillDownData : false,
@@ -219,7 +220,7 @@ class ViewReport extends Component {
   }
 
   handleAggeRuleClicked(event,item){
-    console.log("Clicked ruleFilterParam",item);
+    console.log("Clicked aggRuleData ruleFilterParam",item);
     this.aggRuleData = item;
     // TODO AddReportAggRules as form and then pass aggRuleData
     this.setState({
@@ -355,7 +356,8 @@ class ViewReport extends Component {
                           <AddReportAggRules
                             writeOnly={false}
                             handleClose={this.handleDetails.bind(this)}
-                            {...this.aggRuleData}
+                            aggRuleData = { this.aggRuleData }
+                            dml_allowed = { this.aggRuleData.dml_allowed }
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
