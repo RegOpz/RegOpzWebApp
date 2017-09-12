@@ -50,6 +50,8 @@ class AddSources extends Component {
             }
         };
 
+        console.log('Props: ', this.props);
+
         this.handleAdditionalSourceTableChange = this.handleAdditionalSourceTableChange.bind(this);
         this.addRowToSourceTable = this.addRowToSourceTable.bind(this);
         this.removeRowFromSourceTable = this.removeRowFromSourceTable.bind(this);
@@ -82,21 +84,28 @@ class AddSources extends Component {
     }
 
     addDefaultRows() {
-        var currentSourceFields = this.state.additionalSourceFields;
-        for (var key in this.state.mandatoryFields) {
-            var dataType = this.state.mandatoryFields[key];
-            currentSourceFields.push({
-                Field: key,
-                Type: dataType,
-                Null: 'NO',
+        let additionalSourceFields = this.state.additionalSourceFields;
+        let currentColumns = this.props.source_table_columns;
+        let combinedColumns = [...additionalSourceFields, ...currentColumns];
+        let mandatoryFields = new Set(Object.keys(this.state.mandatoryFields));
+        
+        combinedColumns.forEach(element => {
+            if(mandatoryFields.has(element.Field))
+                mandatoryFields.delete(element.Field);
+        });
+
+        var notEnteredColumns = [...mandatoryFields];
+        notEnteredColumns.forEach(element => {
+            additionalSourceFields.push({
+                Field: element,
+                Type: this.state.mandatoryFields[element],
+                Null: 'YES',
                 Key: '',
                 Default: '',
                 Extra: '',
                 disabled: true
             });
-        }
-        this.setState({ additionalSourceFields: currentSourceFields });
-        console.log('Default Rows Added Successfully');
+        });
 
     }
 
@@ -145,11 +154,12 @@ class AddSources extends Component {
     }
 
     addRowToSourceTable(fieldName, dataType, disabled) {
-        let length = this.props.source_table_columns.length;
-        console.log("Length......",length);
-        if (length < 5)
+        
+        let additionalSourceFields = this.state.additionalSourceFields;
+        
+        if(this.props.source_table_columns.length < 5)
             this.addDefaultRows();
-        var additionalSourceFields = [...this.state.additionalSourceFields];
+
         additionalSourceFields.push({
             Field: fieldName ? fieldName : '',
             Type: dataType ? dataType : 'text',

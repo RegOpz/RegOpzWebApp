@@ -33,7 +33,8 @@ class SourceTable extends Component {
                 },
             ],
             varcharSelected: false,
-            varcharAmount: 200
+            varcharAmount: 200,
+            defaultSelectedValue: ''
         };
 
         this.checkVarCharSize = this.checkVarCharSize.bind(this);
@@ -44,34 +45,21 @@ class SourceTable extends Component {
         var selectedType = this.props.Type;
         var regex = /varchar\((\d+)\)/;
         if (regex.test(selectedType)) {
-            var currentTypes = this.state.types;
-            for (let i = 0; i < currentTypes.length; i++) {
-                if (i === 4)
-                    currentTypes[i].selected = true;
-                else
-                    currentTypes[i].selected = false;
-            }
             var match = regex.exec(selectedType);
             var varcharAmount = parseInt(match[1]);
             var varcharSelected = true;
             this.setState({
-                types: currentTypes,
                 varcharAmount: varcharAmount,
-                varcharSelected: varcharSelected
+                varcharSelected: varcharSelected,
+                defaultSelectedValue: "varchar"
             });
         }
         else {
-            var currentTypes = this.state.types;
-            for (let i = 0; i < currentTypes.length; i++) {
-                if (currentTypes[i].type === selectedType)
-                    currentTypes[i].selected = true;
-                else
-                    currentTypes[i].selected = false;
-            }
+            var defaultSelectedValue = selectedType;
             this.setState({
-                type: currentTypes,
                 varcharAmount: 200,
-                varcharSelected: false
+                varcharSelected: false,
+                defaultSelectedValue: defaultSelectedValue
             });
         }
     }
@@ -81,34 +69,21 @@ class SourceTable extends Component {
         var selectedType = nextProps.Type;
         var regex = /varchar\((\d+)\)/;
         if (regex.test(selectedType)) {
-            var currentTypes = this.state.types;
-            for (let i = 0; i < currentTypes.length; i++) {
-                if (i === 4)
-                    currentTypes[i].selected = true;
-                else
-                    currentTypes[i].selected = false;
-            }
             var match = regex.exec(selectedType);
             var varcharAmount = parseInt(match[1]);
             var varcharSelected = true;
             this.setState({
-                types: currentTypes,
                 varcharAmount: varcharAmount,
-                varcharSelected: varcharSelected
+                varcharSelected: varcharSelected,
+                defaultSelectedValue: "varchar"
             });
         }
         else {
-            var currentTypes = this.state.types;
-            for (let i = 0; i < currentTypes.length; i++) {
-                if (currentTypes[i].type === selectedType)
-                    currentTypes[i].selected = true;
-                else
-                    currentTypes[i].selected = false;
-            }
+            var defaultSelectedValue = selectedType;
             this.setState({
-                type: currentTypes,
                 varcharAmount: 200,
-                varcharSelected: false
+                varcharSelected: false,
+                defaultSelectedValue: defaultSelectedValue
             });
         }
     }
@@ -157,13 +132,14 @@ class SourceTable extends Component {
                             placeholder="select"
                             disabled={this.props.disabled}
                             onChange={(event) => { this.checkVarCharSize(event, this.props.index) }}
+                            defaultValue={this.state.defaultSelectedValue}
                         >
                             {
                                 this.state.types.map(element => {
                                     return (
                                         <option
                                             value={element.type}
-                                            selected={element.selected}
+
                                             key={element.type}
                                         >
                                             {element.type}
@@ -192,8 +168,9 @@ class SourceTable extends Component {
                         value={this.props.Null}
                         onChange={(event) => { this.props.handleChange(event, 'nullable', this.props.index) }}
                         disabled={this.props.disabled}
+                        defaultValue={"YES"}
                     >
-                        <option key="YES" value="YES" selected={true}>YES</option>
+                        <option key="YES" value="YES">YES</option>
                         <option key="NO" value="NO">NO</option>
                     </FormControl>
                 </td>
