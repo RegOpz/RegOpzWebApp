@@ -20,6 +20,9 @@ import {
 import {
   actionFetchDrillDownRulesReport
 } from '../../actions/ViewDataAction';
+import {
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzFlatGrid from '../RegOpzFlatGrid/RegOpzFlatGrid';
@@ -117,10 +120,16 @@ class MaintainBusinessRules extends Component {
       this.ruleFilterParam = nextProps.ruleFilterParam;
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
     }
+    if(this.props.leftmenu){
+     this.setState({
+       display: false
+     });
+   }
   }
 
   componentDidUpdate(){
     console.log("componentDidUpdate");
+    this.props.leftMenuClick(false);
   }
 
   handleDataFileClick(item) {
@@ -699,6 +708,9 @@ const mapDispatchToProps = (dispatch) => {
     exportCSV:(sourceId) => {
       dispatch(actionExportCSV(sourceId));
     },
+    leftMenuClick:(isLeftMenu) => {
+      dispatch(actionLeftMenuClick(isLeftMenu));
+    },
   }
 }
 
@@ -711,6 +723,7 @@ function mapStateToProps(state){
     report_linkage:state.report_linkage,
     change_history:state.def_change_store.audit_list,
     login_details:state.login_store,
+    leftmenu: state.leftmenu_store.leftmenuclick,
   }
 }
 

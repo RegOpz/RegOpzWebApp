@@ -23,6 +23,9 @@ import {
   actionFetchReportData,
   actionDrillDown
 } from '../../actions/CaptureReportAction';
+import {
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
@@ -101,7 +104,20 @@ class MaintainReportRules extends Component {
   }
 
   componentDidUpdate() {
-    console.log("Dates",this.state.startDate)
+    console.log("Dates",this.state.startDate);
+    this.props.leftMenuClick(false);
+  }
+  componentWillReceiveProps(nextProps){
+    console.log("nextProps",this.props.leftmenu);
+    if(this.props.leftmenu){
+      this.setState({
+        display: false,
+        showDrillDownData: false,
+        showAggRuleDetails: false,
+        showDrillDownCalcBusinessRules: false,
+        showCellChangeHistory: false,
+      });
+    }
   }
 
   handleReportClick(item) {
@@ -519,6 +535,7 @@ function mapStateToProps(state){
     cell_rules: state.report_store.cell_rules,
     change_history:state.maintain_report_rules_store.change_history,
     login_details: state.login_store,
+    leftmenu: state.leftmenu_store.leftmenuclick,
   }
 }
 
@@ -553,6 +570,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     exportRulesXlsx:(report_id) => {
       dispatch(actionExportRulesXlsx(report_id));
+    },
+    leftMenuClick:(isLeftMenu) => {
+      dispatch(actionLeftMenuClick(isLeftMenu));
     },
   }
 }

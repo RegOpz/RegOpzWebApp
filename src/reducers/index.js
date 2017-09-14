@@ -17,6 +17,7 @@ import DataChangeReducer from './DataChangeReducer';
 import RolesReducer from './RolesReducer';
 import RuleAssistReducer from './RuleAssistReducer';
 import { userDetailsReducer, apiDetailsReducer } from './CustomizeDashReducer';
+import LeftMenuReducer from './LeftMenuReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -37,7 +38,8 @@ const rootReducer = combineReducers({
   form: formReducer,
   rule_assist: RuleAssistReducer,
   customize_dash: userDetailsReducer,
-  api_details: apiDetailsReducer
+  api_details: apiDetailsReducer,
+  leftmenu_store: LeftMenuReducer,
 });
 
 export default rootReducer;

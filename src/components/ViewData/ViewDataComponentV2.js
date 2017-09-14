@@ -17,6 +17,9 @@ import {
   actionExportCSV,
   actionApplyRules,
 } from '../../actions/ViewDataAction';
+import {
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzFlatGrid from '../RegOpzFlatGrid/RegOpzFlatGrid';
@@ -116,11 +119,17 @@ class ViewDataComponentV2 extends Component {
       this.dataFilterParam=nextProps.dataFilterParam;
       this.props.fetchDrillDownReport(this.dataFilterParam);
     }
+    if(this.props.leftmenu){
+      this.setState({
+        display: false
+      });
+    }
   }
 
   componentDidUpdate(){
     console.log("Dates",this.state.startDate)
     this.isNextPropRun = !this.isNextPropRun;
+    this.props.leftMenuClick(false);
   }
 
   handleDataFileClick(item) {
@@ -730,6 +739,9 @@ const mapDispatchToProps = (dispatch) => {
     applyRules:(source_info) => {
       dispatch(actionApplyRules(source_info));
     },
+    leftMenuClick:(isLeftMenu) => {
+      dispatch(actionLeftMenuClick(isLeftMenu));
+    },
   }
 }
 
@@ -742,6 +754,7 @@ function mapStateToProps(state){
     report_linkage:state.view_data_store.report_linkage,
     change_history:state.view_data_store.change_history,
     login_details:state.login_store,
+    leftmenu: state.leftmenu_store.leftmenuclick,
   }
 }
 

@@ -9,7 +9,8 @@ import {
   FETCH_REPORT_BY_DATE,
   FETCH_CHANGE_HISTORY,
   EXPORT_DATA_CSV,
-  FETCH_DRILLDOWN_REPORT
+  FETCH_DRILLDOWN_REPORT,
+  LEFTMENUCLICK
 } from '../actions/ViewDataAction';
 import {
   FETCH_SOURCES
@@ -60,7 +61,10 @@ export default function(state=[], action) {
     case EXPORT_DATA_CSV:
       window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
       return state;
-
+    case LEFTMENUCLICK:
+      console.log("Inside LEFTMENUCLICK", action.payload)
+      return Object.assign({}, state, {
+        leftmenuclick: action.payload });
     default:
     	return state;
   }

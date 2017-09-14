@@ -21,6 +21,7 @@ export let FETCH_CHANGE_HISTORY="FETCH_CHANGE_HISTORY";
 export let EXPORT_DATA_CSV = "EXPORT_DATA_CSV";
 //This should move to ViewReport related container and action during code refactoring
 export let FETCH_REPORT_CATALOG = "FETCH_REPORT_CATALOG";
+export let LEFTMENUCLICK = 'LEFTMENUCLICK';
 
 // TODO:
 export function actionFetchDates(startDate='19000101',endDate='39991231', table_name) {
@@ -172,4 +173,13 @@ export function actionFetchReportCatalog(reporting_date_start, reporting_date_en
     type:FETCH_REPORT_CATALOG,
     payload:axios.get(url)
   }
+}
+
+
+// TODO: Logout action for user
+export function actionLeftMenuClick(isLeftMenu) {
+  return {
+    type: LEFTMENUCLICK,
+    payload: isLeftMenu
+  };
 }

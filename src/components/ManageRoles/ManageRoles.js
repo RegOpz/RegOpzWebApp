@@ -7,6 +7,9 @@ import _ from 'lodash';
 import {
   actionFetchRoles
 } from '../../actions/RolesAction';
+import {
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
 import ViewRole from './ViewRole';
 import AddRoles from './AddRoles/AddRoles';
 require('./ManageRoles.css');
@@ -29,9 +32,19 @@ class ManageRolesComponent extends Component {
   componentWillMount() {
     this.props.fetchPermission();
   }
-
+  componentDidUpdate(){
+      this.props.leftMenuClick(false);
+  }
   componentDidMount() {
     document.title = "RegOpz Dashboard | Manage Roles";
+  }
+  componentWillReceiveProps(nextProps){
+    console.log("nextProps",this.props.leftmenu);
+    if(this.props.leftmenu){
+      this.setState({
+        display: false
+      });
+    }
   }
 
   handleEditButtonClicked(role) {
@@ -127,7 +140,8 @@ class ManageRolesComponent extends Component {
 
 function mapStateToProps(state) {
   return {
-    permissionList: state.role_management.data
+    permissionList: state.role_management.data,
+    leftmenu: state.leftmenu_store.leftmenuclick,
   };
 }
 
@@ -135,7 +149,10 @@ const mapDispatchToProps = (dispatch) => {
   return {
     fetchPermission: () => {
       dispatch(actionFetchRoles());
-    }
+    },
+    leftMenuClick:(isLeftMenu) => {
+      dispatch(actionLeftMenuClick(isLeftMenu));
+    },
   };
 };
 

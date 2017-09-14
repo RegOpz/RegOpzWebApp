@@ -9,6 +9,9 @@ import moment from 'moment';
 import {
   actionFetchSources
 } from '../../actions/MaintainSourcesAction';
+import {
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
 import SourceCatalogList from './SourceCatalog';
 import AddSources from './AddSources/AddSources';
 import AuditModal from '../AuditModal/AuditModal';
@@ -45,7 +48,16 @@ class MaintainSources extends Component {
   }
 
   componentDidUpdate() {
-    console.log("Dates",this.state.startDate)
+    console.log("Dates",this.state.startDate);
+     this.props.leftMenuClick(false);
+  }
+  componentWillReceiveProps(nextProps){
+    console.log("nextProps",this.props.leftmenu);
+    if(this.props.leftmenu){
+      this.setState({
+        display: false
+      });
+    }
   }
 
   handleSourceClick(item) {
@@ -210,6 +222,7 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     sourceCatalog: state.source_feeds.sources,
     login_details: state.login_store,
+    leftmenu: state.leftmenu_store.leftmenuclick,
   }
 }
 
@@ -217,6 +230,9 @@ const mapDispatchToProps = (dispatch) => {
   return {
     fetchSources:(sources,country)=>{
       dispatch(actionFetchSources(sources,country))
+    },
+    leftMenuClick:(isLeftMenu) => {
+      dispatch(actionLeftMenuClick(isLeftMenu));
     },
   }
 }
