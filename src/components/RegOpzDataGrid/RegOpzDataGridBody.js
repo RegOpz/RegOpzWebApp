@@ -32,6 +32,7 @@ export default class RegOpzDataGridBody extends Component {
                         let coord = this.getRealCoords(cell);
                         let merged = item.merged;
                         var stylex = {};
+                        let cellClassName = "reg_cell";
                         var left = 0;
                         var width = 0;
                         var height = 0;
@@ -85,10 +86,17 @@ export default class RegOpzDataGridBody extends Component {
                               height:height
                             }
                         }
+                        if (isNaN(value)){
+                          cellClassName = cellClassName + " reg_cell_text";
+                        } else {
+                          cellClassName = cellClassName + " reg_cell_number";
+                          //Now format number as per international number format 99,999,999
+                          value = Intl.NumberFormat().format(value);
+                        }
                         return(
                             <div
                               key={cell+index}
-                              className="reg_cell"
+                              className={cellClassName}
                               style={stylex}
                             >
                                 <span

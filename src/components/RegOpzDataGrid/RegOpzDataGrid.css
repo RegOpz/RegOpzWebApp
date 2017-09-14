@@ -114,8 +114,15 @@
     left: 0;
     background-color: white;
     color: #3F3F92;
-    text-align: center;
     display: table;
+}
+
+.reg_cell_text {
+      text-align: center;
+}
+
+.reg_cell_number {
+    text-align: right;
 }
 
 .reg_cell_selected {
