@@ -45,7 +45,7 @@ class DrillDownRules extends Component {
           <div className="x_panel">
             <div className="x_title">
               <h2>Report Cell Rules
-              <small> for <b>{this.selectedCell.cell}</b> of <b>{this.selectedCell.sheetName}</b></small>
+              <small> for <b>{this.selectedCell.cell}</b> of <b>{this.selectedCell.sheetName}</b> Value <b>{this.selectedCell.value}</b></small>
               </h2>
               <ul className="nav navbar-right panel_toolbox">
                 <li>
