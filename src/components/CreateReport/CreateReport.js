@@ -15,7 +15,7 @@ import './CreateReport.css';
  class CreateReport extends Component{
   constructor(props){
     super(props);
-    this.todayDate=moment().format("YYYYMMDD");
+    this.todayDate=moment().format("DD-MMM-YYYY h:mm:ss a");
     this.state={
       businessStartDate:null,
       businessEndDate:null,
@@ -55,6 +55,7 @@ import './CreateReport.css';
 
   handleSubmit(event){
     event.preventDefault();
+    this.todayDate=moment().format("DD-MMM-YYYY h:mm:ss a");
     const report_info={
       report_id:this.state.reportId,
       reporting_currency:this.state.reportingCurrency,
@@ -137,18 +138,18 @@ import './CreateReport.css';
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-date">Reporting Date <span className="required">*</span></label>
                     <div className="col-md-6 col-sm-6 col-xs-12">
                         <DatePicker
-                            dateFormat="YYYYMMDD"
+                            dateFormat="DD-MMM-YYYY"
                             selected={this.state.businessStartDate}
                             onChange={this.handleStartDateChange.bind(this)}
-                            placeholderText="Select start date"
+                            placeholderText="Start date (DD-MMM-YYYY)"
                             className="view_data_date_picker_input form-control"
                         />
 
                         <DatePicker
-                            dateFormat="YYYYMMDD"
+                            dateFormat="DD-MMM-YYYY"
                             selected={this.state.businessEndDate}
                             onChange={this.handleEndDateChange.bind(this)}
-                            placeholderText="Select end date"
+                            placeholderText="End date (DD-MMM-YYYY)"
                             className="view_data_date_picker_input form-control"
                         />
 
@@ -172,8 +173,9 @@ import './CreateReport.css';
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="report-create-status">Report Create Status <span className="required">*</span></label>
                   <div className="col-md-3 col-sm-6 col-xs-12">
                     <input
-                      placeholder="Enter Report Create Status"
+                      placeholder="CREATE NEW"
                       type="text"
+                      readOnly="true"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
                       onChange={(event)=>{
@@ -189,9 +191,10 @@ import './CreateReport.css';
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="as-of-reporting-date">As of Reporting Date  <span className="required">*</span></label>
                   <div className="col-md-3 col-sm-6 col-xs-12">
                       <DatePicker
+                          dateFormat="DD-MMM-YYYY"
                           selected={this.state.asOfReportingDate}
                           onChange={this.handleAsOfDateChange.bind(this)}
-                          placeholderText="Select as of date"
+                          placeholderText="DD-MMM-YYYY"
                           className="view_data_date_picker_input form-control"
                       />
                   </div>

@@ -39,7 +39,7 @@ class VarianceAnalysisForm extends Component{
 
     return(
       <div className="row form-container">
-        <div className="col col-lg-12">
+        <div className="x_panel">
           <div className="x_title">
             <h2>Variance analysis <small>Select a report </small></h2>
             <div className="clearfix"></div>
