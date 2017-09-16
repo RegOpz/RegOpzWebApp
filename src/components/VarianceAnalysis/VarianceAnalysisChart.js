@@ -38,7 +38,7 @@ class VarianceAnalysisChart extends Component{
       console.log("Inside chartdata",chartData,keys)
       return (
           <ChartWithHOC
-              height={300}
+              height={ this.props.height ? this.props.height : 300}
               iconName={'bandcamp'}
               titleText={chartData.title}
               countColor={chartData.rate === 'inc' ? 'green' : 'red'}

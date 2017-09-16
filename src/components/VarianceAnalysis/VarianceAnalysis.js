@@ -56,11 +56,13 @@ class VarianceAnalysis extends Component {
       showAggRuleDetails: false,
       showDrillDownCalcBusinessRules: false,
       showCellChangeHistory: false,
+      showCharts: false,
 
       display: false,
       selectedCell: {},
       chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
       sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+      sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
     }
 
     this.pages=0;
@@ -82,6 +84,7 @@ class VarianceAnalysis extends Component {
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Variance Charts', iconClass: 'fa-bar-chart', checkDisabled: 'No', className: "btn-info", onClick: this.handleShowCharts.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
@@ -94,6 +97,7 @@ class VarianceAnalysis extends Component {
     this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
+    this.handleShowCharts = this.handleShowCharts.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
@@ -137,6 +141,7 @@ class VarianceAnalysis extends Component {
         subsequentReportingDate: formObj.subsequent_date,
         chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
         sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+        sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
      },
       ()=>{this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);}
     );
@@ -164,6 +169,15 @@ class VarianceAnalysis extends Component {
     this.fetchDataToGrid(event);
   }
 
+  handleShowCharts(event){
+    let isOpen = this.state.showCharts;
+    if(isOpen){
+      this.setState({showCharts:false});
+    } else {
+      this.setState({showCharts:true});
+    }
+  }
+
 
   fetchDataToGrid(event){
     this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);
@@ -179,6 +193,7 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules: false,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
+        showCharts: false,
         selectedCell: {},
       });
     } else {
@@ -194,6 +209,7 @@ class VarianceAnalysis extends Component {
           showDrillDownCalcBusinessRules: false,
           showAggRuleDetails: false,
           showCellChangeHistory: false,
+          showCharts: false,
           },
           this.props.drillDown(this.state.selectedCell.reportId,this.state.selectedCell.sheetName,this.state.selectedCell.cell)
         );
@@ -203,7 +219,7 @@ class VarianceAnalysis extends Component {
   }
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
-    let { sheetChartData, chartData } = this.state;
+    let { sheetChartData, chartData, sheetVarianceData } = this.state;
     let firstPeriod = moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM");
     let subsequentPeriod = moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM");
 
@@ -221,6 +237,7 @@ class VarianceAnalysis extends Component {
 
       if ( this.state.reportId != cell.reportId || this.selectedSheetIndex != this.flatGrid.state.selectedSheet) {
         let matrixData =[];
+        let varianceData = [];
         let VAelement ={};
         this.selectedSheetIndex = this.flatGrid.state.selectedSheet;
         this.props.gridDataViewReport[this.flatGrid.state.selectedSheet].matrix.map(item => {
@@ -229,17 +246,25 @@ class VarianceAnalysis extends Component {
               VAelement['name'] = item.cell;
               VAelement[firstPeriod] = item.first_value;
               VAelement[subsequentPeriod] = item.subsequent_value;
+              VAelement['variance'] = item.variance;
               matrixData.push(VAelement)
+              varianceData.push({name:item.cell,variance:item.variance})
             }
         })
         sheetChartData = {
-          title: 'Variance Chart for Sheet ' + cell.sheetName,
-          value:  '% Variances',
+          title: 'Variance Value Chart for Sheet ' + cell.sheetName,
+          value:  'Values with Variances %',
           rate: 'inc',
           data: matrixData.length ? matrixData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
         }
+        sheetVarianceData = {
+          title: 'Variance Chart for Sheet ' + cell.sheetName,
+          value:  '% Variances',
+          rate: 'inc',
+          data: varianceData.length ? varianceData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
+        }
       }
-      this.setState({selectedCell: cell, chartData:chartData, sheetChartData: sheetChartData});
+      this.setState({selectedCell: cell, chartData:chartData, sheetChartData: sheetChartData, sheetVarianceData: sheetVarianceData});
     }
 
     //console.log("chartData",this.state.selectedCell,this.state.chartData,this.state.sheetChartData);
@@ -253,6 +278,7 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules : false,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
+        showCharts: false,
       });
 
   }
@@ -265,6 +291,7 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules : true,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
+        showCharts: false,
       });
 
   }
@@ -278,6 +305,7 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules : false,
         showAggRuleDetails: true,
         showCellChangeHistory: false,
+        showCharts: false,
       });
 
   }
@@ -295,7 +323,8 @@ class VarianceAnalysis extends Component {
           showDrillDownData : false,
           showDrillDownCalcBusinessRules : false,
           showAggRuleDetails: false,
-          showCellChangeHistory: true
+          showCellChangeHistory: true,
+          showCharts: false,
         },
         ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.cell_id)}
       );
@@ -488,7 +517,7 @@ class VarianceAnalysis extends Component {
   }
 
   render(){
-    
+
         let firstPeriod = this.state.firstReportingDate ? moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM-YYYY") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM-YYYY") : "";
         let subsequentPeriod = this.state.subsequentReportingDate ? moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM-YYYY") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM-YYYY") : "";
 
@@ -524,7 +553,7 @@ class VarianceAnalysis extends Component {
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li>
                                 <Link to="/dashboard/variance-analysis"
-                                  onClick={()=>{ this.setState({ display: false }) }}
+                                  onClick={()=>{ this.setState({ display: false,showCharts: false, }) }}
                                 >
                                     <i className="fa fa-calculator"></i>{' variance Anaylsis Form'}
                                 </Link>
@@ -537,11 +566,18 @@ class VarianceAnalysis extends Component {
                 </div>
                 {
                   this.state.display &&
+                  this.state.showCharts &&
                   <div>
                     <VarianceAnalysisChart
+                      height = {150}
+                      chartData = { this.state.sheetVarianceData }
+                      tileType = "full_width" />
+                    <VarianceAnalysisChart
+                      height = {200}
                       chartData = { this.state.chartData }
                       tileType = "one_third" />
                     <VarianceAnalysisChart
+                      height = {200}
                       chartData = { this.state.sheetChartData }
                       tileType = "two_third" />
                   </div>
