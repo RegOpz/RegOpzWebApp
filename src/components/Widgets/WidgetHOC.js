@@ -24,6 +24,17 @@ function WrappedSize(WidgetComponent, size) {
                 );
             }
             break;
+        case 'two_third':
+            return function (props) {
+                return (
+                    <div className="col-md-8 col-sm-8 col-xs-12">
+                        <div className="x_panel tile x_panel_blank">
+                            <WidgetComponent {...props} />
+                        </div>
+                    </div>
+                );
+            }
+            break;
         case 'full_width':
             return function (props) {
                 return (

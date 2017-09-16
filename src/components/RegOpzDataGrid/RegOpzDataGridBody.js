@@ -27,7 +27,9 @@ export default class RegOpzDataGridBody extends Component {
                     this.data.map(function(item,index){
                         //console.log("Cell,value,index",item.cell,item.value,index,item);
                         let cell = item.cell;
-                        let value = item.value;
+                        let value = item.displayattribute ? item[item.displayattribute] : item.value; // this will be based on the props which attribute to show
+                        let title = "[" + item['cell'] + "] "+ (item.title ? item.title : ""); // this is again prop based tool tip help
+                        let spanClassName = item.classname ? item.classname : "";
                         let coord = this.getRealCoords(cell);
                         let merged = item.merged;
                         var stylex = {};
@@ -85,7 +87,7 @@ export default class RegOpzDataGridBody extends Component {
                               height:height
                             }
                         }
-                        if (isNaN(value)){
+                        if (isNaN(value) || item.origin == "TEMPLATE" ){
                           cellClassName = cellClassName + " reg_cell_text";
                         } else {
                           cellClassName = cellClassName + " reg_cell_number";
@@ -97,15 +99,18 @@ export default class RegOpzDataGridBody extends Component {
                               key={cell+index}
                               className={cellClassName}
                               style={stylex}
+                              data-toggle="tooltip"
+                              data-placement="top"
+                              title={title}
                             >
                                 <span
                                   onClick={
                                     (event) => {
-                                      this.handleCellClick(event,value);
+                                      this.handleCellClick(event,value,item);
                                     }
                                   }
                                   target={cell}
-                                >{value}</span>
+                                ><i className={spanClassName}></i>{ value }</span>
                             </div>
                         )
                     }.bind(this))
@@ -113,12 +118,13 @@ export default class RegOpzDataGridBody extends Component {
             </div>
         )
     }
-    handleCellClick(event,value){
+    handleCellClick(event,value,item){
       $(".reg_cell > span").removeClass("reg_cell_selected");
       $(event.target).addClass("reg_cell_selected");
       this.selectedCell = {
                     cell: event.target.getAttribute("target"),
-                    value: value
+                    value: value,
+                    item: item
                   };
       //console.log("handleCellClick",this.selectedCell);
       this.props.onSelect(this.selectedCell);

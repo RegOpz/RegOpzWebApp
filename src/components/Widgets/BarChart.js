@@ -24,7 +24,7 @@ class BarChartWidget extends Component {
                         {" " + this.props.titleText}
                     </span>
                     <div className={'count ' + (this.props.countColor ? this.props.countColor : '')}>
-                        {this.props.countValue}
+                        <h4><b>{this.props.countValue}</b></h4>
                     </div>
                     <div className="count_bottom">
                         <ResponsiveContainer height={this.props.height} width="100%">

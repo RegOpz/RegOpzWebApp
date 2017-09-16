@@ -27,9 +27,7 @@ import ViewDataComponentV2 from './components/ViewData/ViewDataComponentV2';
 import ViewReport from './components/ViewReport/ViewReport';
 import MaintainReportRules from './components/MaintainReportRules/MaintainReportRules';
 import MaintainSources from './components/MaintainSources/MaintainSources';
-import VarianceAnalysisForm from './components/VarianceAnalysis/VarianceAnalysis';
-import VarianceAnalysisGrid from './components/VarianceAnalysis/VarianceAnalysisGrid';
-import VarianceAnalysisChart from './components/VarianceAnalysis/VarianceAnalysisChart';
+import VarianceAnalysis from './components/VarianceAnalysis/VarianceAnalysis';
 import CreateReport from './components/CreateReport/CreateReport';
 import ManageDefChange from './components/ManageDefChange/ManageDefChange';
 import ManageRoles from './components/ManageRoles/ManageRoles';
@@ -108,9 +106,7 @@ ReactDOM.render(
                     <Route path="create-report" name="Create Report" component={authenticate(CreateReport)} />
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
                     <Route path="maintain-sources" name="Maintain Sources" component={authenticate(MaintainSources)} />
-                    <Route path="variance-analysis" name="Variance Analysis" component={authenticate(VarianceAnalysisForm)} />
-                    <Route path="variance-analysis/variance-data-grid" name="Variance Analysis Grid" component={VarianceAnalysisGrid} />
-                    <Route path="variance-analysis/variance-chart" name="Variance Analysis Chart" component={VarianceAnalysisChart} />
+                    <Route path="variance-analysis" name="Variance Analysis" component={authenticate(VarianceAnalysis)} />
                     <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(ManageDefChange)} />
                     <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(ManageDataChange)} />
                     <Route path="manage-roles" name="Role Management" component={authenticate(ManageRoles)} />

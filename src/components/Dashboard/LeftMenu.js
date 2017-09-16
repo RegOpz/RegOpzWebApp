@@ -42,7 +42,7 @@ class LeftMenu extends Component {
                             <ul className="nav side-menu">
                                 <li>
                                     <a>
-                                        <i className="fa fa-home"></i> Meta Data Management<span className="fa fa-chevron-down"></span>
+                                        <i className="fa fa-cube"></i> Meta Data Management<span className="fa fa-chevron-down"></span>
                                     </a>
                                     <ul className="nav child_menu">
                                         <li>
@@ -118,7 +118,7 @@ class LeftMenu extends Component {
                                     </a>
                                     <ul className="nav child_menu">
                                         <li>
-                                            <a href="#/dashboard/variance-analysis">Variance Analysis</a>
+                                            <a href="#/dashboard/variance-analysis" onClick={this.handleLeftMenuClick}>Variance Analysis</a>
                                         </li>
                                     </ul>
                                 </li>

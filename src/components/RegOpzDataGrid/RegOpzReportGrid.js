@@ -166,6 +166,7 @@ class RegOpzReportGrid extends Component {
                   this.selectedCell = {
                     cell: item.cell,
                     value: item.value,
+                    item: item.item,
                     sheetName: this.selectedSheetName,
                     reportId: this.report_id,
                     reportingDate: this.reporting_date

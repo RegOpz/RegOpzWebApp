@@ -476,7 +476,7 @@ class MaintainReportRules extends Component {
                         <ul className="nav navbar-right panel_toolbox">
                           <li>
                             <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-rss"></i><small>{' Reports '}</small>
+                              <i className="fa fa-file-text-o"></i><small>{' Reports '}</small>
                               <i className="fa fa-caret-down"></i>
                             </a>
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>

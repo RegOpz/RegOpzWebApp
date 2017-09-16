@@ -60,9 +60,11 @@ export function actionSetDataExported(data){
   };
 }
 
-export function actionFetchVarianceData(report_id,first_date,subsequent_date){
+export function actionFetchVarianceData(report_id,first_date,subsequent_date,variance_tolerance){
   let url=BASE_URL+"analytics/variance-analysis/get-variance-report";
   url=url+"?report_id="+report_id+"&first_date="+first_date+"&subsequent_date="+subsequent_date;
+  url=url+"&variance_tolerance="+variance_tolerance;
+  console.log("Inside actionFetchVarianceData",url)
 
   const request=axios.get(url);
 
