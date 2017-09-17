@@ -18,7 +18,12 @@ class VarianceAnalysisChart extends Component{
   render(){
     if(this.props.chartData.data.length>0){
       var chartData = this.props.chartData;
-      var chartType = BarChart;
+      var chartType =  BarChart;
+      if (this.props.chartType == "PieChart") {
+        chartType = PieChart;
+      } else if (this.props.chartType == "LineChart") {
+        chartType = LineChart;
+      }
       var tileType = this.props.tileType; //"one_third";
       var ChartWithHOC = WidgetHoc(chartType, tileType);
       var keys = [];
@@ -35,7 +40,7 @@ class VarianceAnalysisChart extends Component{
               index++;
           }
       }
-      console.log("Inside chartdata",chartData,keys)
+      console.log("Inside chartdata",this.props.chartType,chartData,keys)
       return (
           <ChartWithHOC
               height={ this.props.height ? this.props.height : 300}

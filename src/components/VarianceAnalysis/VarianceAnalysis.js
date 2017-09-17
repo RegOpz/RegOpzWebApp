@@ -70,7 +70,7 @@ class VarianceAnalysis extends Component {
     this.dataSource = null;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
-    //this.selectedCell={};
+    this.refreshedData = true;
     this.selectedItems = [];
     this.selectedSheetIndex = null;
     this.form_data={};
@@ -165,8 +165,21 @@ class VarianceAnalysis extends Component {
   handleRefreshGrid(event){
     //this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
-    this.setState({itemEditable:true});
-    this.fetchDataToGrid(event);
+    this.refreshedData = true;
+    this.setState({
+        display: "showReportGrid",
+        showDrillDownData: false,
+        showDrillDownCalcBusinessRules: false,
+        showAggRuleDetails: false,
+        showCellChangeHistory: false,
+        showCharts: false,
+        selectedCell: {},
+        chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+        sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+        sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
+     },
+      ()=>{this.fetchDataToGrid(event);}
+    );
   }
 
   handleShowCharts(event){
@@ -235,7 +248,7 @@ class VarianceAnalysis extends Component {
       chartData.data[0][firstPeriod] = cell.item.first_value;
       chartData.data[0][subsequentPeriod] = cell.item.subsequent_value;
 
-      if ( this.state.reportId != cell.reportId || this.selectedSheetIndex != this.flatGrid.state.selectedSheet) {
+      if ( this.refreshedData || this.state.reportId != cell.reportId || this.selectedSheetIndex != this.flatGrid.state.selectedSheet) {
         let matrixData =[];
         let varianceData = [];
         let VAelement ={};
@@ -263,6 +276,7 @@ class VarianceAnalysis extends Component {
           rate: 'inc',
           data: varianceData.length ? varianceData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
         }
+        this.refreshedData = false;
       }
       this.setState({selectedCell: cell, chartData:chartData, sheetChartData: sheetChartData, sheetVarianceData: sheetVarianceData});
     }
@@ -571,6 +585,7 @@ class VarianceAnalysis extends Component {
                     <VarianceAnalysisChart
                       height = {150}
                       chartData = { this.state.sheetVarianceData }
+                      chartType = "BarChart"
                       tileType = "full_width" />
                     <VarianceAnalysisChart
                       height = {200}

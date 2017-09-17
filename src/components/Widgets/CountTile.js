@@ -13,7 +13,7 @@ class CountTile extends Component {
                     {" " + this.props.titleText}
                 </span>
                 <div className={'count ' + (this.props.countColor ? this.props.countColor : '')}>
-                    {this.props.countValue}
+                    <h4><b>{this.props.countValue}</b></h4>
                 </div>
                 <span className="count_bottom">
                     <i className={this.props.changeColor}>
