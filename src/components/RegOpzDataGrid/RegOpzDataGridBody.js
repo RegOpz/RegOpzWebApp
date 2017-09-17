@@ -119,15 +119,18 @@ export default class RegOpzDataGridBody extends Component {
         )
     }
     handleCellClick(event,value,item){
-      $(".reg_cell > span").removeClass("reg_cell_selected");
-      $(event.target).addClass("reg_cell_selected");
-      this.selectedCell = {
-                    cell: event.target.getAttribute("target"),
-                    value: value,
-                    item: item
-                  };
-      //console.log("handleCellClick",this.selectedCell);
-      this.props.onSelect(this.selectedCell);
+      // this condition to check is to prevent selecting the <span> and <i> content in the cell
+      if(event.target.getAttribute("target")){
+        $(".reg_cell > span").removeClass("reg_cell_selected");
+        $(event.target).addClass("reg_cell_selected");
+        this.selectedCell = {
+                      cell: event.target.getAttribute("target"),
+                      value: value,
+                      item: item
+                    };
+        //console.log("handleCellClick",this.selectedCell);
+        this.props.onSelect(this.selectedCell);
+      }
     }
     alphaSequence(i) {
         return i < 0

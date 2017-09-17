@@ -44,11 +44,13 @@ class LineChartWidget extends Component {
                                     <Legend />
                                 }
                                 {
-                                    this.props.keys.map(element => {
+                                    this.props.keys.map((element,index) => {
                                         return (
                                             <Line
                                                 onClick={this.props.handleClick}
                                                 dataKey={element.key}
+                                                stroke={element.color}
+                                                activeDot={{r: (element.activeDot ? index+3 : 4 ) }}
                                             />
                                         );
                                     })

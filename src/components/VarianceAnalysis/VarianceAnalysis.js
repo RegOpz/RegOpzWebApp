@@ -57,6 +57,7 @@ class VarianceAnalysis extends Component {
       showDrillDownCalcBusinessRules: false,
       showCellChangeHistory: false,
       showCharts: false,
+      refreshedData: true,
 
       display: false,
       selectedCell: {},
@@ -70,7 +71,6 @@ class VarianceAnalysis extends Component {
     this.dataSource = null;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
-    this.refreshedData = true;
     this.selectedItems = [];
     this.selectedSheetIndex = null;
     this.form_data={};
@@ -80,11 +80,11 @@ class VarianceAnalysis extends Component {
     this.aggRuleData = null;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+      { title: 'Variance Charts', iconClass: 'fa-bar-chart', checkDisabled: 'No', className: "btn-info", onClick: this.handleShowCharts.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      { title: 'Variance Charts', iconClass: 'fa-bar-chart', checkDisabled: 'No', className: "btn-info", onClick: this.handleShowCharts.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
@@ -100,6 +100,7 @@ class VarianceAnalysis extends Component {
     this.handleShowCharts = this.handleShowCharts.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
+    this.handleSelectedSheet = this.handleSelectedSheet.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
@@ -132,9 +133,10 @@ class VarianceAnalysis extends Component {
     console.log("handleSubmitVAForm selected report",formObj);
     this.currentPage = 0;
     this.selectedViewColumns=[];
-    this.selectedSheetIndex = null;
+    this.selectedSheetIndex = 0;
     this.setState({
         display: "showReportGrid",
+        refreshedData: true,
         reportId: formObj.report_id,
         varianceTolerance: formObj.variance_tolerance,
         firstReportingDate: formObj.first_date,
@@ -143,7 +145,10 @@ class VarianceAnalysis extends Component {
         sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
         sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
      },
-      ()=>{this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);}
+      ()=>{
+        this.fetchDataToGrid(event);
+        //this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);
+      }
     );
   }
 
@@ -165,9 +170,9 @@ class VarianceAnalysis extends Component {
   handleRefreshGrid(event){
     //this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
-    this.refreshedData = true;
     this.setState({
         display: "showReportGrid",
+        refreshedData: true,
         showDrillDownData: false,
         showDrillDownCalcBusinessRules: false,
         showAggRuleDetails: false,
@@ -187,7 +192,14 @@ class VarianceAnalysis extends Component {
     if(isOpen){
       this.setState({showCharts:false});
     } else {
-      this.setState({showCharts:true});
+      this.setState({showCharts:true},
+        ()=>{
+          if(this.state.refreshedData && this.props.gridDataViewReport){
+            let sheetDetail = { sheetIndex:this.selectedSheetIndex, reportId: this.state.reportId };
+            this.handleSelectedSheet(sheetDetail);
+          }
+        }
+      );
     }
   }
 
@@ -230,9 +242,58 @@ class VarianceAnalysis extends Component {
     }
 
   }
+  handleSelectedSheet(sheetDetail){
+    console.log("handleSelectedSheet",sheetDetail,this.state.refreshedData,this.state.reportId)
+    let { chartData, sheetChartData, sheetVarianceData } = this.state;
+    let firstPeriod = moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM");
+    let subsequentPeriod = moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM");
+
+    if ( this.state.refreshedData || this.state.reportId != sheetDetail.reportId || this.selectedSheetIndex != sheetDetail.sheetIndex) {
+      let matrixData =[];
+      let varianceData = [];
+      let VAelement ={};
+      this.selectedSheetIndex = sheetDetail.sheetIndex;
+      this.props.gridDataViewReport[this.selectedSheetIndex].matrix.map(item => {
+          VAelement ={};
+          if(item.origin == "DATA" && (item.variance != 0 || typeof item.variance != 'number')){
+            VAelement['name'] = item.cell;
+            VAelement[firstPeriod] = item.first_value;
+            VAelement[subsequentPeriod] = item.subsequent_value;
+            VAelement['variance'] = item.variance;
+            matrixData.push(VAelement)
+            varianceData.push({name:item.cell,variance:item.variance})
+          }
+      })
+      sheetChartData = {
+        title: 'Variance Value Chart for Sheet ' + this.props.gridDataViewReport[this.selectedSheetIndex].sheet,
+        value:  'Values with Variances %',
+        rate: 'inc',
+        data: matrixData.length ? matrixData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
+      }
+      sheetVarianceData = {
+        title: 'Variance Chart for Sheet ' + this.props.gridDataViewReport[this.selectedSheetIndex].sheet,
+        value:  '% Variances',
+        rate: 'inc',
+        data: varianceData.length ? varianceData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
+      }
+      chartData = {
+        title: "Variance",
+        rate: "inc",
+        value:"varaince %",
+        data:[{name: "Variance", value1:0,value2:0}]
+      }
+      console.log("handleSelectedSheet",sheetDetail,sheetChartData,sheetVarianceData);
+      this.setState({
+                      refreshedData: false,
+                      chartData: chartData,
+                      sheetChartData: sheetChartData,
+                      sheetVarianceData: sheetVarianceData
+                    });
+    }
+  }
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
-    let { sheetChartData, chartData, sheetVarianceData } = this.state;
+    let { chartData } = this.state;
     let firstPeriod = moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM");
     let subsequentPeriod = moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM");
 
@@ -247,38 +308,7 @@ class VarianceAnalysis extends Component {
       }
       chartData.data[0][firstPeriod] = cell.item.first_value;
       chartData.data[0][subsequentPeriod] = cell.item.subsequent_value;
-
-      if ( this.refreshedData || this.state.reportId != cell.reportId || this.selectedSheetIndex != this.flatGrid.state.selectedSheet) {
-        let matrixData =[];
-        let varianceData = [];
-        let VAelement ={};
-        this.selectedSheetIndex = this.flatGrid.state.selectedSheet;
-        this.props.gridDataViewReport[this.flatGrid.state.selectedSheet].matrix.map(item => {
-            VAelement ={};
-            if(item.origin == "DATA" && (item.value != 0 || typeof item.variance != 'number')){
-              VAelement['name'] = item.cell;
-              VAelement[firstPeriod] = item.first_value;
-              VAelement[subsequentPeriod] = item.subsequent_value;
-              VAelement['variance'] = item.variance;
-              matrixData.push(VAelement)
-              varianceData.push({name:item.cell,variance:item.variance})
-            }
-        })
-        sheetChartData = {
-          title: 'Variance Value Chart for Sheet ' + cell.sheetName,
-          value:  'Values with Variances %',
-          rate: 'inc',
-          data: matrixData.length ? matrixData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
-        }
-        sheetVarianceData = {
-          title: 'Variance Chart for Sheet ' + cell.sheetName,
-          value:  '% Variances',
-          rate: 'inc',
-          data: varianceData.length ? varianceData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
-        }
-        this.refreshedData = false;
-      }
-      this.setState({selectedCell: cell, chartData:chartData, sheetChartData: sheetChartData, sheetVarianceData: sheetVarianceData});
+      this.setState({selectedCell: cell, chartData:chartData });
     }
 
     //console.log("chartData",this.state.selectedCell,this.state.chartData,this.state.sheetChartData);
@@ -357,7 +387,8 @@ class VarianceAnalysis extends Component {
       //console.log("Repot Linkage",this.props.change_history);
       let sheetName = this.props.gridDataViewReport[0].sheet;
       this.setState({
-        display: "showHistory"
+        display: "showHistory",
+        showCharts: false,
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
       );
@@ -405,6 +436,7 @@ class VarianceAnalysis extends Component {
                             reporting_date={this.state.firstReportingDate}
                             gridData={this.props.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
+                            handleSelectedSheet={ this.handleSelectedSheet.bind(this) }
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;

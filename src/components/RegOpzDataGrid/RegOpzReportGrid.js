@@ -70,6 +70,14 @@ class RegOpzReportGrid extends Component {
             onSelect={(key) => {
                 this.setState({selectedSheet:key});
                 //this.renderTabs(key);
+                if (typeof this.props.handleSelectedSheet == 'function'){
+                  let sheetDetail = {
+                                      sheetIndex: key,
+                                      reportId: this.report_id
+                                    };
+                  this.props.handleSelectedSheet(sheetDetail);
+                }
+
             }}
             >
             {
