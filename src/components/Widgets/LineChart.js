@@ -5,6 +5,7 @@ import {
     YAxis,
     CartesianGrid,
     Line,
+    Brush,
     Tooltip,
     Legend,
     ResponsiveContainer
@@ -42,6 +43,10 @@ class LineChartWidget extends Component {
                                 {
                                     this.props.showLegend &&
                                     <Legend />
+                                }
+                                {
+                                    this.props.showBrush &&
+                                    <Brush dataKey='name' height={4} />
                                 }
                                 {
                                     this.props.keys.map((element,index) => {

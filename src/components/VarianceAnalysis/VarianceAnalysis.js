@@ -63,6 +63,7 @@ class VarianceAnalysis extends Component {
       selectedCell: {},
       chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
       sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+      sheetChartDataKeys: [],
       sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
     }
 
@@ -143,6 +144,7 @@ class VarianceAnalysis extends Component {
         subsequentReportingDate: formObj.subsequent_date,
         chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
         sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+        sheetChartDataKeys: [],
         sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
      },
       ()=>{
@@ -181,6 +183,7 @@ class VarianceAnalysis extends Component {
         selectedCell: {},
         chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
         sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+        sheetChartDataKeys: [],
         sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
      },
       ()=>{this.fetchDataToGrid(event);}
@@ -244,7 +247,7 @@ class VarianceAnalysis extends Component {
   }
   handleSelectedSheet(sheetDetail){
     console.log("handleSelectedSheet",sheetDetail,this.state.refreshedData,this.state.reportId)
-    let { chartData, sheetChartData, sheetVarianceData } = this.state;
+    let { chartData, sheetChartData, sheetChartDataKeys, sheetVarianceData } = this.state;
     let firstPeriod = moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM");
     let subsequentPeriod = moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM");
 
@@ -259,9 +262,9 @@ class VarianceAnalysis extends Component {
             VAelement['name'] = item.cell;
             VAelement[firstPeriod] = item.first_value;
             VAelement[subsequentPeriod] = item.subsequent_value;
-            VAelement['variance'] = item.variance;
+            VAelement['Variance'] = item.variance;
             matrixData.push(VAelement)
-            varianceData.push({name:item.cell,variance:item.variance})
+            varianceData.push({name:item.cell,Variance:item.variance})
           }
       })
       sheetChartData = {
@@ -270,6 +273,12 @@ class VarianceAnalysis extends Component {
         rate: 'inc',
         data: matrixData.length ? matrixData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
       }
+      sheetChartDataKeys = [
+        {key: 'name'},
+        {key: firstPeriod, keyType: "Bar"},
+        {key: subsequentPeriod, keyType: "Bar"},
+        {key: 'Variance', keyType: "Line", yAxisId: "right", color: '#778490' }, //#778490 #c5a1a1
+      ]
       sheetVarianceData = {
         title: 'Variance Chart for Sheet ' + this.props.gridDataViewReport[this.selectedSheetIndex].sheet,
         value:  '% Variances',
@@ -287,6 +296,7 @@ class VarianceAnalysis extends Component {
                       refreshedData: false,
                       chartData: chartData,
                       sheetChartData: sheetChartData,
+                      sheetChartDataKeys: sheetChartDataKeys,
                       sheetVarianceData: sheetVarianceData
                     });
     }
@@ -618,6 +628,7 @@ class VarianceAnalysis extends Component {
                       height = {150}
                       chartData = { this.state.sheetVarianceData }
                       chartType = "BarChart"
+                      showBrush = { true }
                       tileType = "full_width" />
                     <VarianceAnalysisChart
                       height = {200}
@@ -625,7 +636,10 @@ class VarianceAnalysis extends Component {
                       tileType = "one_third" />
                     <VarianceAnalysisChart
                       height = {200}
+                      chartType = "ComposedChart"
                       chartData = { this.state.sheetChartData }
+                      keys = { this.state.sheetChartDataKeys }
+                      showBrush = { true }
                       tileType = "two_third" />
                   </div>
                 }

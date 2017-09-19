@@ -1,17 +1,19 @@
 import React, { Component } from 'react';
 import {
-    BarChart,
+    ComposedChart,
     XAxis,
     YAxis,
     CartesianGrid,
+    Area,
     Bar,
+    Line,
     Brush,
     Tooltip,
     Legend,
     ResponsiveContainer
 } from 'recharts';
 
-class BarChartWidget extends Component {
+class ComposedChartWidget extends Component {
     constructor(props) {
         super(props);
     }
@@ -29,9 +31,10 @@ class BarChartWidget extends Component {
                     </div>
                     <div className="count_bottom">
                         <ResponsiveContainer height={this.props.height} width="100%">
-                            <BarChart data={this.props.data}>
+                            <ComposedChart data={this.props.data}>
                                 <XAxis dataKey="name" />
-                                <YAxis />
+                                <YAxis yAxisId="left" orientation="left" />
+                                <YAxis yAxisId="right" orientation="right" />
                                 {
                                     this.props.displayGrid &&
                                     <CartesianGrid strokeDasharray="3 3" />
@@ -50,16 +53,41 @@ class BarChartWidget extends Component {
                                 }
                                 {
                                     this.props.keys.map(element => {
+                                      if(element.keyType=='Bar'){
                                         return (
                                             <Bar
                                                 onClick={this.props.handleClick}
                                                 dataKey={element.key}
                                                 fill={element.color}
+                                                yAxisId={element.yAxisId}
                                             />
                                         );
+                                      }
+                                      if(element.keyType=='Line'){
+                                        return (
+                                            <Line
+                                                onClick={this.props.handleClick}
+                                                dataKey={element.key}
+                                                stroke={element.color}
+                                                yAxisId={element.yAxisId}
+                                            />
+                                        );
+                                      }
+                                      if(element.keyType=='Area'){
+                                        return (
+                                            <Area
+                                                onClick={this.props.handleClick}
+                                                dataKey={element.key}
+                                                fill={element.color}
+                                                stroke={element.color}
+                                                yAxisId={element.yAxisId}
+                                            />
+                                        );
+                                      }
+
                                     })
                                 }
-                            </BarChart>
+                            </ComposedChart>
                         </ResponsiveContainer>
                     </div>
                 </div >
@@ -68,4 +96,4 @@ class BarChartWidget extends Component {
     }
 }
 
-export default BarChartWidget;
+export default ComposedChartWidget;
