@@ -70,6 +70,9 @@ class LeftMenu extends Component {
                                         <li>
                                             <a href="#/dashboard/view-data" onClick={this.handleLeftMenuClick}>View Data</a>
                                         </li>
+                                        <li>
+                                            <a href="#/dashboard/load-data">Load Data</a>
+                                        </li>
                                     </ul>
                                 </li>
                                 <li>
