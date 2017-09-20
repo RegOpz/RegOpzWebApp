@@ -37,7 +37,7 @@ import EditUsers from './components/ManageUsers/ModifyUser/ModifyUser';
 import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
 import ManageDataChange from './components/ManageDataChange/ManageDataChange';
-import LoadData from './components/ViewData/LoadData';
+import LoadData from './components/MaintainSources/LoadData';
 
 
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware)(createStore);
