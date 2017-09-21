@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import { actionFetchSources } from '../../actions/MaintainSourcesAction';
+import { actionLoadData } from '../../actions/LoadDataAction';
 import { Grid, Row, Col } from 'react-bootstrap';
 import SourceCatalogList from './SourceCatalog';
 import DisplayLoadData from './DisplayLoadData';
@@ -13,13 +14,13 @@ class LoadData extends Component {
 
         this.state = {
             selectedItem: null,
-            selectedFile: null
         };
 
         this.handleSourceClick = this.handleSourceClick.bind(this);
-        this.handleFileChange = this.handleFileChange.bind(this);
-        this.runValidation = this.runValidation.bind(this);
-        this.applyRules = this.applyRules.bind(this);
+        this.handleLoadFile = this.handleLoadFile.bind(this);
+
+        //this.viewOnly = _.find(this.props.privileges, { permission: "Load Data" }) ? true : false;
+        this.writeOnly = _.find(this.props.privileges, { permission: "Load Data" }) ? true : false;
     }
 
     componentWillMount() {
@@ -31,18 +32,17 @@ class LoadData extends Component {
         this.setState({ selectedItem: item });
     }
 
-    handleFileChange(event) {
-        this.setState({ selectedFile: event.target.files[0] });
-    }
 
-    runValidation() {
-        console.log('Run Validation Clicked');
-        // TODO: Bind With Actions
-    }
 
-    applyRules() {
-        console.log('Apply Rules Clicked');
+    handleLoadFile(option) {
+        console.log('Run handleLoadFile',option);
         // TODO: Bind With Actions
+        // let loadInfo = {
+        //                 source_id: option.item.source_id,
+        //                 data_file: option.selectedFile.name,
+        //                 business_date: option.businessDate.format('YYYYMMDD')
+        //               }
+        // this.props.loadData(loadInfo);
     }
 
     render() {
@@ -53,7 +53,7 @@ class LoadData extends Component {
                         <div className="x_panel">
                             <div className="x_title">
                                 <div>
-                                    <h2>Maintain Sources <small>Available Sources to Load Data Definition</small></h2>
+                                    <h2>Load Data <small> Load Data for Available Sources</small></h2>
                                     <div className="row">
                                         <ul className="nav navbar-right panel_toolbox">
                                             <li>
@@ -63,7 +63,9 @@ class LoadData extends Component {
                                                 </a>
                                                 <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                                                     <li style={{ "padding": "5px" }}>
-                                                        <Link to="/dashboard/maintain-sources">
+                                                        <Link to="/dashboard/load-data"
+                                                          onClick={()=>{ this.setState({ selectedItem: null }) }}
+                                                          >
                                                             <i className="fa fa-bars"></i> All Sources List
                                                         </Link>
                                                     </li>
@@ -82,29 +84,22 @@ class LoadData extends Component {
                                 </div>
                             </div>
                             <div className="x_content">
-                                <Grid>
-                                    <Row>
-                                        <Col xs={12} sm={6}>
-                                            <SourceCatalogList
-                                                sourceCatalog={this.props.sourceCatalog.country}
-                                                navMenu={false}
-                                                handleSourceClick={this.handleSourceClick}
-                                            />
-                                        </Col>
-                                        <Col xs={12} sm={6} style={{ textAlign: 'center' }}>
-                                            {
-                                                this.state.selectedItem ?
-                                                    <DisplayLoadData
-                                                        selectedItem={this.state.selectedItem}
-                                                        handleFileChange={this.handleFileChange}
-                                                        runValidation={this.runValidation}
-                                                        applyRules={this.applyRules}
-                                                    /> :
-                                                    <h3>Please select an item to load data...</h3>
-                                            }
-                                        </Col>
-                                    </Row>
-                                </Grid>
+                              {
+                                  this.state.selectedItem ?
+                                      <DisplayLoadData
+                                          selectedItem={this.state.selectedItem}
+                                          handleLoadFile={this.handleLoadFile}
+                                      /> :
+                                      <h4>Please Select a Source to Load Data</h4>
+                              }
+                              {
+                                !this.state.selectedItem &&
+                                <SourceCatalogList
+                                    sourceCatalog={this.props.sourceCatalog.country}
+                                    navMenu={false}
+                                    handleSourceClick={this.handleSourceClick}
+                                />
+                              }
                             </div>
                         </div>
                     </div>
@@ -128,6 +123,9 @@ const mapDispatchToProps = (dispatch) => {
     return {
         fetchSources: (sources, country) => {
             dispatch(actionFetchSources(sources, country))
+        },
+        loadData: (loadInfo) => {
+            dispatch(actionLoadData(loadInfo))
         },
     }
 }
