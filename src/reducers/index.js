@@ -18,6 +18,7 @@ import RolesReducer from './RolesReducer';
 import RuleAssistReducer from './RuleAssistReducer';
 import { userDetailsReducer, apiDetailsReducer } from './CustomizeDashReducer';
 import LeftMenuReducer from './LeftMenuReducer';
+import { LoadDataReducer } from './LoadDataReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -40,6 +41,7 @@ const rootReducer = combineReducers({
   customize_dash: userDetailsReducer,
   api_details: apiDetailsReducer,
   leftmenu_store: LeftMenuReducer,
+  loadData: LoadDataReducer
 });
 
 export default rootReducer;
