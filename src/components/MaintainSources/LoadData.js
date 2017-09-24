@@ -17,7 +17,7 @@ class LoadData extends Component {
             selectedItem: null,
             applyRules: false,
             loadInfo: {},
-            displayAlertMsg: false
+            displayAlertMsg: true
         };
 
         this.handleSourceClick = this.handleSourceClick.bind(this);
@@ -59,6 +59,7 @@ class LoadData extends Component {
         let applyRules = option.applyRules;
 
         this.setState({ applyRules: applyRules, loadInfo: loadInfo, displayAlertMsg: true });
+        window.document.body.scrollTop = 0;
         this.props.loadDataFile(option.selectedFile);
     }
 
