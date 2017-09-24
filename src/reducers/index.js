@@ -18,7 +18,7 @@ import RolesReducer from './RolesReducer';
 import RuleAssistReducer from './RuleAssistReducer';
 import { userDetailsReducer, apiDetailsReducer } from './CustomizeDashReducer';
 import LeftMenuReducer from './LeftMenuReducer';
-import { LoadDataReducer } from './LoadDataReducer';
+import LoadDataReducer from './LoadDataReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -34,7 +34,7 @@ const rootReducer = combineReducers({
   create_report_store: CreateReportReducer,
   login_store: LoginReducer,
   def_change_store: DefChangeReducer,
-  data_change_store:DataChangeReducer,
+  data_change_store: DataChangeReducer,
   role_management: RolesReducer,
   form: formReducer,
   rule_assist: RuleAssistReducer,
