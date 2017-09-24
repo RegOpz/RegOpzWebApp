@@ -3,17 +3,21 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import { actionFetchSources } from '../../actions/MaintainSourcesAction';
-import { actionLoadData } from '../../actions/LoadDataAction';
-import { Grid, Row, Col } from 'react-bootstrap';
+import { actionLoadData, actionLoadDataFile } from '../../actions/LoadDataAction';
+import { Grid, Row, Col, Alert } from 'react-bootstrap';
 import SourceCatalogList from './SourceCatalog';
 import DisplayLoadData from './DisplayLoadData';
 
 class LoadData extends Component {
     constructor(props) {
         super(props);
+        console.log('Props: ', props);
 
         this.state = {
             selectedItem: null,
+            applyRules: false,
+            loadInfo: {},
+            displayAlertMsg: false
         };
 
         this.handleSourceClick = this.handleSourceClick.bind(this);
@@ -27,22 +31,35 @@ class LoadData extends Component {
         this.props.fetchSources();
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.loadDataProps.loadDataFileMsg)
+            if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Uploaded Successfully') {
+                this.props.loadData({
+                    source_id: this.state.loadInfo.source_id,
+                    business_date: this.state.loadInfo.business_date,
+                    data_file: nextProps.loadDataProps.loadDataFileMsg.filename
+                });
+                console.log('Now Loading The Data');
+            }
+        console.log('Next Props:', nextProps);
+    }
+
     handleSourceClick(item) {
         console.log('Handle Source Click Item: ', item);
         this.setState({ selectedItem: item });
     }
 
-
-
     handleLoadFile(option) {
-        console.log('Run handleLoadFile',option);
-        // TODO: Bind With Actions
-        // let loadInfo = {
-        //                 source_id: option.item.source_id,
-        //                 data_file: option.selectedFile.name,
-        //                 business_date: option.businessDate.format('YYYYMMDD')
-        //               }
-        // this.props.loadData(loadInfo);
+        console.log('Run handleLoadFile', option);
+        // data_file: option.selectedFile.name,
+        let loadInfo = {
+            source_id: option.item.source_id,
+            business_date: option.businessDate.format('YYYYMMDD')
+        }
+        let applyRules = option.applyRules;
+
+        this.setState({ applyRules: applyRules, loadInfo: loadInfo, displayAlertMsg: true });
+        this.props.loadDataFile(option.selectedFile);
     }
 
     render() {
@@ -64,8 +81,8 @@ class LoadData extends Component {
                                                 <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                                                     <li style={{ "padding": "5px" }}>
                                                         <Link to="/dashboard/load-data"
-                                                          onClick={()=>{ this.setState({ selectedItem: null }) }}
-                                                          >
+                                                            onClick={() => { this.setState({ selectedItem: null }) }}
+                                                        >
                                                             <i className="fa fa-bars"></i> All Sources List
                                                         </Link>
                                                     </li>
@@ -84,22 +101,30 @@ class LoadData extends Component {
                                 </div>
                             </div>
                             <div className="x_content">
-                              {
-                                  this.state.selectedItem ?
-                                      <DisplayLoadData
-                                          selectedItem={this.state.selectedItem}
-                                          handleLoadFile={this.handleLoadFile}
-                                      /> :
-                                      <h4>Please Select a Source to Load Data</h4>
-                              }
-                              {
-                                !this.state.selectedItem &&
-                                <SourceCatalogList
-                                    sourceCatalog={this.props.sourceCatalog.country}
-                                    navMenu={false}
-                                    handleSourceClick={this.handleSourceClick}
-                                />
-                              }
+                                {
+                                    this.state.displayAlertMsg &&
+                                    <Alert bsStyle="warning">
+                                        Data File is being transferred. This might take a while. Though you can continue working.
+                                    </Alert>
+                                }
+                            </div>
+                            <div className="x_content">
+                                {
+                                    this.state.selectedItem ?
+                                        <DisplayLoadData
+                                            selectedItem={this.state.selectedItem}
+                                            handleLoadFile={this.handleLoadFile}
+                                        /> :
+                                        <h4>Please Select a Source to Load Data</h4>
+                                }
+                                {
+                                    !this.state.selectedItem &&
+                                    <SourceCatalogList
+                                        sourceCatalog={this.props.sourceCatalog.country}
+                                        navMenu={false}
+                                        handleSourceClick={this.handleSourceClick}
+                                    />
+                                }
                             </div>
                         </div>
                     </div>
@@ -114,19 +139,24 @@ class LoadData extends Component {
 }
 
 function mapStateToProps(state) {
+    console.log('State: ', state);
     return {
-        sourceCatalog: state.source_feeds.sources
+        sourceCatalog: state.source_feeds.sources,
+        loadDataProps: state.loadData
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         fetchSources: (sources, country) => {
-            dispatch(actionFetchSources(sources, country))
+            dispatch(actionFetchSources(sources, country));
         },
         loadData: (loadInfo) => {
-            dispatch(actionLoadData(loadInfo))
+            dispatch(actionLoadData(loadInfo));
         },
+        loadDataFile: (file) => {
+            dispatch(actionLoadDataFile(file));
+        }
     }
 }
 
