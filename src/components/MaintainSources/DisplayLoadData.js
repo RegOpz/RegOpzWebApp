@@ -159,10 +159,10 @@ class DisplayLoadData extends Component {
                                           <tbody>
                                             {
                                               this.state.fileContents.map((line,index)=>{
-                                                if(index<5){
+                                                if(index<10){
                                                   return(
                                                     <tr key={index}>
-                                                      <td><b>{index}</b></td>
+                                                      <td><b>{index + 1}</b></td>
                                                       <td>{line}</td>
                                                     </tr>
                                                     )
