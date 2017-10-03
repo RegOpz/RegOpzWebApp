@@ -6,12 +6,18 @@ import {
 
 
 export default function (state = {}, action) {
-    console.log("Action received: ", action);
+    console.log("Action received loadDtaReducer : ", action);
+    if (action.error) {
+        return {
+          error: action.payload.response,
+          message: action.payload.message
+        };
+    }
 
     switch (action.type) {
         case LOAD_DATA:
             return {
-                loadDataMsg: action.payload.data
+                loadDataFileMsg: action.payload.data
             };
 
         case LOAD_DATA_FILE:

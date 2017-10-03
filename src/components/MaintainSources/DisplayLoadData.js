@@ -23,13 +23,15 @@ class DisplayLoadData extends Component {
 
     handleSubmit() {
         console.log("Inside handleSubmit");
-        let options = {
-            item: this.props.selectedItem,
-            selectedFile: this.state.selectedFile,
-            businessDate: this.state.businessDate,
-            applyRules: this.state.applyRules,
+        if (this.state.businessDate && this.state.selectedFile) {
+            let options = {
+                item: this.props.selectedItem,
+                selectedFile: this.state.selectedFile,
+                businessDate: this.state.businessDate,
+                applyRules: this.state.applyRules,
+            }
+            this.props.handleLoadFile(options);
         }
-        this.props.handleLoadFile(options);
     }
 
     handleFileChange(event) {
@@ -41,7 +43,8 @@ class DisplayLoadData extends Component {
     }
 
     loadFileContents() {
-        this.setState({ fileContents: this.fileReader.result.substring(0, 1000) });
+        let lines = this.fileReader.result.split(/\r?\n/);
+        this.setState({ fileContents: lines });
     }
 
     handleBusinessDateChange(date) {
@@ -134,14 +137,44 @@ class DisplayLoadData extends Component {
 
                         {
                             this.state.selectedFile &&
-                            <div className="form-group">
-                                <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">File Preview</label>
-                                <Panel
-                                    className="col-md-6 col-sm-6 col-xs-12"
-                                >
-                                    {this.state.fileContents}
-                                </Panel>
-                            </div>
+                            this.state.fileContents &&
+                            <div className="x_panel">
+                                <div className="x_title">
+                                    <div>
+                                        <h2>File Content Review <small> Data Lines </small>
+                                        </h2>
+                                        <div className="clearfix"></div>
+                                    </div>
+                                </div>
+                                <div className="x_content">
+                                  <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                                    <div className="row">
+                                      <table className="table table-hover">
+                                        <thead>
+                                          <tr>
+                                            <th>#Line</th>
+                                            <th>Data in File</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {
+                                              this.state.fileContents.map((line,index)=>{
+                                                if(index<5){
+                                                  return(
+                                                    <tr key={index}>
+                                                      <td><b>{index}</b></td>
+                                                      <td>{line}</td>
+                                                    </tr>
+                                                    )
+                                                }
+                                              })
+                                            }
+                                          </tbody>
+                                          </table>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                         }
 
                         <div className="form-group">
@@ -151,7 +184,7 @@ class DisplayLoadData extends Component {
                                     dateFormat="DD-MMM-YYYY"
                                     selected={this.state.businessDate}
                                     onChange={this.handleBusinessDateChange}
-                                    placeholderText="Business Date"
+                                    placeholderText="Business Date,dd-mon-yyyy"
                                     required="required"
                                     className="view_data_date_picker_input form-control"
                                 />
@@ -172,9 +205,9 @@ class DisplayLoadData extends Component {
                             <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name"></label>
                             <input
                                 type="checkbox"
-                                id="loadData"
-                                name="loadData"
-                                value="loadData"
+                                id="applyrules"
+                                name="applyrules"
+                                value="applyrules"
                                 className="control-label col-md-offset-3"
                                 onChange={this.handleApplyRuleCheckBox}
                             /><b> Apply Rules after Load Data</b>
