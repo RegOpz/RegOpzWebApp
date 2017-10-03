@@ -17,7 +17,9 @@ class LoadData extends Component {
             selectedItem: null,
             applyRules: false,
             loadInfo: {},
-            displayAlertMsg: true
+            displayAlertMsg: false,
+            alertMsg : "Data File is being transferred. This might take a while. Though you can continue working.",
+            alertStyle: "info"
         };
 
         this.handleSourceClick = this.handleSourceClick.bind(this);
@@ -32,21 +34,41 @@ class LoadData extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.loadDataProps.loadDataFileMsg)
-            if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Uploaded Successfully') {
+        let { alertMsg, alertStyle } = this.state;
+        console.log('At the begining of Next Props:', nextProps,nextProps.loadDataProps);
+        if (nextProps.loadDataProps.error || nextProps.loadDataProps.message){
+          alertMsg = nextProps.loadDataProps.message;
+          alertMsg += nextProps.loadDataProps.error ? " " + nextProps.loadDataProps.error.data.msg : "";
+          alertStyle = "danger";
+          console.log('Error Loading The Data',this.state);
+        }
+        if (nextProps.loadDataProps.loadDataFileMsg) {
+            if (nextProps.loadDataProps.loadDataFileMsg.msg === 'File Transferred Successfully') {
+                alertMsg = "File Transferred Successfully. Now Loading Data. This might take a while. Though you can continue working.";
+                alertStyle = "info";
                 this.props.loadData({
                     source_id: this.state.loadInfo.source_id,
                     business_date: this.state.loadInfo.business_date,
-                    data_file: nextProps.loadDataProps.loadDataFileMsg.filename
+                    data_file: nextProps.loadDataProps.loadDataFileMsg.filename,
+                    file: this.state.loadInfo.file.name
                 });
                 console.log('Now Loading The Data');
             }
-        console.log('Next Props:', nextProps);
+            else if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Loaded Successfully') {
+              alertMsg = "Data Loaded Successfully.";
+              alertStyle = "success";
+              console.log('Now waiting for Data Load to complete');
+            }
+        }
+        this.setState({alertMsg:alertMsg, alertStyle: alertStyle},()=>{console.log('End of setState...',this.state);});
+        console.log('Next Props:', nextProps,nextProps.loadDataProps);
     }
 
     handleSourceClick(item) {
         console.log('Handle Source Click Item: ', item);
-        this.setState({ selectedItem: item });
+        this.setState({ selectedItem: item,
+                        alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
+                         alertStyle: "info" });
     }
 
     handleLoadFile(option) {
@@ -54,7 +76,8 @@ class LoadData extends Component {
         // data_file: option.selectedFile.name,
         let loadInfo = {
             source_id: option.item.source_id,
-            business_date: option.businessDate.format('YYYYMMDD')
+            business_date: option.businessDate.format('YYYYMMDD'),
+            file: option.selectedFile
         }
         let applyRules = option.applyRules;
 
@@ -82,7 +105,7 @@ class LoadData extends Component {
                                                 <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                                                     <li style={{ "padding": "5px" }}>
                                                         <Link to="/dashboard/load-data"
-                                                            onClick={() => { this.setState({ selectedItem: null }) }}
+                                                            onClick={() => { this.setState({ selectedItem: null, displayAlertMsg: false, }) }}
                                                         >
                                                             <i className="fa fa-bars"></i> All Sources List
                                                         </Link>
@@ -104,8 +127,8 @@ class LoadData extends Component {
                             <div className="x_content">
                                 {
                                     this.state.displayAlertMsg &&
-                                    <Alert bsStyle="warning">
-                                        Data File is being transferred. This might take a while. Though you can continue working.
+                                    <Alert bsStyle={this.state.alertStyle}>
+                                        {this.state.alertMsg}
                                     </Alert>
                                 }
                             </div>
