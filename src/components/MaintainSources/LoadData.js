@@ -4,6 +4,9 @@ import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import { actionFetchSources } from '../../actions/MaintainSourcesAction';
 import { actionLoadData, actionLoadDataFile } from '../../actions/LoadDataAction';
+import {
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
 import { Grid, Row, Col, Alert } from 'react-bootstrap';
 import SourceCatalogList from './SourceCatalog';
 import DisplayLoadData from './DisplayLoadData';
@@ -19,7 +22,7 @@ class LoadData extends Component {
             loadInfo: {},
             displayAlertMsg: false,
             alertMsg : "Data File is being transferred. This might take a while. Though you can continue working.",
-            alertStyle: "info"
+            alertStyle: "warning"
         };
 
         this.handleSourceClick = this.handleSourceClick.bind(this);
@@ -34,41 +37,53 @@ class LoadData extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        let { alertMsg, alertStyle } = this.state;
-        console.log('At the begining of Next Props:', nextProps,nextProps.loadDataProps);
-        if (nextProps.loadDataProps.error || nextProps.loadDataProps.message){
-          alertMsg = nextProps.loadDataProps.message;
-          alertMsg += nextProps.loadDataProps.error ? " " + nextProps.loadDataProps.error.data.msg : "";
-          alertStyle = "danger";
-          console.log('Error Loading The Data',this.state);
-        }
-        if (nextProps.loadDataProps.loadDataFileMsg) {
-            if (nextProps.loadDataProps.loadDataFileMsg.msg === 'File Transferred Successfully') {
-                alertMsg = "File Transferred Successfully. Now Loading Data. This might take a while. Though you can continue working.";
-                alertStyle = "info";
-                this.props.loadData({
-                    source_id: this.state.loadInfo.source_id,
-                    business_date: this.state.loadInfo.business_date,
-                    data_file: nextProps.loadDataProps.loadDataFileMsg.filename,
-                    file: this.state.loadInfo.file.name
-                });
-                console.log('Now Loading The Data');
+        if(this.props.leftmenu){
+            this.setState({
+              selectedItem: null,
+              displayAlertMsg: false,
+            });
+        } else {
+            let { alertMsg, alertStyle } = this.state;
+            console.log('At the begining of Next Props:', nextProps,nextProps.loadDataProps);
+            if (nextProps.loadDataProps.error || nextProps.loadDataProps.message){
+              alertMsg = nextProps.loadDataProps.message;
+              alertMsg += nextProps.loadDataProps.error ? " " + nextProps.loadDataProps.error.data.msg : "";
+              alertStyle = "danger";
+              console.log('Error Loading The Data',this.state);
             }
-            else if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Loaded Successfully') {
-              alertMsg = "Data Loaded Successfully.";
-              alertStyle = "success";
-              console.log('Now waiting for Data Load to complete');
+            if (nextProps.loadDataProps.loadDataFileMsg) {
+                if (nextProps.loadDataProps.loadDataFileMsg.msg === 'File Transferred Successfully') {
+                    alertMsg = "File Transferred Successfully. Now Loading Data. This might take a while. Though you can continue working.";
+                    alertStyle = "info";
+                    this.props.loadData({
+                        source_id: this.state.loadInfo.source_id,
+                        business_date: this.state.loadInfo.business_date,
+                        data_file: nextProps.loadDataProps.loadDataFileMsg.filename,
+                        file: this.state.loadInfo.file.name
+                    });
+                    console.log('Now Loading The Data');
+                }
+                else if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Loaded Successfully') {
+                  alertMsg = "Data Loaded Successfully.";
+                  alertStyle = "success";
+                  console.log('Now waiting for Data Load to complete');
+                }
             }
+            this.setState({alertMsg:alertMsg, alertStyle: alertStyle},()=>{console.log('End of setState...',this.state);});
+            console.log('Next Props:', nextProps,nextProps.loadDataProps);
         }
-        this.setState({alertMsg:alertMsg, alertStyle: alertStyle},()=>{console.log('End of setState...',this.state);});
-        console.log('Next Props:', nextProps,nextProps.loadDataProps);
+    }
+
+    componentDidUpdate() {
+      console.log("componentDidUpdate LoadData");
+       this.props.leftMenuClick(false);
     }
 
     handleSourceClick(item) {
         console.log('Handle Source Click Item: ', item);
         this.setState({ selectedItem: item,
                         alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
-                         alertStyle: "info" });
+                         alertStyle: "warning" });
     }
 
     handleLoadFile(option) {
@@ -166,7 +181,9 @@ function mapStateToProps(state) {
     console.log('State: ', state);
     return {
         sourceCatalog: state.source_feeds.sources,
-        loadDataProps: state.loadData
+        loadDataProps: state.loadData,
+        login_details: state.login_store,
+        leftmenu: state.leftmenu_store.leftmenuclick,
     };
 }
 
@@ -180,7 +197,10 @@ const mapDispatchToProps = (dispatch) => {
         },
         loadDataFile: (file) => {
             dispatch(actionLoadDataFile(file));
-        }
+        },
+        leftMenuClick:(isLeftMenu) => {
+          dispatch(actionLeftMenuClick(isLeftMenu));
+        },
     }
 }
 
