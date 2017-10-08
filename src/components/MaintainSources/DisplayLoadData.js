@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
-import { Panel } from 'react-bootstrap';
+import { Panel, Button } from 'react-bootstrap';
 
 class DisplayLoadData extends Component {
     constructor(props) {
@@ -9,7 +9,11 @@ class DisplayLoadData extends Component {
             selectedFile: null,
             businessDate: null,
             applyRules: false,
-            fileContents: ''
+            fileContents: [],
+            chunkSize: 1024,
+            offset: 0,
+            startIndex: 0,
+            contentLength: 0,
         }
 
         this.fileReader = new FileReader();
@@ -19,6 +23,28 @@ class DisplayLoadData extends Component {
         this.handleFileChange = this.handleFileChange.bind(this);
         this.handleBusinessDateChange = this.handleBusinessDateChange.bind(this);
         this.handleApplyRuleCheckBox = this.handleApplyRuleCheckBox.bind(this);
+        this.handlePageChangeEvent = this.handlePageChangeEvent.bind(this);
+    }
+
+    handlePageChangeEvent(type) {
+        let offset = this.state.offset;
+        let chunkSize = this.state.chunkSize;
+        let selectedFile = this.state.selectedFile;
+
+        switch (type) {
+            case 'NEXT':
+                offset += chunkSize;
+                break;
+
+            default:
+                if (offset >= chunkSize)
+                    offset -= chunkSize;
+                break;
+        }
+
+        let slice = selectedFile.slice(offset, offset + chunkSize);
+        this.fileReader.readAsArrayBuffer(slice);
+        this.setState({ offset: offset });
     }
 
     handleSubmit() {
@@ -38,13 +64,29 @@ class DisplayLoadData extends Component {
         console.log('Run handleFileChange');
         let file = event.target.files[0];
 
-        this.fileReader.readAsText(file);
-        this.setState({ selectedFile: file });
+        let slice = file.slice(0, 0 + this.state.chunkSize);
+        this.fileReader.readAsArrayBuffer(slice);
+        this.setState({ offset: 0, selectedFile: file });
     }
 
     loadFileContents() {
-        let lines = this.fileReader.result.split(/\r?\n/);
-        this.setState({ fileContents: lines });
+        let view = new Uint8Array(this.fileReader.result);
+        let encodedString = String.fromCharCode.apply(null, view);
+        let decodedString = decodeURIComponent(encodedString);
+
+        let lines = decodedString.split(/\r?\n/);
+
+
+        let offset = this.state.offset;
+        let chunkSize = this.state.chunkSize;
+
+        if (decodedString.length === 0 && offset >= chunkSize) {
+            offset -= chunkSize;
+            this.setState({ offset: offset });
+        }
+        else {
+            this.setState({ fileContents: lines });
+        }
     }
 
     handleBusinessDateChange(date) {
@@ -147,34 +189,42 @@ class DisplayLoadData extends Component {
                                     </div>
                                 </div>
                                 <div className="x_content">
-                                  <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
-                                    <div className="row">
-                                      <table className="table table-hover">
-                                        <thead>
-                                          <tr>
-                                            <th>#Line</th>
-                                            <th>Data in File</th>
-                                            </tr>
-                                          </thead>
-                                          <tbody>
-                                            {
-                                              this.state.fileContents.map((line,index)=>{
-                                                if(index<10){
-                                                  return(
-                                                    <tr key={index}>
-                                                      <td><b>{index + 1}</b></td>
-                                                      <td>{line}</td>
+                                    <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                                        <div className="row">
+                                            <table className="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#Line</th>
+                                                        <th>Data in File</th>
                                                     </tr>
-                                                    )
-                                                }
-                                              })
-                                            }
-                                          </tbody>
-                                          </table>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        this.state.fileContents.map((line, index) => {
+                                                            if (index < 10) {
+                                                                return (
+                                                                    <tr key={index}>
+                                                                        <td><b>{index + 1}</b></td>
+                                                                        <td>{line}</td>
+                                                                    </tr>
+                                                                )
+                                                            }
+                                                        })
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="row text-center">
+                                            <Button onClick={() => { this.handlePageChangeEvent('PREV') }}>
+                                                Previous
+                                            </Button>
+                                            <Button onClick={() => { this.handlePageChangeEvent('NEXT') }}>
+                                                Next
+                                            </Button>
+                                        </div>
                                     </div>
-                                  </div>
                                 </div>
-                              </div>
+                            </div>
                         }
 
                         <div className="form-group">
