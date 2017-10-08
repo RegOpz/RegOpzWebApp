@@ -72,15 +72,14 @@ class DisplayLoadData extends Component {
     loadFileContents() {
         let view = new Uint8Array(this.fileReader.result);
         let encodedString = String.fromCharCode.apply(null, view);
-        let decodedString = decodeURIComponent(encodedString);
 
-        let lines = decodedString.split(/\r?\n/);
+        let lines = encodedString.split(/\r?\n/);
 
 
         let offset = this.state.offset;
         let chunkSize = this.state.chunkSize;
 
-        if (decodedString.length === 0 && offset >= chunkSize) {
+        if (encodedString.length === 0 && offset >= chunkSize) {
             offset -= chunkSize;
             this.setState({ offset: offset });
         }
