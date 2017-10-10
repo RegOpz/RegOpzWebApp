@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 import { actionFetchSources } from '../../actions/MaintainSourcesAction';
 import { actionLoadData, actionLoadDataFile } from '../../actions/LoadDataAction';
 import {
-  actionLeftMenuClick,
+    actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
 import { Grid, Row, Col, Alert } from 'react-bootstrap';
 import SourceCatalogList from './SourceCatalog';
@@ -21,7 +21,7 @@ class LoadData extends Component {
             applyRules: false,
             loadInfo: {},
             displayAlertMsg: false,
-            alertMsg : "Data File is being transferred. This might take a while. Though you can continue working.",
+            alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
             alertStyle: "warning"
         };
 
@@ -37,19 +37,19 @@ class LoadData extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if(this.props.leftmenu){
+        if (this.props.leftmenu) {
             this.setState({
-              selectedItem: null,
-              displayAlertMsg: false,
+                selectedItem: null,
+                displayAlertMsg: false,
             });
         } else {
             let { alertMsg, alertStyle } = this.state;
-            console.log('At the begining of Next Props:', nextProps,nextProps.loadDataProps);
-            if (nextProps.loadDataProps.error || nextProps.loadDataProps.message){
-              alertMsg = nextProps.loadDataProps.message;
-              alertMsg += nextProps.loadDataProps.error ? " " + nextProps.loadDataProps.error.data.msg : "";
-              alertStyle = "danger";
-              console.log('Error Loading The Data',this.state);
+            console.log('At the begining of Next Props:', nextProps, nextProps.loadDataProps);
+            if (nextProps.loadDataProps.error || nextProps.loadDataProps.message) {
+                alertMsg = nextProps.loadDataProps.message;
+                alertMsg += nextProps.loadDataProps.error ? " " + nextProps.loadDataProps.error.data.msg : "";
+                alertStyle = "danger";
+                console.log('Error Loading The Data', this.state);
             }
             if (nextProps.loadDataProps.loadDataFileMsg) {
                 if (nextProps.loadDataProps.loadDataFileMsg.msg === 'File Transferred Successfully') {
@@ -64,26 +64,28 @@ class LoadData extends Component {
                     console.log('Now Loading The Data');
                 }
                 else if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Loaded Successfully') {
-                  alertMsg = "Data Loaded Successfully.";
-                  alertStyle = "success";
-                  console.log('Now waiting for Data Load to complete');
+                    alertMsg = "Data Loaded Successfully.";
+                    alertStyle = "success";
+                    console.log('Now waiting for Data Load to complete');
                 }
             }
-            this.setState({alertMsg:alertMsg, alertStyle: alertStyle},()=>{console.log('End of setState...',this.state);});
-            console.log('Next Props:', nextProps,nextProps.loadDataProps);
+            this.setState({ alertMsg: alertMsg, alertStyle: alertStyle }, () => { console.log('End of setState...', this.state); });
+            console.log('Next Props:', nextProps, nextProps.loadDataProps);
         }
     }
 
     componentDidUpdate() {
-      console.log("componentDidUpdate LoadData");
-       this.props.leftMenuClick(false);
+        console.log("componentDidUpdate LoadData");
+        this.props.leftMenuClick(false);
     }
 
     handleSourceClick(item) {
         console.log('Handle Source Click Item: ', item);
-        this.setState({ selectedItem: item,
-                        alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
-                         alertStyle: "warning" });
+        this.setState({
+            selectedItem: item,
+            alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
+            alertStyle: "warning"
+        });
     }
 
     handleLoadFile(option) {
@@ -198,8 +200,8 @@ const mapDispatchToProps = (dispatch) => {
         loadDataFile: (file) => {
             dispatch(actionLoadDataFile(file));
         },
-        leftMenuClick:(isLeftMenu) => {
-          dispatch(actionLeftMenuClick(isLeftMenu));
+        leftMenuClick: (isLeftMenu) => {
+            dispatch(actionLeftMenuClick(isLeftMenu));
         },
     }
 }
