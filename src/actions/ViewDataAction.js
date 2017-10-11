@@ -165,7 +165,7 @@ export function actionExportCSV(table_name,business_ref,sql){
 }
 
 export function actionFetchReportCatalog(reporting_date_start, reporting_date_end,reporting_date){
-  let url = BASE_URL + "document/get-report-list?"
+  let url = BASE_URL + "view-report/get-report-list?"
   if (reporting_date){ url = url + "reporting_date="+ reporting_date }
   if (reporting_date_start){url = url + "reporting_date_start="+ reporting_date_start}
   if (reporting_date_end){url = url + "&reporting_date_end="+ reporting_date_end}

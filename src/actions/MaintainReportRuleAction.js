@@ -103,7 +103,7 @@ export function actionDeleteRuleData(id, table_name, at,audit_info) {
 }
 
 export function actionExportXlsx(report_id,reporting_date,cell_format_yn){
-  const url = BASE_URL + "document/get-report-export-to-excel?report_id=" + report_id
+  const url = BASE_URL + "view-report/get-report-export-to-excel?report_id=" + report_id
               + "&reporting_date=" + reporting_date
               + "&cell_format_yn=" + cell_format_yn;
   return{
@@ -113,7 +113,7 @@ export function actionExportXlsx(report_id,reporting_date,cell_format_yn){
 }
 
 export function actionExportRulesXlsx(report_id){
-  const url = BASE_URL + "document/get-report-rule-export-to-excel?report_id=" + report_id;
+  const url = BASE_URL + "report-rule/get-report-rule-export-to-excel?report_id=" + report_id;
   return{
     type:EXPORT_REPORT_RULE_XLSX,
     payload:axios.get(url)

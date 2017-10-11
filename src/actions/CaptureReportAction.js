@@ -6,8 +6,11 @@ export let DRILL_DOWN = 'DRILL_DOWN';
 
 // TODO:
 export function actionFetchReportData(report_id, reporting_date) {
-  const url = BASE_URL + "document/" + report_id + "?reporting_date="
-              + reporting_date;
+  let url = BASE_URL + "view-report/report/" + report_id;
+  if(reporting_date){
+    url+="?reporting_date="+reporting_date;
+  }
+
   const request = axios.get(url);
   //console.log(request);
   return {
