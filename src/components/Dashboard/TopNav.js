@@ -17,18 +17,27 @@ class TopNav extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        let notifications = this.state.notifications;
+
+        let date = new Date();
+        let formattedTime = date.getHours() + ':' + date.getMinutes()
+        if (nextProps.loadData.error || nextProps.loadData.message) {
+            let alertMsg = nextProps.loadData.message;
+            alertMsg += nextProps.loadData.error ? " " + nextProps.loadData.error.data.msg : "";
+            notifications.push({
+                message: alertMsg,
+                time: formattedTime,
+                style: "red"
+            });
+        }
         if (nextProps.loadData.loadDataFileMsg) {
-            let notifications = this.state.notifications;
-
-            let date = new Date();
-            let formattedTime = date.getHours() + ':' + date.getMinutes()
-
             notifications.push({
                 message: nextProps.loadData.loadDataFileMsg.msg,
-                time: formattedTime
+                time: formattedTime,
+                style: ""
             });
-            this.setState({ notifications: notifications });
         }
+        this.setState({ notifications: notifications });
     }
 
     render() {
@@ -77,12 +86,12 @@ class TopNav extends Component {
                                             return (
                                                 <li key={index}>
                                                     <a>
-                                                        <span className="image"><img src="images/img.jpg" alt="Profile Image" /></span>
+                                                        <span className="image"><img src="images/user.png" alt="Profile Image" /></span>
                                                         <span>
                                                             <span>{this.props.login.user}</span>
                                                             <span className="time">{element.time}</span>
                                                         </span>
-                                                        <span className="message">
+                                                        <span className={"message " + element.style}>
                                                             {element.message}
                                                         </span>
                                                     </a>
