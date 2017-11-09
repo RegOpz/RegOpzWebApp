@@ -68,7 +68,7 @@ class LoginComponent extends Component {
                                     <div className="clearfix"></div>
                                     <br/>
                                     <div className="copyright">
-                                        <h1><i className="fa fa-paw"></i> RegOpz</h1>
+                                        <h1><img src="../images/logo.png" className="img-circle "></img> RegOpz</h1>
                                         <p>©2017 All Rights Reserved. RegOpz Pvt. Ltd.</p>
                                     </div>
                                 </div>

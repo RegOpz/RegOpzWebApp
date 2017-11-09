@@ -49,7 +49,7 @@ class ComposedChartWidget extends Component {
                                 }
                                 {
                                     this.props.showBrush &&
-                                    <Brush dataKey='name' height={4} />
+                                    <Brush dataKey='name' height={15} />
                                 }
                                 {
                                     this.props.keys.map(element => {
