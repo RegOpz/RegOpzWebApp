@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { Label } from 'react-bootstrap';
+import moment from 'moment';
 
 
 class DataReportLinkage extends Component {
@@ -62,6 +63,7 @@ class DataReportLinkage extends Component {
                   <th>Cell Rule</th>
                   <th>Rule Condition</th>
                   <th>Record Rules</th>
+                  <th>Period</th>
                 </tr>
               </thead>
               <tbody>
@@ -76,6 +78,11 @@ class DataReportLinkage extends Component {
                         <td>{item.cell_calc_ref}</td>
                         <td><p>{item.cell_business_rules.toString().replace(/,/g,' ')}</p></td>
                         <td><p>{item.data_qualifying_rules.toString().replace(/,/g,' ')}</p></td>
+                        <th scope="row">
+                          {moment(item.reporting_date.toString().substring(0,8)).format("DDMMMYYYY")}
+                          <br/>
+                          {moment(item.reporting_date.toString().substring(8,16)).format("DDMMMYYYY")}
+                          </th>
                       </tr>
                     )
                   })
