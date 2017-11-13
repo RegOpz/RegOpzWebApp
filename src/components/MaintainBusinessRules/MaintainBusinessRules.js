@@ -302,7 +302,7 @@ class MaintainBusinessRules extends Component {
           let itemEditable = true;
           if ( requestType == "add") {
             this.selectedItems = this.flatGrid.deSelectAll();
-            this.form_data = {};
+            this.form_data = null;
           } else {
             if(this.selectedItems.length==0){
                 this.modalAlert.isDiscardToBeShown = false;

@@ -104,13 +104,14 @@ export default class RegOpzDataGridBody extends Component {
                               title={title}
                             >
                                 <span
+                                  className={spanClassName}
                                   onClick={
                                     (event) => {
                                       this.handleCellClick(event,value,item);
                                     }
                                   }
                                   target={cell}
-                                ><i className={spanClassName}></i>{ value }</span>
+                                >{ value }</span>
                             </div>
                         )
                     }.bind(this))
