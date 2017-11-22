@@ -33,7 +33,7 @@ class SourceTable extends Component {
                 },
             ],
             varcharSelected: false,
-            varcharAmount: 200,
+            varcharAmount: 1000,
             defaultSelectedValue: ''
         };
 
@@ -57,7 +57,7 @@ class SourceTable extends Component {
         else {
             var defaultSelectedValue = selectedType;
             this.setState({
-                varcharAmount: 200,
+                varcharAmount: 1000,
                 varcharSelected: false,
                 defaultSelectedValue: defaultSelectedValue
             });
@@ -81,7 +81,7 @@ class SourceTable extends Component {
         else {
             var defaultSelectedValue = selectedType;
             this.setState({
-                varcharAmount: 200,
+                varcharAmount: 1000,
                 varcharSelected: false,
                 defaultSelectedValue: defaultSelectedValue
             });

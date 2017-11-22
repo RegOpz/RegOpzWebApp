@@ -88,7 +88,7 @@ class AddSources extends Component {
         let currentColumns = this.props.source_table_columns;
         let combinedColumns = [...additionalSourceFields, ...currentColumns];
         let mandatoryFields = new Set(Object.keys(this.state.mandatoryFields));
-        
+
         combinedColumns.forEach(element => {
             if(mandatoryFields.has(element.Field))
                 mandatoryFields.delete(element.Field);
@@ -154,15 +154,15 @@ class AddSources extends Component {
     }
 
     addRowToSourceTable(fieldName, dataType, disabled) {
-        
+
         let additionalSourceFields = this.state.additionalSourceFields;
-        
+
         if(this.props.source_table_columns.length < 5)
             this.addDefaultRows();
 
         additionalSourceFields.push({
             Field: fieldName ? fieldName : '',
-            Type: dataType ? dataType : 'text',
+            Type: dataType ? dataType : 'varchar(1000)',
             Null: disabled ? 'NO' : 'YES',
             Key: '',
             Default: '',
@@ -395,7 +395,7 @@ class AddSources extends Component {
                                             onClick={() => { this.addRowToSourceTable(); }}
                                             style={{ float: 'right' }}
                                         >
-                                            Add Row
+                                            Add New Field
                                         </Button>
                                     </h2>
                                     <div className="clearfix"></div>
