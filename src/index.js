@@ -12,6 +12,7 @@ import {
 import { Provider, connect } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import promiseMiddleware from 'redux-promise';
+import promiseRejectMiddleWare from './middlewares/promiseRejectMiddleWare';
 import reducers from './reducers';
 import { actionRelogin } from './actions/LoginAction';
 import Login from './components/Authentication/Login';
@@ -38,9 +39,10 @@ import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
 import ManageDataChange from './components/ManageDataChange/ManageDataChange';
 import LoadData from './components/MaintainSources/LoadData';
+import DisplayMessageMiddleWare from './components/MiddleWare/DisplayMessageMiddleWare';
 
 
-const createStoreWithMiddleware = applyMiddleware(promiseMiddleware)(createStore);
+const createStoreWithMiddleware = applyMiddleware(promiseMiddleware, promiseRejectMiddleWare)(createStore);
 const store = createStoreWithMiddleware(reducers);
 
 if (localStorage.RegOpzToken) {
@@ -68,11 +70,26 @@ class Index extends Component {
         console.log("user,name,role,permission...", this.props.user, this.props.name, this.props.role, this.props.permission);
         //console.log(this.props);
         if (!this.props.user) {
-            return (<Login {...this.props} />);
+            return (
+                <div>
+                    <DisplayMessageMiddleWare />
+                    <Login {...this.props} />
+                </div>
+            );
         } else if (this.props.children) {
-            return (<div> {this.props.children} </div>);
+            return (
+                <div>
+                    <DisplayMessageMiddleWare />
+                    <div> {this.props.children} </div>
+                </div>
+            );
         } else {
-            return (<Dashboard {...this.props} />)
+            return (
+                <div>
+                    <DisplayMessageMiddleWare />
+                    <Dashboard {...this.props} />
+                </div>
+            )
         }
     }
 }
@@ -113,7 +130,7 @@ ReactDOM.render(
                     <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(ManageDataChange)} />
                     <Route path="manage-roles" name="Role Management" component={authenticate(ManageRoles)} />
                     <Route path="manage-users" name="User Management" component={ManageUsers} />
-                    <Route path="manage-users/edit-user" name="Edit User" component={EditUsers}/>
+                    <Route path="manage-users/edit-user" name="Edit User" component={EditUsers} />
                 </Route>
             </Route>
         </Router>
