@@ -10,30 +10,6 @@ import { actionDisplayMessage } from '../../actions/MiddleWareAction';
 class TopNav extends Component {
     constructor(props) {
         super(props);
-        console.log('Top Nav Props: ', props);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        let date = new Date();
-        let formattedTime = date.getHours() + ':' + date.getMinutes()
-
-        if (nextProps.loadData.error || nextProps.loadData.message) {
-            let alertMsg = nextProps.loadData.message;
-            alertMsg += nextProps.loadData.error ? " " + nextProps.loadData.error.data.msg : "";
-
-            // this.props.displayNotification(
-            //     alertMsg,
-            //     formattedTime,
-            //     'error'
-            // );
-        }
-        if (nextProps.loadData.loadDataFileMsg) {
-            this.props.displayNotification(
-                nextProps.loadData.loadDataFileMsg.msg,
-                formattedTime,
-                'info'
-            );
-        }
     }
 
     render() {
@@ -117,7 +93,6 @@ class TopNav extends Component {
 function mapStateToProps(state) {
     return {
         login: state.login_store,
-        loadData: state.loadData,
         notifications: state.displayMessage
     };
 }
