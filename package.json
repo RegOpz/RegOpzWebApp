@@ -52,6 +52,7 @@
     "react-dom": "^0.14.3",
     "react-loading": "0.0.9",
     "react-modal": "^1.7.6",
+    "react-notification-system": "^0.2.16",
     "react-redux": "^4.0.0",
     "react-responsive-accordion": "^1.0.0",
     "react-router": "^2.8.1",

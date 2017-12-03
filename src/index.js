@@ -39,8 +39,7 @@ import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
 import ManageDataChange from './components/ManageDataChange/ManageDataChange';
 import LoadData from './components/MaintainSources/LoadData';
-import DisplayMessageMiddleWare from './components/MiddleWare/DisplayMessageMiddleWare';
-
+import NotificationSystem from 'react-notification-system';
 
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware, promiseRejectMiddleWare)(createStore);
 const store = createStoreWithMiddleware(reducers);
@@ -51,6 +50,10 @@ if (localStorage.RegOpzToken) {
 }
 
 class Index extends Component {
+    componentDidMount() {
+        this.notificationSystem = this.refs.notificationSystem;
+    }
+
     componentWillMount() {
         console.log('Component Mounted');
         if (this.props.user && !this.props.children) {
@@ -63,34 +66,45 @@ class Index extends Component {
         if (nextProps.user && !nextProps.children) {
             hashHistory.push('/dashboard');
         }
+
+        if (this.props.notification.id !== nextProps.notification.id) {
+            let length = nextProps.notification.messages.length;
+            this.notificationSystem.addNotification({
+                message: nextProps.notification.messages[length - 1].message,
+                level: nextProps.notification.messages[length - 1].type
+            });
+        }
     }
 
     render() {
         console.log('Render Function Called,Index........');
         console.log("user,name,role,permission...", this.props.user, this.props.name, this.props.role, this.props.permission);
         //console.log(this.props);
+        let ComponentToRender = null;
+        let componentData = null;
         if (!this.props.user) {
-            return (
-                <div>
-                    <DisplayMessageMiddleWare />
-                    <Login {...this.props} />
-                </div>
-            );
+            ComponentToRender = Login;
+            componentData = this.props;
         } else if (this.props.children) {
-            return (
-                <div>
-                    <DisplayMessageMiddleWare />
-                    <div> {this.props.children} </div>
-                </div>
-            );
+            ComponentToRender = null;
+            componentData = this.props.children;
         } else {
-            return (
-                <div>
-                    <DisplayMessageMiddleWare />
-                    <Dashboard {...this.props} />
-                </div>
-            )
+            ComponentToRender = Dashboard;
+            componentData = this.props;
         }
+
+        return (
+            <div>
+                <NotificationSystem ref="notificationSystem" />
+                {
+                    ComponentToRender !== null ?
+                        <ComponentToRender {...componentData} /> :
+                        <div>
+                            {componentData}
+                        </div>
+                }
+            </div>
+        )
     }
 }
 
@@ -100,7 +114,8 @@ function mapStateToProps(state) {
         user: state.login_store.user,
         name: state.login_store.name,
         role: state.login_store.role,
-        permission: state.login_store.permission
+        permission: state.login_store.permission,
+        notification: state.displayMessage
     };
 }
 

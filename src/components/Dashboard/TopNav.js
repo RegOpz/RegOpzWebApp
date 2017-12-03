@@ -5,39 +5,35 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { actionLoadData, actionLoadDataFile } from '../../actions/LoadDataAction';
 import LogOut from '../Authentication/Logout';
+import { actionDisplayMessage } from '../../actions/MiddleWareAction';
 
 class TopNav extends Component {
     constructor(props) {
         super(props);
         console.log('Top Nav Props: ', props);
-
-        this.state = {
-            notifications: []
-        };
     }
 
     componentWillReceiveProps(nextProps) {
-        let notifications = this.state.notifications;
-
         let date = new Date();
         let formattedTime = date.getHours() + ':' + date.getMinutes()
+
         if (nextProps.loadData.error || nextProps.loadData.message) {
             let alertMsg = nextProps.loadData.message;
             alertMsg += nextProps.loadData.error ? " " + nextProps.loadData.error.data.msg : "";
-            notifications.push({
-                message: alertMsg,
-                time: formattedTime,
-                style: "red"
-            });
+
+            // this.props.displayNotification(
+            //     alertMsg,
+            //     formattedTime,
+            //     'error'
+            // );
         }
         if (nextProps.loadData.loadDataFileMsg) {
-            notifications.push({
-                message: nextProps.loadData.loadDataFileMsg.msg,
-                time: formattedTime,
-                style: ""
-            });
+            this.props.displayNotification(
+                nextProps.loadData.loadDataFileMsg.msg,
+                formattedTime,
+                'info'
+            );
         }
-        this.setState({ notifications: notifications });
     }
 
     render() {
@@ -76,13 +72,13 @@ class TopNav extends Component {
                                 <a href="javascript:;" className="dropdown-toggle info-number" data-toggle="dropdown" aria-expanded="false">
                                     <i className="fa fa-envelope-o"></i>
                                     {
-                                        this.state.notifications.length > 0 &&
-                                        <span className="badge bg-green">{this.state.notifications.length}</span>
+                                        this.props.notifications.messages.length > 0 &&
+                                        <span className="badge bg-green">{this.props.notifications.messages.length}</span>
                                     }
                                 </a>
                                 <ul id="menu1" className="dropdown-menu list-unstyled msg_list" role="menu">
                                     {
-                                        this.state.notifications.map((element, index) => {
+                                        this.props.notifications.messages.map((element, index) => {
                                             return (
                                                 <li key={index}>
                                                     <a>
@@ -91,7 +87,7 @@ class TopNav extends Component {
                                                             <span>{this.props.login.user}</span>
                                                             <span className="time">{element.time}</span>
                                                         </span>
-                                                        <span className={"message " + element.style}>
+                                                        <span className={"message " + element.type}>
                                                             {element.message}
                                                         </span>
                                                     </a>
@@ -121,8 +117,17 @@ class TopNav extends Component {
 function mapStateToProps(state) {
     return {
         login: state.login_store,
-        loadData: state.loadData
+        loadData: state.loadData,
+        notifications: state.displayMessage
     };
 }
 
-export default connect(mapStateToProps)(TopNav);
+const matchDispatchToProps = (dispatch) => {
+    return {
+        displayNotification: (message, time, messageType) => {
+            dispatch(actionDisplayMessage(message, time, messageType));
+        }
+    };
+}
+
+export default connect(mapStateToProps, matchDispatchToProps)(TopNav);

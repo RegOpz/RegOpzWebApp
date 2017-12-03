@@ -1,15 +1,20 @@
-export const DISPLAY_ERROR_MESSAGE = 'DISPLAY_ERROR_MESSAGE';
-export const CLEAR_ERROR_MESSAGE = 'CLEAR_ERROR_MESSAGE';
+export const DISPLAY_MESSAGE = 'DISPLAY_MESSAGE';
+export const CLEAR_MESSAGE = 'CLEAR_MESSAGE';
 
-export function actionDisplayErrorMessage(message) {
+export function actionDisplayMessage(message, time, messageType) {
     return {
-        type: DISPLAY_ERROR_MESSAGE,
-        payload: message
+        type: DISPLAY_MESSAGE,
+        payload: {
+            message: message,
+            time: time,
+            type: messageType
+        }
     };
 }
 
-export function actionClearErrorMessage() {
+export function actionClearMessage(messageId) {
     return {
-        type: CLEAR_ERROR_MESSAGE
-    }
+        type: CLEAR_MESSAGE,
+        payload: messageId
+    };
 }
