@@ -52,7 +52,7 @@ class LoadData extends Component {
                 console.log('Error Loading The Data', this.state);
             }
             if (nextProps.loadDataProps.loadDataFileMsg) {
-                if (nextProps.loadDataProps.loadDataFileMsg.msg === 'File Transferred Successfully') {
+                if (nextProps.loadDataProps.loadDataFileMsg.status === 'SUCCESS') {
                     alertMsg = "File Transferred Successfully. Now Loading Data. This might take a while. Though you can continue working.";
                     alertStyle = "info";
                     this.props.loadData({
