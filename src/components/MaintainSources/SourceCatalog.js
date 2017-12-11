@@ -160,7 +160,7 @@ class SourceCatalogList extends Component {
                         </small>
                       </button>
                     </td>
-                    <td><p>{item.source_description}</p></td>
+                    <td><p className="preserve-text">{item.source_description}</p></td>
                     <td>{item.last_updated_by}</td>
                     <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>
                   </tr>
@@ -198,6 +198,9 @@ class SourceCatalogList extends Component {
                       <td>
                         <button
                           className="btn btn-link btn-xs"
+                          data-toggle="tooltip"
+                          data-placement="top"
+                          title={item.source_file_name}
                           onClick={
                             (event)=>{
                               this.props.handleSourceClick(item)
@@ -206,7 +209,7 @@ class SourceCatalogList extends Component {
                           >
                           <small>
                             <i className="fa fa-file-text"></i>
-                            {' '}{item.source_file_name}
+                            {' '}{item.source_file_name.toString().substring(0,25)}
                           </small>
                         </button>
                       </td>

@@ -9,7 +9,7 @@ const promiseReject = store => next => action => {
         let date = new Date();
         let formattedTime = `${date.getHours()} : ${date.getMinutes()}`
         store.dispatch(actionDisplayMessage(
-            `${action.payload.message}. Please check back in a bit`,
+            `${action.payload.message}. ${action.payload.response.data.msg}`,
             formattedTime,
             'error'
         ));

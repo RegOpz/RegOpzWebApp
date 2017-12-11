@@ -253,6 +253,9 @@ class DataCatalogList extends Component {
                       <td>{item.source_id}</td>
                       <td><button
                         className="btn btn-link btn-xs"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title={item.data_file_name}
                         onClick={
                           (event)=>{
                             this.props.handleDataFileClick(item)
@@ -261,7 +264,7 @@ class DataCatalogList extends Component {
                         >
                         <small>
                           <i className="fa fa-file-text"></i>
-                          {' '}{item.data_file_name}
+                          {' '}{item.data_file_name.toString().substring(0,25)}
                         </small>
                       </button>
                       </td>

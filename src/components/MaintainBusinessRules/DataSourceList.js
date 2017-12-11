@@ -115,7 +115,7 @@ class DataSourceList extends Component {
                         </small>
                       </button>
                     </td>
-                    <td>{item.source_description}</td>
+                    <td><p className="preserve-text">{item.source_description}</p></td>
                     <td>{item.country}</td>
                   </tr>
                 )
