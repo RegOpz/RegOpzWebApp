@@ -10,6 +10,15 @@ import { actionDisplayMessage } from '../../actions/MiddleWareAction';
 class TopNav extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            colorMapper: {
+                'error': 'red',
+                'info': 'blue',
+                'success': 'green',
+                'warning': 'orange'
+            }
+        };
     }
 
     render() {
@@ -63,7 +72,7 @@ class TopNav extends Component {
                                                             <span>{this.props.login.user}</span>
                                                             <span className="time">{element.time}</span>
                                                         </span>
-                                                        <span className={"message " + element.type}>
+                                                        <span className={"message " + this.state.colorMapper[element.type]}>
                                                             {element.message}
                                                         </span>
                                                     </a>
