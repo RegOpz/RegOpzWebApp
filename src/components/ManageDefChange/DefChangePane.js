@@ -180,7 +180,7 @@ class DefChangePane extends Component{
          </div>
          <div className="clearfix" />
          <div className="ln_solid" />
-            <p><Badge>Comment</Badge>&nbsp;{this.item.maker_comment}</p>
+            <p className="preserve-text"><Badge>Comment</Badge>&nbsp;{this.item.maker_comment}</p>
          </div>
          <div className="clearfix" />
          <div className="ln_solid" />

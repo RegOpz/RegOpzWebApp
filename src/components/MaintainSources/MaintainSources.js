@@ -75,7 +75,7 @@ class MaintainSources extends Component {
         source_id: null,
         country: null,
         id: null,
-        source_description: null,
+        source_description: '',
         source_file_name: null,
         source_file_delimiter: null,
         last_updated_by: null

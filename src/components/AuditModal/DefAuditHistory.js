@@ -161,7 +161,8 @@ class DefAuditHistory extends Component{
                             <h6>
                               <Badge>{item.change_type}</Badge> by {item.maker} on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}
                             </h6>
-                            <p>{item.maker_comment}</p>
+                            <i className="fa fa-comments-o"></i>
+                            <p className="preserve-text">{item.maker_comment}</p>
                               <div><h5>Change Summary</h5>
                                   {
                                     ((item)=>{
@@ -237,7 +238,8 @@ class DefAuditHistory extends Component{
                                         }
                                       }
                                     )(item.status)}
-                                  <p>{item.checker_comment}</p>
+                                  <i className="fa fa-comments"></i>
+                                  <p className="preserve-text">{item.checker_comment}</p>
                                 </Media.Body>
                               </Media>
                           </Media.Body>

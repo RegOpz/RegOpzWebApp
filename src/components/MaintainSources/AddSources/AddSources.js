@@ -259,7 +259,7 @@ class AddSources extends Component {
                                             onChange={
                                                 (event) => {
                                                   let form = this.state.form;
-                                                  form.source_table_name = event.target.value;
+                                                  form.source_table_name = event.target.value.replace(' ','');
                                                   this.setState({form: form});
                                                 }
                                             }
@@ -283,10 +283,11 @@ class AddSources extends Component {
                                 <div className="form-group">
                                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Source Description <span className="required">*</span></label>
                                     <div className="col-md-6 col-sm-6 col-xs-12">
-                                        <input
+                                        <textarea
                                             placeholder="Enter source Description"
                                             value={this.state.form.source_description}
                                             type="text"
+                                            maxLength="1000"
                                             required="required"
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
@@ -390,12 +391,16 @@ class AddSources extends Component {
                                     <h2 style={{ width: '100%' }}>
                                         Source Table Definition
                                         <small>Column list</small>
+                                          <button type="button" className="btn btn-primary" style={{ float: 'right' }} onClick={() => { this.handleCancel() }}>
+                                              Cancel
+                                          </button>
+                                          <button type="submit" className="btn btn-success" style={{ float: 'right' }}>Submit</button>
                                         <Button
-                                            bsStyle="primary"
+                                            bsStyle="success"
                                             onClick={() => { this.addRowToSourceTable(); }}
                                             style={{ float: 'right' }}
                                         >
-                                            Add New Field
+                                            + New Field
                                         </Button>
                                     </h2>
                                     <div className="clearfix"></div>
@@ -461,7 +466,7 @@ class AddSources extends Component {
                                         <div className="clearfix"></div>
                                         <button type="button" className="btn btn-primary" onClick={() => { this.handleCancel() }}>
                                             Cancel
-                    </button>
+                                        </button>
                                         <button type="submit" className="btn btn-success">Submit</button>
                                     </div>
                                 </div>
