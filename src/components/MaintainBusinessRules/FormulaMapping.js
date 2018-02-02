@@ -1,9 +1,9 @@
 export default {
-    'equal': '=',
+    'equal': '==',
     'not equal': '!=',
-    'begins': '[X:]',
-    'ends': '[:X]',
-    'contains': 'CONTAINS',
+    'begins': ' [X:] ',
+    'ends': ' [:X] ',
+    'contains': ' in ',
     '>': '>',
     '<': '<',
     '>=': '>=',
@@ -13,5 +13,5 @@ export default {
     '+': '+',
     '-': '-',
     '/': '/',
-    'derived': 'DERIVED'
+    'derived': ' DERIVED '
 }

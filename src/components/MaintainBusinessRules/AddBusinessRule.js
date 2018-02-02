@@ -81,9 +81,10 @@ class AddBusinessRule extends Component {
     }
   }
   componentDidUpdate() {
+    // console.log("componentDidUpdate", this.sourceId, this.sourceId.selectedIndex)
     //let table_name = document.getElementById("sourceId").options[this.state.form.source_id].getAttribute('target');
     if (this.state.componentDidUpdateCount == 0 && this.state.form.source_id ) {
-      let table_name = this.sourceId.options[this.state.form.source_id].getAttribute('target');
+      let table_name = this.sourceId.options[this.sourceId.selectedIndex].getAttribute('target');
       //alert(table_name);
       this.props.fetchSourceColumnList(table_name);
       //set the value componentDidUpdateCount to 1 to indicate that column list Updated
@@ -210,9 +211,10 @@ class AddBusinessRule extends Component {
   handleRuleAssistClick() {
     this.flatenTags();
     let formCopy = { ...this.state.form };
+    // console.log("assist click", this.sourceId.selectedIndex)
     let sourceTable = {
       source_id: formCopy.source_id,
-      source_table_name: this.sourceId.options[formCopy.source_id].getAttribute('target')
+      source_table_name: this.sourceId.options[this.sourceId.selectedIndex].getAttribute('target')
     }
     this.setState({
       showRuleAssist: true,
@@ -406,7 +408,8 @@ class AddBusinessRule extends Component {
                           newState.dataFieldsTags=[];
                           newState.selectedSource = {
                             id: event.target.value,
-                            tableName: table_name
+                            tableName: table_name,
+                            index: event.target.selectedIndex
                           }
                           this.setState(newState);
                           //Now reset the field python_implementation

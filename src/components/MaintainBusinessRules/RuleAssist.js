@@ -427,7 +427,7 @@ class RuleAssist extends Component {
                                         name={item}
                                         disabled={!this.state.readOnly}
                                         className="btn btn-default btn-sm"
-                                        onClick={() => { this.handleFormFieldClick(item); }}
+                                        onClick={() => { this.handleFormFieldClick('['+item+']'); }}
                                         key={item}
                                     >
                                         {item}

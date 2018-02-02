@@ -85,8 +85,10 @@ class AddReportAggRules extends Component {
           this.setState({buttons:buttons},()=>{console.log("At the end of setState select",this.state.buttons);});
           if(!this.ruleInputField)
             return;
-          this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
-          this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
+          if (this.state.form.comp_agg_rule){
+            this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
+            this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
+          }
           this.ruleInputField.focus();
         console.log("Inside componentWillReceiveProps");
     }
@@ -245,8 +247,10 @@ class AddReportAggRules extends Component {
                           onClick={() => {
                             let currentState = this.state.openDataGridCollapsible;
                             this.setState({openDataGridCollapsible: !currentState});
-                            this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
-                            this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
+                            if (this.state.form.comp_agg_rule){
+                              this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
+                              this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
+                            }
                             this.ruleInputField.focus();
                           }}
                         >
