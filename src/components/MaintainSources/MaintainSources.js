@@ -180,6 +180,26 @@ class MaintainSources extends Component {
                           </ul>
                         </li>
                       </ul>
+                      {
+                        !this.state.display &&
+                        <ul className="nav navbar-right panel_toolbox">
+                          <li>
+                            <a className="user-profile"
+                              aria-expanded="false"
+                              data-toggle="tooltip"
+                              data-placement="top"
+                              title="Refresh List"
+                              onClick={
+                                  (event) => {
+                                    this.props.fetchSources();
+                                  }
+                                }
+                              >
+                              <i className="fa fa-refresh"></i><small>{' Refresh '}</small>
+                            </a>
+                          </li>
+                        </ul>
+                      }
                     </div>
                     <div className="clearfix"></div>
                 </div>

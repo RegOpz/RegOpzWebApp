@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { actionLoadData, actionLoadDataFile } from '../../actions/LoadDataAction';
 import LogOut from '../Authentication/Logout';
-import { actionDisplayMessage } from '../../actions/MiddleWareAction';
+import { actionDisplayMessage,actionClearMessage } from '../../actions/MiddleWareAction';
 
 class TopNav extends Component {
     constructor(props) {
@@ -64,20 +64,22 @@ class TopNav extends Component {
                                 <ul id="menu1" className="dropdown-menu list-unstyled msg_list" role="menu">
                                     {
                                         this.props.notifications.messages.map((element, index) => {
-                                            return (
-                                                <li key={index}>
-                                                    <a>
-                                                        <span className="image"><img src="images/user.png" alt="Profile Image" /></span>
-                                                        <span>
-                                                            <span>{this.props.login.user}</span>
-                                                            <span className="time">{element.time}</span>
-                                                        </span>
-                                                        <span className={"message " + this.state.colorMapper[element.type]}>
-                                                            {element.message}
-                                                        </span>
-                                                    </a>
-                                                </li>
-                                            )
+                                            if (index < 5){
+                                                return (
+                                                    <li key={element.id}>
+                                                        <a>
+                                                            <span className="image"><img src="images/user.png" alt="Profile Image" /></span>
+                                                            <span>
+                                                                <span>{this.props.login.user}</span>
+                                                                <span className="time">{element.time}</span>
+                                                            </span>
+                                                            <span className={"message " + this.state.colorMapper[element.type]}>
+                                                                {element.message}
+                                                            </span>
+                                                        </a>
+                                                    </li>
+                                                )
+                                            }
                                         })
                                     }
 
@@ -110,6 +112,9 @@ const matchDispatchToProps = (dispatch) => {
     return {
         displayNotification: (message, time, messageType) => {
             dispatch(actionDisplayMessage(message, time, messageType));
+        },
+        displayNotification: (messageId) => {
+            dispatch(actionClearMessage(messageId));
         }
     };
 }

@@ -70,6 +70,7 @@ class Index extends Component {
         if (this.props.notification.id !== nextProps.notification.id) {
             let length = nextProps.notification.messages.length;
             this.notificationSystem.addNotification({
+                title: nextProps.notification.messages[length - 1].time,
                 message: nextProps.notification.messages[length - 1].message,
                 level: nextProps.notification.messages[length - 1].type,
                 autoDismiss: 0
