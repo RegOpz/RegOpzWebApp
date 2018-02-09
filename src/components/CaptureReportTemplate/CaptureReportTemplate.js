@@ -3,11 +3,13 @@ import ReactDOM from 'react-dom';
 import { hashHistory } from 'react-router';
 import { routerContext } from 'react-router';
 import Breadcrumbs from 'react-breadcrumbs';
+import { connect } from 'react-redux';
+import { actionLoadTemplateFile } from '../../actions/CaptureReportTemplateAction';
 import {BASE_URL} from '../../Constant/constant';
 import npro from '../../../bower_components/nprogress/nprogress';
 import ModalAlert from '../ModalAlert/ModalAlert';
 require('../../../bower_components/nprogress/nprogress.css');
-export default class RightPane extends Component {
+class CaptureTemplate extends Component {
   constructor(props){
     super(props);
     this.fileInput = null;
@@ -18,88 +20,117 @@ export default class RightPane extends Component {
       report_description:"",
     };
   }
+
+
   render(){
     return(
       <div className="row form-container">
         <div className="col-md-12 col-sm-12 col-xs-12">
           <div className="x_panel">
             <div className="x_title">
-              <h2>Drop Report Template File <small>Capture Report Template</small></h2>
+              <h2>Capture Report Template <small>Upload Report Template File</small></h2>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              <p>Supported files are .xlsx .xlx, .csv, .odt</p>
-            <form encType="multipart/form-data" id="uploadForm" ref={(uploadForm) => {this.uploadForm = uploadForm}} onSubmit={this.handleFormSubmit.bind(this)} className="dropzone">
-              <input
-                type="text"
-                name="country"
-                maxLength="2"
-                required="required"
-                onChange={
-                  (event) => {
-                    this.setState( {
-                      country:event.target.value.toLocaleUpperCase()
-                    });
-                  }
-                }
-                className="form-control"
-                placeholder="Country code"
-                value={this.state.country}
-                 />
-               <input
-                type="text"
-                name="report_id"
-                maxLength="32"
-                required="required"
-                onChange={
-                  (event) => {
-                    this.setState( {
-                      report_id:event.target.value
-                    });
-                  }
-                }
-                className="form-control"
-                placeholder="Report Id"
-                value={this.state.report_id}
-                 />
-               <input
-                type="text"
-                name="report_description"
-                maxLength="1000"
-                onChange={
-                  (event) => {
-                    this.setState( {
-                      report_description:event.target.value
-                    });
-                  }
-                }
-                className="form-control"
-                placeholder="Report Description"
-                value={this.state.report_description}
-                 />
-              <input id="file"
-                onChange={
-                  ()=>{
-                    this.handleFileSelect(this.modalInstance)
-                  }
-                }
-                ref={
-                  (fileInput) => {
-                    this.fileInput = fileInput
-                  }
-                }
-                type="file"
-                className="form-control" />
-              <div className="fileUploadIconHolder">
-                <i className="fa fa-file-excel-o" aria-hidden="true" onClick={this.handleFileInputClick.bind(this)}></i>
-                <div className="clearfix"></div>
-                <div className="dz-default dz-message"><span>No File Selected</span></div>
-              </div>
-            </form>
-              <br />
-              <br />
-              <br />
-              <br />
+              <p>Supported files are .xlsx .xlx </p>
+              <form encType="multipart/form-data"
+                  id="uploadForm"
+                  ref={(uploadForm) => {this.uploadForm = uploadForm}}
+                  onSubmit={this.handleFormSubmit.bind(this)}
+                  className="form-horizontal form-label-left">
+                  <div className="form-group">
+                      <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Country <span className="required">*</span> </label>
+                      <div className="col-md-6 col-sm-6 col-xs-12">
+
+                          <input
+                            type="text"
+                            name="country"
+                            maxLength="2"
+                            required="required"
+                            onChange={
+                              (event) => {
+                                this.setState( {
+                                  country:event.target.value.toLocaleUpperCase()
+                                });
+                              }
+                            }
+                            className="form-control col-md-7 col-xs-12"
+                            placeholder="Country code"
+                            value={this.state.country}
+                             />
+                         </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report Id <span className="required">*</span></label>
+                        <div className="col-md-6 col-sm-6 col-xs-12">
+
+                          <input
+                           type="text"
+                           name="report_id"
+                           maxLength="32"
+                           required="required"
+                           onChange={
+                             (event) => {
+                               this.setState( {
+                                 report_id:event.target.value
+                               });
+                             }
+                           }
+                           className="form-control col-md-7 col-xs-12"
+                           placeholder="Report Id"
+                           value={this.state.report_id}
+                            />
+                           </div>
+                      </div>
+
+                      <div className="form-group">
+                          <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report Description <span className="required">*</span></label>
+                          <div className="col-md-6 col-sm-6 col-xs-12">
+
+                            <input
+                             type="text"
+                             name="report_description"
+                             maxLength="1000"
+                             onChange={
+                               (event) => {
+                                 this.setState( {
+                                   report_description:event.target.value
+                                 });
+                               }
+                             }
+                             className="form-control col-md-7 col-xs-12"
+                             placeholder="Report Description"
+                             value={this.state.report_description}
+                             required="required"
+                              />
+                             </div>
+                        </div>
+
+                        <div className="form-group">
+                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Template File <span className="required">*</span></label>
+                            <div className="col-md-6 col-sm-6 col-xs-12">
+
+                              <input id="file"
+                                ref={
+                                  (fileInput) => {
+                                    this.fileInput = fileInput
+                                  }
+                                }
+                                required="required"
+                                type="file"
+                                className="col-md-7 col-xs-12" />
+                               </div>
+                          </div>
+
+                          <div className="form-group">
+                              <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                                  <button type="submit" className="btn btn-success">Submit</button>
+                                  <button type="button" className="btn btn-primary" onClick={this.handleCancel}> Cancel</button>
+                              </div>
+                          </div>
+                    </form>
+
             </div>
           </div>
         </div>
@@ -130,42 +161,45 @@ export default class RightPane extends Component {
     this.fileInput.value = null;
     this.fileInput.click();
   }
-  handleFormSubmit(event){
-    event.preventDefault();
+  resetForm(){
+    this.setState({report_id:"",country:"",report_description:""});
+    document.getElementById("file").value = "";
+
   }
-  handleFileSelect(modalInstance){
+  handleFormSubmit(event){
+    this.modalInstance.open("Template file has been submitted.")
+    event.preventDefault();
+    this.handleFileSelect();
+    this.resetForm();
+  }
+
+  handleCancel(){
+    hashHistory.push('/dashboard');
+  }
+  handleFileSelect(){
     var report_id = this.state.report_id;
     var country = this.state.country;
     var report_description = this.state.report_description;
-    npro.start();
     var data = new FormData($("#uploadForm")[0]);
     $.each($('#file')[0].files, function(i, file) {
         data.append('file', file);
     });
-    $.ajax({
-      type: 'POST',
-      crossDomain: true,
-      async: true,
-      cache: false,
-      contentType: false,
-      processData: false,
-      data:data,
-      url: BASE_URL + 'document',
-      success: function(response) {
-        npro.done();
-        hashHistory.push("/dashboard/maintain-report-rules"); //?report_id="+report_id+"&country="+country+"&report_description="+report_description);
-        console.log(response);
-      },
-      error:function(response){
-        let modalMsg="";
-        npro.done();
-        console.log(response);
-        modalMsg = (typeof response.responseJSON == 'undefined' ? "Unknown error!No response from API server!": response.responseJSON.msg);
-        modalMsg = `${modalMsg} [${response.status}:${response.statusText}]`;
-        modalInstance.isDiscardToBeShown = false;
-        modalInstance.open(modalMsg);
-        //alert(response.responseJSON.msg);
-      }
-    });
+   this.props.loadTemplate(data);
   }
 }
+
+function mapStateToProps(state){
+  return {
+      captureTemplateMsg: state.capture_template
+  };
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        loadTemplate: (formElement) => {
+            dispatch(actionLoadTemplateFile(formElement));
+        }
+    }
+}
+
+export default connect(mapStateToProps,mapDispatchToProps)(CaptureTemplate);
