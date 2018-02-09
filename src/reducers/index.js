@@ -20,6 +20,7 @@ import { userDetailsReducer, apiDetailsReducer } from './CustomizeDashReducer';
 import LeftMenuReducer from './LeftMenuReducer';
 import LoadDataReducer from './LoadDataReducer';
 import DisplayMessageReducer from './MiddleWareReducer';
+import CaptureTemplateReducer from './CaptureReportTemplateReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -43,7 +44,8 @@ const rootReducer = combineReducers({
   api_details: apiDetailsReducer,
   leftmenu_store: LeftMenuReducer,
   loadData: LoadDataReducer,
-  displayMessage: DisplayMessageReducer
+  displayMessage: DisplayMessageReducer,
+  capture_template:CaptureTemplateReducer
 });
 
 export default rootReducer;

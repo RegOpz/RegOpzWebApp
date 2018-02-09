@@ -137,7 +137,7 @@ ReactDOM.render(
                     <Route path="data-grid" name="Data Grid" component={RegOpzDataGrid} />
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
                     <Route path="view-data" name="View Data" component={authenticate(ViewDataComponentV2)} />
-                    <Route path="load-data" name="Load Data" component={authenticate(LoadData)} />
+                    <Route path="load-data" name="Load Data" component={LoadData} />
                     <Route path="view-report" name="View Report" component={authenticate(ViewReport)} />
                     <Route path="create-report" name="Create Report" component={authenticate(CreateReport)} />
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
