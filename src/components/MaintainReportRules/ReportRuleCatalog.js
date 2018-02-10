@@ -228,7 +228,7 @@ class ReportCatalogList extends Component {
                     <td>{moment(item.valid_from).format("DD-MMM-YYYY")}</td>
                     <td>{moment(item.valid_to).format("DD-MMM-YYYY")}</td>
                     <td>{item.last_updated_by}</td>
-                    <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>                    
+                    <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>
                   </tr>
                 )
               })}

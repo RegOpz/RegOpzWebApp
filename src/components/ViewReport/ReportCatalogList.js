@@ -20,6 +20,7 @@ class ReportCatalogList extends Component {
     this.dataCatalogEndDate = this.props.dataCatalog.end_date;
     this.dataCatalog = this.props.dataCatalog.data_sources;
     this.linkageData = this.dataCatalog;
+    this.handleFilter = this.handleFilter.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
@@ -178,7 +179,7 @@ class ReportCatalogList extends Component {
                         }
                         >
                         <small>
-                          <i className="fa fa-file-text"></i>
+                          <i className="fa fa-file-text" aria-hidden="true"></i>
                           {' '}{item.report_id}
                         </small>
                       </button>

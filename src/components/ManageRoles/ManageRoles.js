@@ -19,11 +19,13 @@ class ManageRolesComponent extends Component {
     super(props);
     this.state = {
         checked: "checked",
-        display: false
+        display: false,
+        filterText: null
     };
     this.dataSource = null;
     this.selectedRole = null;
     this.handleEditButtonClicked = this.handleEditButtonClicked.bind(this);
+    this.handleFilter = this.handleFilter.bind(this);
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Roles" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Roles" }) ? true : false;
@@ -59,6 +61,22 @@ class ManageRolesComponent extends Component {
       this.setState({ display: false });
   }
 
+  handleFilter(){
+
+      if(typeof this.props.permissionList != 'undefined' && this.props.permissionList ){
+        let userData = this.props.permissionList;
+        const { filterText } = this.state;
+        if (filterText != null) {
+            let matchText = RegExp(`(${filterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+            console.log("matchText",matchText);
+            userData = userData.filter(element =>
+                element.role.match(matchText)
+            );
+        }
+        this.dataSource = userData;
+      }
+  }
+
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "Form":
@@ -69,31 +87,63 @@ class ManageRolesComponent extends Component {
                   />
               );
           default:
-              return this.renderPermissions();
+              // return this.renderPermissions();
+              return (
+                <div className="row ">
+                  <div className="col-md-12">
+                    <div className="x_panel">
+                      <div className="x_title">
+                      <h2>Role Management <small>Manage roles</small></h2>
+                          <div className="clearfix"></div>
+                      </div>
+                      <div className="x_content">
+                        <div className="input-group">
+                            <input
+                              id="filter"
+                              className="form-control col-md-9 col-sm-9 col-xs-12"
+                              placeholder="Enter Filter Text"
+                              value={this.state.filterText}
+                              onChange={(event) => {
+                                  this.setState({ filterText: event.target.value });
+                              }}
+                            />
+                            <span className="input-group-addon">
+                              <i className="fa fa-filter"></i>
+                            </span>
+                        </div>
+                        <div className="row">
+                          <div className="col-md-12 col-sm-12 col-xs-12"></div>
+                          <div classNam="clearfix"></div>
+                          {this.renderPermissions()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
       }
   }
 
   render() {
     return(
-        <div>
-          <h4>Manage Roles</h4>
-          {
-              this.renderDynamic(this.state.display)
-          }
-        </div>
+      <div>
+        {
+          this.renderDynamic(this.state.display)
+        }
+      </div>
     );
   }
 
   renderPermissions() {
-    this.dataSource = this.props.permissionList;
+    this.handleFilter();
 
     if(this.dataSource == null) {
       return(
-        <h1>Loading...</h1>
+        <h4>Loading...</h4>
       );
     } else if(this.dataSource.length == 0) {
         return(
-          <h1>No data found!</h1>
+          <h4>No data found!</h4>
         );
     }
 
