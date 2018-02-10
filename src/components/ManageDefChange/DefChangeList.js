@@ -12,11 +12,13 @@ class DefChangeList extends Component{
     super(props);
     this.state = {
       selectedIndex: null ,
-      searchTerm:null,
-      queryResult:[]
+      searchTerm:null
     };
     this.fetchFlag = true;
     this.auditListWithPrivilege=[];
+    this.queryResult=[];
+
+    this.handleSearch = this.handleSearch.bind(this);
 
 
   }
@@ -42,24 +44,28 @@ class DefChangeList extends Component{
     this.fetchFlag =! this.fetchFlag;
   }
 
-  handleSearch(event){
-    let searchList = RegExp(`(${event.target.value.toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+  handleSearch(){
+    const { searchTerm } = this.state;
+    let queryResult = this.auditListWithPrivilege;
+    if ( searchTerm != null ){
+        let searchList = RegExp(`(${searchTerm.toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
 
-    console.log("handleSearch",searchList)
-    let queryResult=this.auditListWithPrivilege.filter((element)=>{
-        return(
-          element.id.toString().match(searchList)||
-          element.change_type.match(searchList)||
-          element.table_name.match(searchList)||
-          element.change_reference.match(searchList)||
-          element.date_of_change.match(searchList)||
-          element.maker.match(searchList)||
-          element.maker_comment.match(searchList)
+        console.log("handleSearch",searchList)
+        queryResult=this.auditListWithPrivilege.filter((element)=>{
+            return(
+              element.id.toString().match(searchList)||
+              element.change_type.match(searchList)||
+              element.table_name.match(searchList)||
+              element.change_reference.match(searchList)||
+              element.date_of_change.match(searchList)||
+              element.maker.match(searchList)||
+              element.maker_comment.match(searchList)
+            );
+          }
         );
-      }
-    );
-    //console.log("queryResult",queryResult)
-    this.setState({searchTerm:event.target.value,queryResult:queryResult});
+        //console.log("queryResult",queryResult)
+    }
+    this.queryResult=queryResult;
   }
   render(){
     let {audit_list}=this.props;
@@ -72,7 +78,10 @@ class DefChangeList extends Component{
                                   });
 
     this.auditListWithPrivilege=this.props.viewAllChange?audit_list:userOnlyAuditList;
-    let audit_list_with_search=this.state.searchTerm?this.state.queryResult:this.auditListWithPrivilege;
+    // Now filter records if any according to the filterText
+    console.log("this.state.searchTerm", this.state.searchTerm)
+    this.handleSearch();
+    let audit_list_with_search=this.state.searchTerm?this.queryResult:this.auditListWithPrivilege;
     console.log("Audit List........",userOnlyAuditList);
     const msgList=audit_list_with_search.map((item,index)=>{
           //console.log(item,index);
@@ -119,7 +128,9 @@ class DefChangeList extends Component{
             <input className="form-control"
                   placeholder="Search (YYYY-MM-DD)"
                   value={this.state.searchTerm}
-                  onChange={this.handleSearch.bind(this)}
+                  onChange={(event) => {
+                      this.setState({ searchTerm: event.target.value });
+                  }}
             />
             <ul className="list-unstyled msg_list def-change-list">
               {msgList}

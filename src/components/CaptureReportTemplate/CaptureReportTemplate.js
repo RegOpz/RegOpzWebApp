@@ -32,7 +32,7 @@ class CaptureTemplate extends Component {
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              <p>Supported files are .xlsx .xlx </p>
+              <p>Supported files are .xlsx .xls </p>
               <form encType="multipart/form-data"
                   id="uploadForm"
                   ref={(uploadForm) => {this.uploadForm = uploadForm}}
@@ -88,7 +88,7 @@ class CaptureTemplate extends Component {
                           <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report Description <span className="required">*</span></label>
                           <div className="col-md-6 col-sm-6 col-xs-12">
 
-                            <input
+                            <textarea
                              type="text"
                              name="report_description"
                              maxLength="1000"
@@ -119,6 +119,7 @@ class CaptureTemplate extends Component {
                                 }
                                 required="required"
                                 type="file"
+                                accept=".xlsx, .xls, .xlx"
                                 className="col-md-7 col-xs-12" />
                                </div>
                           </div>
