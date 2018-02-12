@@ -85,6 +85,8 @@ class ReportCatalogList extends Component {
             linkageData = linkageData.filter(element =>
                 element.report_id.toString().match(matchText) ||
                 element.reporting_date.match(matchText) ||
+                element.country.match(matchText) ||
+                element.report_description.match(matchText) ||
                 (element.report_create_status ? element.report_create_status : "").match(matchText) ||
                 (element.report_created_by ? element.report_created_by : "").match(matchText) ||
                 moment(element.as_of_reporting_date).format("DD-MMM-YYYY").match(matchText) ||
@@ -157,6 +159,7 @@ class ReportCatalogList extends Component {
               <thead>
                 <tr>
                   <th>Report ID</th>
+                  <th>Country</th>
                   <th>Reporting Date</th>
                   <th>Data Period</th>
                   <th>Report status</th>
@@ -172,6 +175,9 @@ class ReportCatalogList extends Component {
                     <td>
                       <button
                         className="btn btn-link btn-xs"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title={item.report_description}
                         onClick={
                           (event)=>{
                             this.props.handleReportClick(item)
@@ -184,6 +190,7 @@ class ReportCatalogList extends Component {
                         </small>
                       </button>
                     </td>
+                    <td>{item.country}</td>
                     <td>{moment(item.as_of_reporting_date).format("DD-MMM-YYYY")}</td>
                     <td>
                       {moment(item.reporting_date.toString().substring(0,8)).format("DD-MMM-YYYY") + " to " + moment(item.reporting_date.toString().substring(8,16)).format("DD-MMM-YYYY")}
