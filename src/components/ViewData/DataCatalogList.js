@@ -85,6 +85,8 @@ class DataCatalogList extends Component {
             linkageData = linkageData.filter(element =>
                 element.source_id.toString().match(matchText) ||
                 element.data_file_name.match(matchText) ||
+                element.country.match(matchText) ||
+                element.source_description.match(matchText) ||
                 (element.file_load_status ? element.file_load_status : "").match(matchText) ||
                 (element.data_loaded_by ? element.data_loaded_by : "").match(matchText) ||
                 moment(element.business_date).format("DD-MMM-YYYY").match(matchText)
@@ -156,6 +158,7 @@ class DataCatalogList extends Component {
                 <tr>
                   <th>Business Date</th>
                   <th>Source ID</th>
+                  <th>Country</th>
                   <th>Data File Name</th>
                   <th>File load status</th>
                   <th>Data loaded by</th>
@@ -168,9 +171,13 @@ class DataCatalogList extends Component {
                   <tr key={index}>
                     <td>{moment(item.business_date).format("DD-MMM-YYYY")}</td>
                     <td>{item.source_id}</td>
+                    <td>{item.country}</td>
                     <td>
                       <button
                         className="btn btn-link btn-xs"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title={item.source_description}
                         onClick={
                           (event)=>{
                             this.props.handleDataFileClick(item)

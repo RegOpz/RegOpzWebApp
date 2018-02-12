@@ -11,6 +11,7 @@ export default class RegOpzFlatGridRow extends Component {
         this.selectedRows = [];
         this.rowContainerClassName = "flat_grid_row_container";
         this.checkBoxStaus=null;
+        this.nonEditableFields=['in_use','dml_allowed','last_updated_by','id','business_date'];
     }
     componentWillReceiveProps(nextProps){
         this.cols = nextProps.columns;
@@ -92,7 +93,7 @@ export default class RegOpzFlatGridRow extends Component {
                                             data={item}
                                             identifier={citem}
                                             onUpdateRow={this.props.onUpdateRow}
-                                            readOnly={this.props.readOnly}
+                                            readOnly={this.props.readOnly || this.nonEditableFields.includes(citem)}
                                          />
                                         )
                                     }.bind(this))

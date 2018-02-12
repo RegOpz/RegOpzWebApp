@@ -459,7 +459,7 @@ class ViewDataComponentV2 extends Component {
         table_name:data["table_name"],
         id:null,
         change_type:this.operationName,
-        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
+        change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.state.sourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
         maker:this.props.login_details.user,
         business_date:this.state.businessDate
       };
@@ -477,7 +477,7 @@ class ViewDataComponentV2 extends Component {
       this.auditInfo={
         table_name:data["table_name"],
         change_type:this.operationName,
-        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
+        change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.state.sourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
         maker:this.props.login_details.user,
         business_date:this.state.businessDate
       };
@@ -495,7 +495,7 @@ class ViewDataComponentV2 extends Component {
      this.auditInfo={
        table_name:data["table_name"],
        change_type:this.operationName,
-       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.state.SourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
+       change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.state.sourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
        maker:this.props.login_details.user,
        business_date:this.state.businessDate
      };

@@ -48,7 +48,7 @@ export default class RegOpzFlatGridCell extends Component {
         $(event.target).parent().parent(".flat_grid_row_container").addClass('flat_grid_row_container_active');
       } else{
         this.refs.modalAlert.isDiscardToBeShown=false;
-        this.refs.modalAlert.open("This is readonly record. No editing permitted.");
+        this.refs.modalAlert.open("This data is readonly. No editing permitted.");
       }
     }
     handleCellSingleClick(event){

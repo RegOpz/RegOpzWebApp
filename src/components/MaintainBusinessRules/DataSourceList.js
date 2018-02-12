@@ -115,7 +115,16 @@ class DataSourceList extends Component {
                         </small>
                       </button>
                     </td>
-                    <td><p className="preserve-text">{item.source_description}</p></td>
+                    <td>
+                      <p
+                        className="preserve-text"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title={item.source_description}
+                        >
+                        <small>{item.source_description.toString().substring(0,200)+" ..."}</small>
+                      </p>
+                    </td>
                     <td>{item.country}</td>
                   </tr>
                 )

@@ -159,7 +159,7 @@ class ReportCatalogList extends Component {
               content.push(
                 <div>
                   <a href="#">Country: {item.country}</a>
-                  { this.renderDataFeedList(item.report, index) }
+                  { this.renderDataFeedList(item.report, item.country, index) }
                 </div>
               );
           } else {
@@ -174,7 +174,7 @@ class ReportCatalogList extends Component {
                         this.setState({ open: flag })
                     }}
                   >
-                    { this.renderDataFeedList(item.report, index) }
+                    { this.renderDataFeedList(item.report, item.country, index) }
                   </Panel>
               );
           }
@@ -182,7 +182,7 @@ class ReportCatalogList extends Component {
       return content;
   }
 
-  renderDataFeedList(linkageData, index) {
+  renderDataFeedList(linkageData, country, index) {
     // Renders Table for Reports
     if(!linkageData || typeof(linkageData) == 'undefined' || linkageData == null || linkageData.length == 0) {
       return(
@@ -200,8 +200,7 @@ class ReportCatalogList extends Component {
               <thead>
                 <tr>
                   <th>Report ID</th>
-                  <th>Valid From</th>
-                  <th>Valid Upto</th>
+                  <th>Report Description</th>
                   <th>Last Updated by</th>
                   <th>Last Updated on</th>
                 </tr>
@@ -225,8 +224,16 @@ class ReportCatalogList extends Component {
                         </small>
                       </button>
                     </td>
-                    <td>{moment(item.valid_from).format("DD-MMM-YYYY")}</td>
-                    <td>{moment(item.valid_to).format("DD-MMM-YYYY")}</td>
+                    <td>
+                      <p
+                        className="preserve-text"
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title={item.report_description}
+                        >
+                        <small>{item.report_description.toString().substring(0,200)+" ..."}</small>
+                      </p>
+                    </td>
                     <td>{item.last_updated_by}</td>
                     <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>
                   </tr>
@@ -237,14 +244,14 @@ class ReportCatalogList extends Component {
           }
           </div>
           {  this.state.navMenu &&
-             this.renderNavMenu(linkageData)
+             this.renderNavMenu(linkageData, country)
           }
         </div>
       )
     }
   }
 
-  renderNavMenu(linkageData) {
+  renderNavMenu(linkageData, country) {
     return(
         <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
           <div className="row">
@@ -252,8 +259,7 @@ class ReportCatalogList extends Component {
             <thead>
               <tr>
                 <th>#ID</th>
-                <th>Valid From</th>
-                <th>Valid Upto</th>
+                <th>Country</th>
               </tr>
             </thead>
             <tbody>
@@ -263,6 +269,9 @@ class ReportCatalogList extends Component {
                       <td>
                         <button
                           className="btn btn-link btn-xs"
+                          data-toggle="tooltip"
+                          data-placement="top"
+                          title={item.report_description}
                           onClick={
                             (event)=>{
                               this.props.handleReportClick(item)
@@ -275,8 +284,7 @@ class ReportCatalogList extends Component {
                           </small>
                         </button>
                       </td>
-                      <td>{moment(item.valid_from).format("DD-MMM-YYYY")}</td>
-                      <td>{moment(item.valid_to).format("DD-MMM-YYYY")}</td>
+                      <td>{country}</td>
                     </tr>
                   )
                 )
