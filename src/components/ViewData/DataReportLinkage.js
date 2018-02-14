@@ -43,7 +43,13 @@ class DataReportLinkage extends Component {
   }
   renderReportLinkage(linkageData, selectedRulesAsString) {
     console.log("Modal linkage data", linkageData);
-    if (!linkageData || typeof (linkageData) == 'undefined' || linkageData == null || linkageData.length == 0)
+    if (!linkageData || typeof (linkageData) == 'undefined' || linkageData == null)
+      return (
+        <div>
+          <h4>Loading.....</h4>
+        </div>
+      )
+    else if (linkageData.length == 0)
       return (
         <div>
           <h4>No linked report found!</h4>

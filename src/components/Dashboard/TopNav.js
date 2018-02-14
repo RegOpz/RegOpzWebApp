@@ -16,7 +16,7 @@ class TopNav extends Component {
                 'error': 'red',
                 'info': 'blue',
                 'success': 'green',
-                'warning': 'orange'
+                'warning': 'amber'
             }
         };
     }
@@ -76,21 +76,43 @@ class TopNav extends Component {
                                                             <span className={"message " + this.state.colorMapper[element.type]}>
                                                                 {element.message}
                                                             </span>
+                                                            <i className="fa fa-trash amber"
+                                                              data-toggle="tooltip"
+                                                              data-placement="top"
+                                                              title="Clear"
+                                                              onClick={()=>{
+                                                                  this.props.displayNotification(element.id);
+                                                                }}></i>
                                                         </a>
                                                     </li>
                                                 )
                                             }
                                         })
                                     }
-
-                                    <li>
-                                        <div className="text-center">
-                                            <a>
-                                                <strong>See All Alerts</strong>
-                                                <i className="fa fa-angle-right"></i>
-                                            </a>
-                                        </div>
-                                    </li>
+                                    { this.props.notifications.messages.length>5 &&
+                                      <li>
+                                          <div className="text-center">
+                                              <a>
+                                                  <strong>See All Alerts </strong>
+                                                  <i className="fa fa-angle-right"></i>
+                                              </a>
+                                          </div>
+                                      </li>
+                                    }
+                                    { this.props.notifications.messages.length>0 &&
+                                      <li>
+                                          <div className="text-center">
+                                              <a onClick={()=>{
+                                                  this.props.notifications.messages.map((element, index) => {
+                                                    this.props.displayNotification(element.id)
+                                                  });
+                                                }}>
+                                                  <strong className="amber">Clear Alerts </strong>
+                                                  <i className="fa fa-trash amber"></i>
+                                              </a>
+                                          </div>
+                                      </li>
+                                      }
                                 </ul>
                             </li>
                         </ul>

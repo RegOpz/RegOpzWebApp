@@ -63,6 +63,8 @@ class MaintainReportRules extends Component {
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
+    this.gridDataViewReport=undefined;
+    this.changeHistory=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
     this.selectedCell={};
@@ -108,6 +110,8 @@ class MaintainReportRules extends Component {
     this.props.leftMenuClick(false);
   }
   componentWillReceiveProps(nextProps){
+    this.gridDataViewReport=nextProps.gridDataViewReport;
+    this.changeHistory=nextProps.change_history;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
@@ -124,6 +128,7 @@ class MaintainReportRules extends Component {
     console.log("selected item",item);
     this.currentPage = 0;
     this.selectedViewColumns=[];
+    this.gridDataViewReport=undefined;
     this.setState({
         display: "showReportGrid",
         reportId: item.report_id,
@@ -240,6 +245,7 @@ class MaintainReportRules extends Component {
   handleCellHistoryClicked(event,item){
     console.log("Clicked handleCellHistoryClicked",item);
     let isOpen = this.state.showCellChangeHistory;
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({
         showCellChangeHistory: false
@@ -260,6 +266,7 @@ class MaintainReportRules extends Component {
 
   handleHistoryClick() {
     let isOpen = this.state.display === "showHistory";
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({
         display: "showReportGrid"
@@ -301,7 +308,7 @@ class MaintainReportRules extends Component {
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "showReportGrid":
-              if (this.props.gridDataViewReport) {
+              if (this.gridDataViewReport) {
                   return(
                       <div>
                           <RegOpzFlatGridActionButtons
@@ -315,7 +322,7 @@ class MaintainReportRules extends Component {
                           <RegOpzReportGrid
                             report_id={this.state.reportId}
                             reporting_date={this.state.reportingDate}
-                            gridData={this.props.gridDataViewReport}
+                            gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
                             ref={
                                (flatGrid) => {
@@ -388,13 +395,13 @@ class MaintainReportRules extends Component {
               }
               break;
           case "showHistory":
-              if (this.props.gridDataViewReport) {
+              if (this.gridDataViewReport) {
                   return(
                     <Tabs
                       defaultActiveKey={0}
                       activeKey={this.state.selectedAuditSheet}
                       onSelect={(key) => {
-                          let sheetName = this.props.gridDataViewReport[key].sheet;
+                          let sheetName = this.gridDataViewReport[key].sheet;
                           this.setState({selectedAuditSheet:key},
                           ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
                         );
@@ -402,7 +409,7 @@ class MaintainReportRules extends Component {
                       }}
                       >
                       {
-                        this.props.gridDataViewReport.map((item,index) => {
+                        this.gridDataViewReport.map((item,index) => {
                           console.log("Inside dridData map");
                           return(
                               <Tab
@@ -417,7 +424,7 @@ class MaintainReportRules extends Component {
                                       //this.selectedCell = {};
                                       return (
                                           <DefAuditHistory
-                                            data={ this.props.change_history }
+                                            data={ this.changeHistory }
                                             historyReference={ "" }
                                             handleClose={ this.handleHistoryClick.bind(this) }
                                            />

@@ -55,6 +55,9 @@ class MaintainBusinessRules extends Component {
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
+    this.gridData=undefined;
+    this.changeHistory=undefined;
+    this.reportLinkage=undefined;
     this.selectedItems = [];
     this.selectedIndexOfGrid = 0;
     this.form_data={};
@@ -112,6 +115,9 @@ class MaintainBusinessRules extends Component {
   }
 
   componentWillReceiveProps(nextProps){
+    this.gridData=nextProps.gridBusinessRulesData;
+    this.changeHistory=nextProps.change_history;
+    this.reportLinkage=nextProps.report_linkage;
     //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
     //this.flagDataDrillDown = false;
     if(nextProps.flagRuleDrillDown && this.ruleFilterParam.cell_calc_ref != nextProps.ruleFilterParam.cell_calc_ref ){
@@ -136,6 +142,7 @@ class MaintainBusinessRules extends Component {
     console.log("selected item",item);
     this.currentPage = 0;
     this.selectedViewColumns=[];
+    this.gridData=undefined;
     this.setState({
         display: "showBusinessRuleGrid",
         sourceId: item.source_id,
@@ -342,6 +349,7 @@ class MaintainBusinessRules extends Component {
 
   handleReportLinkClick(event) {
     let isOpen = this.state.display === "showReportLinkage";
+    this.reportLinkage=undefined;
     if(isOpen) {
       this.setState({ display: "showBusinessRuleGrid" });
       this.selectedKeys = '';
@@ -365,6 +373,7 @@ class MaintainBusinessRules extends Component {
 
   handleHistoryClick(event) {
     let isOpen = this.state.display === "showHistory";
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({ display: "showBusinessRuleGrid" });
       this.selectedKeys = '';
@@ -545,7 +554,7 @@ class MaintainBusinessRules extends Component {
   renderDynamic(displayOption) {
       switch(displayOption) {
           case "showBusinessRuleGrid":
-              if (this.props.gridBusinessRulesData) {
+              if (this.gridData) {
                   return(
                       <div>
                         <RegOpzFlatGridActionButtons
@@ -558,8 +567,8 @@ class MaintainBusinessRules extends Component {
                           buttonClassOverride={this.buttonClassOverride}
                           />
                         <RegOpzFlatGrid
-                         columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridBusinessRulesData.cols}
-                         dataSource={this.props.gridBusinessRulesData.rows}
+                         columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.gridData.cols}
+                         dataSource={this.gridData.rows}
                          onSelectRow={this.handleSelectRow.bind(this)}
                          onUpdateRow = {this.handleUpdateRow.bind(this)}
                          onSort = {()=>{}}
@@ -605,26 +614,22 @@ class MaintainBusinessRules extends Component {
               }
               break;
           case "showReportLinkage":
-              if (this.props.report_linkage) {
-                  return(
-                      <RuleReportLinkage
-                        data={ this.props.report_linkage }
-                        ruleReference={ this.selectedKeys }
-                        handleClose={this.handleReportLinkClick}
-                        />
-                  );
-              }
+              return(
+                  <RuleReportLinkage
+                    data={ this.reportLinkage }
+                    ruleReference={ this.selectedKeys }
+                    handleClose={this.handleReportLinkClick}
+                    />
+              );
               break;
           case "showHistory":
-              if (this.props.change_history) {
-                  return(
-                      <DefAuditHistory
-                        data={ this.props.change_history }
-                        historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
-                        handleClose={this.handleHistoryClick}
-                        />
-                  );
-              }
+              return(
+                  <DefAuditHistory
+                    data={ this.changeHistory }
+                    historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
+                    handleClose={this.handleHistoryClick}
+                    />
+              );
               break;
           default:
             return(

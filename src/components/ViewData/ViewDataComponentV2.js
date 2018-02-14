@@ -53,6 +53,9 @@ class ViewDataComponentV2 extends Component {
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
+    this.dataGrid=undefined;
+    this.reportLinkage=undefined;
+    this.changeHistory=undefined;
     this.selectedItems = [];
     this.selectedIndexOfGrid = 0;
     this.form_data={};
@@ -111,7 +114,9 @@ class ViewDataComponentV2 extends Component {
   }
 
   componentWillReceiveProps(nextProps){
-    //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
+    this.gridData=nextProps.gridData;
+    this.reportLinkage=nextProps.report_linkage;
+    this.changeHistory=nextProps.change_history;
     //this.flagDataDrillDown = false;
     if(nextProps.flagDataDrillDown && this.dataFilterParam.params.drill_kwargs.cell_calc_ref != nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref ){
       console.log("Inside componentWillReceiveProps of ViewDataComponentV2",nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref);
@@ -136,6 +141,7 @@ class ViewDataComponentV2 extends Component {
     console.log("selected item",item);
     this.currentPage = 0;
     this.selectedViewColumns=[];
+    this.gridData=undefined;
     this.setState({
         display: "showDataGrid",
         sourceId: item.source_id,
@@ -348,6 +354,7 @@ class ViewDataComponentV2 extends Component {
 
   handleReportLinkClick(event) {
     let isOpen = this.state.display === "showReportLinkage";
+    this.reportLinkage=undefined;
     if(isOpen) {
       this.setState({ display: "showDataGrid" });
     } else {
@@ -378,6 +385,7 @@ class ViewDataComponentV2 extends Component {
 
   handleHistoryClick(event) {
     let isOpen = this.state.display === "showHistory";
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({ display: "showDataGrid" });
     } else {
@@ -515,7 +523,7 @@ class ViewDataComponentV2 extends Component {
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "showDataGrid":
-              if (this.props.gridData) {
+              if (this.gridData) {
                   return(
                       <div>
                           <RegOpzFlatGridActionButtons
@@ -528,8 +536,8 @@ class ViewDataComponentV2 extends Component {
                             buttonClassOverride={this.buttonClassOverride}
                             />
                             <RegOpzFlatGrid
-                             columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.props.gridData.cols}
-                             dataSource={this.props.gridData.rows}
+                             columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.gridData.cols}
+                             dataSource={this.gridData.rows}
                              onSelectRow={this.handleSelectRow.bind(this)}
                              onUpdateRow = {this.handleUpdateRow.bind(this)}
                              onSort = {()=>{}}
@@ -583,7 +591,7 @@ class ViewDataComponentV2 extends Component {
           case "showReportLinkage":
               return(
                   <DataReportLinkage
-                    data={ this.props.report_linkage }
+                    data={ this.reportLinkage }
                     ruleReference={ "" }
                     handleClose={this.handleReportLinkClick}
                   />
@@ -592,7 +600,7 @@ class ViewDataComponentV2 extends Component {
               if (this.props.change_history) {
                   return(
                       <DefAuditHistory
-                        data={ this.props.change_history }
+                        data={ this.changeHistory }
                         historyReference={ "" }
                         handleClose={this.handleHistoryClick}
                         />

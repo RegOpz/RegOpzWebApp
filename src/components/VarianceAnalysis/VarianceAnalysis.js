@@ -70,6 +70,8 @@ class VarianceAnalysis extends Component {
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
+    this.gridData=undefined;
+    this.changeHistory=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
     this.selectedItems = [];
@@ -118,6 +120,8 @@ class VarianceAnalysis extends Component {
     this.props.leftMenuClick(false);
   }
   componentWillReceiveProps(nextProps){
+    this.gridData=nextProps.gridDataViewReport;
+    this.changeHistory=nextProps.change_history;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
@@ -135,6 +139,7 @@ class VarianceAnalysis extends Component {
     this.currentPage = 0;
     this.selectedViewColumns=[];
     this.selectedSheetIndex = 0;
+    this.gridData=undefined;
     this.setState({
         display: "showReportGrid",
         refreshedData: true,
@@ -256,7 +261,7 @@ class VarianceAnalysis extends Component {
       let varianceData = [];
       let VAelement ={};
       this.selectedSheetIndex = sheetDetail.sheetIndex;
-      this.props.gridDataViewReport[this.selectedSheetIndex].matrix.map(item => {
+      this.gridData[this.selectedSheetIndex].matrix.map(item => {
           VAelement ={};
           if(item.origin == "DATA" && (item.variance != 0 || typeof item.variance != 'number')){
             VAelement['name'] = item.cell;
@@ -268,7 +273,7 @@ class VarianceAnalysis extends Component {
           }
       })
       sheetChartData = {
-        title: 'Variance Value Chart for Sheet ' + this.props.gridDataViewReport[this.selectedSheetIndex].sheet,
+        title: 'Variance Value Chart for Sheet ' + this.gridData[this.selectedSheetIndex].sheet,
         value:  'Values with Variances %',
         rate: 'inc',
         data: matrixData.length ? matrixData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
@@ -280,7 +285,7 @@ class VarianceAnalysis extends Component {
         {key: 'Variance', keyType: "Line", yAxisId: "right", color: '#778490' }, //#778490 #c5a1a1
       ]
       sheetVarianceData = {
-        title: 'Variance Chart for Sheet ' + this.props.gridDataViewReport[this.selectedSheetIndex].sheet,
+        title: 'Variance Chart for Sheet ' + this.gridData[this.selectedSheetIndex].sheet,
         value:  '% Variances',
         rate: 'inc',
         data: varianceData.length ? varianceData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
@@ -367,6 +372,7 @@ class VarianceAnalysis extends Component {
   handleCellHistoryClicked(event,item){
     console.log("Clicked handleCellHistoryClicked",item);
     let isOpen = this.state.showCellChangeHistory;
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({
         showCellChangeHistory: false
@@ -388,6 +394,7 @@ class VarianceAnalysis extends Component {
 
   handleHistoryClick() {
     let isOpen = this.state.display === "showHistory";
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({
         display: "showReportGrid"
@@ -395,10 +402,11 @@ class VarianceAnalysis extends Component {
     } else {
       //this.props.fetchReportChangeHistory(this.state.reportId);
       //console.log("Repot Linkage",this.props.change_history);
-      let sheetName = this.props.gridDataViewReport[0].sheet;
+      let sheetName = this.gridData[0].sheet;
       this.setState({
         display: "showHistory",
         showCharts: false,
+        selectedAuditSheet: 0
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
       );
@@ -407,7 +415,7 @@ class VarianceAnalysis extends Component {
 
   handleExportCSV(event) {
     let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.subsequentReportingDate + "_";
-    this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
+    this.props.exportCSV(this.gridData.table_name,business_ref,this.gridData.sql);
   }
 
   handleExportRules(event) {
@@ -430,7 +438,7 @@ class VarianceAnalysis extends Component {
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "showReportGrid":
-              if (this.props.gridDataViewReport) {
+              if (this.gridData) {
                   return(
                       <div>
                           <RegOpzFlatGridActionButtons
@@ -444,7 +452,7 @@ class VarianceAnalysis extends Component {
                           <RegOpzReportGrid
                             report_id={this.state.reportId}
                             reporting_date={this.state.firstReportingDate}
-                            gridData={this.props.gridDataViewReport}
+                            gridData={this.gridData}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
                             handleSelectedSheet={ this.handleSelectedSheet.bind(this) }
                             ref={
@@ -504,10 +512,10 @@ class VarianceAnalysis extends Component {
                             ruleFilterParam={this.businessRuleFilterParam}
                           />
                       );
-                  } else if (this.state.showCellChangeHistory && this.props.change_history) {
+                  } else if (this.state.showCellChangeHistory && this.changeHistory) {
                       content.push(
                         <DefAuditHistory
-                          data={ this.props.change_history }
+                          data={ this.changeHistory }
                           historyReference={ "" }
                           handleClose={ this.handleCellHistoryClicked.bind(this) }
                          />
@@ -517,13 +525,13 @@ class VarianceAnalysis extends Component {
               }
               break;
           case "showHistory":
-              if (this.props.gridDataViewReport) {
+              if (this.gridData) {
                   return(
                     <Tabs
                       defaultActiveKey={0}
                       activeKey={this.state.selectedAuditSheet}
                       onSelect={(key) => {
-                          let sheetName = this.props.gridDataViewReport[key].sheet;
+                          let sheetName = this.gridData[key].sheet;
                           this.setState({selectedAuditSheet:key},
                           ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
                         );
@@ -531,7 +539,7 @@ class VarianceAnalysis extends Component {
                       }}
                       >
                       {
-                        this.props.gridDataViewReport.map((item,index) => {
+                        this.gridData.map((item,index) => {
                           console.log("Inside dridData map");
                           return(
                               <Tab
@@ -546,7 +554,7 @@ class VarianceAnalysis extends Component {
                                       //this.selectedCell = {};
                                       return (
                                           <DefAuditHistory
-                                            data={ this.props.change_history }
+                                            data={ this.changeHistory }
                                             historyReference={ "" }
                                             handleClose={ this.handleHistoryClick.bind(this) }
                                            />
