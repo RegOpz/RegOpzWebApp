@@ -131,7 +131,14 @@ class DefAuditHistory extends Component{
     );
   }
   renderChangeHistory(linkageData){
-    if(!linkageData || typeof(linkageData) == 'undefined' || linkageData == null || linkageData.length == 0) {
+    if(!linkageData || typeof(linkageData) == 'undefined' || linkageData == null) {
+      return(
+        <div>
+          <h4>Loading audit change report .....</h4>
+        </div>
+      )
+    }
+    else if(linkageData.length == 0) {
       return(
         <div>
           <h4>No audit change report found!</h4>

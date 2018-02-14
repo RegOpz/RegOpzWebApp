@@ -64,6 +64,9 @@ class ViewReport extends Component {
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
+    this.gridDataViewReport=undefined;
+    this.changeHistory=undefined;
+    this.gridData=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
     this.selectedCell={};
@@ -111,6 +114,9 @@ class ViewReport extends Component {
     this.props.leftMenuClick(false);
   }
   componentWillReceiveProps(nextProps){
+    this.gridDataViewReport=nextProps.gridDataViewReport;
+    this.gridData=nextProps.gridData;
+    this.changeHistory=nextProps.change_history;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
@@ -127,6 +133,7 @@ class ViewReport extends Component {
     console.log("selected item",item);
     this.currentPage = 0;
     this.selectedViewColumns=[];
+    this.gridDataViewReport=undefined;
     this.setState({
         display: "showReportGrid",
         reportId: item.report_id,
@@ -251,6 +258,7 @@ class ViewReport extends Component {
   handleCellHistoryClicked(event,item){
     console.log("Clicked handleCellHistoryClicked",item);
     let isOpen = this.state.showCellChangeHistory;
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({
         showCellChangeHistory: false
@@ -271,6 +279,7 @@ class ViewReport extends Component {
 
   handleHistoryClick() {
     let isOpen = this.state.display === "showHistory";
+    this.changeHistory=undefined;
     if(isOpen) {
       this.setState({
         display: "showReportGrid"
@@ -312,7 +321,7 @@ class ViewReport extends Component {
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "showReportGrid":
-              if (this.props.gridDataViewReport) {
+              if (this.gridDataViewReport) {
                   return(
                       <div>
                           <RegOpzFlatGridActionButtons
@@ -326,7 +335,7 @@ class ViewReport extends Component {
                           <RegOpzReportGrid
                             report_id={this.state.reportId}
                             reporting_date={this.state.reportingDate}
-                            gridData={this.props.gridDataViewReport}
+                            gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
                             ref={
                                (flatGrid) => {
@@ -385,10 +394,10 @@ class ViewReport extends Component {
                             ruleFilterParam={this.businessRuleFilterParam}
                           />
                       );
-                  } else if (this.state.showCellChangeHistory && this.props.change_history) {
+                  } else if (this.state.showCellChangeHistory && this.changeHistory) {
                       content.push(
                         <DefAuditHistory
-                          data={ this.props.change_history }
+                          data={ this.changeHistory }
                           historyReference={ "" }
                           handleClose={ this.handleCellHistoryClicked.bind(this) }
                          />
@@ -398,13 +407,13 @@ class ViewReport extends Component {
               }
               break;
           case "showHistory":
-              if (this.props.gridDataViewReport) {
+              if (this.gridDataViewReport) {
                   return(
                     <Tabs
                       defaultActiveKey={0}
                       activeKey={this.state.selectedAuditSheet}
                       onSelect={(key) => {
-                          let sheetName = this.props.gridDataViewReport[key].sheet;
+                          let sheetName = this.gridDataViewReport[key].sheet;
                           this.setState({selectedAuditSheet:key},
                           ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
                         );
@@ -412,7 +421,7 @@ class ViewReport extends Component {
                       }}
                       >
                       {
-                        this.props.gridDataViewReport.map((item,index) => {
+                        this.gridDataViewReport.map((item,index) => {
                           console.log("Inside dridData map");
                           return(
                               <Tab
@@ -427,7 +436,7 @@ class ViewReport extends Component {
                                       //this.selectedCell = {};
                                       return (
                                           <DefAuditHistory
-                                            data={ this.props.change_history }
+                                            data={ this.changeHistory }
                                             historyReference={ "" }
                                             handleClose={ this.handleHistoryClick.bind(this) }
                                            />

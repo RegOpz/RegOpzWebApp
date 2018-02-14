@@ -33,7 +33,7 @@ const asyncValidate = (values, dispatch) => {
         let error = action.payload.data;
         if (Object.getOwnPropertyNames(error).length > 0) {
             console.log("Inside asyncValidate", error);
-            throw { name: error.msg };
+            throw { name: error.msg , donotUseMiddleWare: true };
         }
      });
 }
