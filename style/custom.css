@@ -4300,6 +4300,14 @@ table thead .checkbox.radio { margin-top:-7px;margin-top:-21px; }
 .preserve-text {
   white-space: pre-wrap;
 }
+.truncate-text {
+  display: inline-block;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: top;
+}
 @keyframes pulse_animation {
     0% {
         transform: scale(1);

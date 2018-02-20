@@ -304,6 +304,7 @@ class ViewDataComponentV2 extends Component {
         ()=>{
               if(this.selectedItems){
                 this.selectedItems = this.flatGrid.deSelectAll();
+                this.handleRefreshGrid();
               }
             }
       )
@@ -322,7 +323,12 @@ class ViewDataComponentV2 extends Component {
                 return;
             }else{
               this.form_data = this.selectedItems[0];
-              itemEditable = (this.form_data.dml_allowed == "Y");
+              if (requestType=="copy"){
+                itemEditable = true;
+                this.form_data.id=null;
+              }else {
+                itemEditable = (this.form_data.dml_allowed == "Y");
+              }
             }
           }
           this.requestType = requestType;
@@ -432,7 +438,8 @@ class ViewDataComponentV2 extends Component {
     } else {
       this.modalAlert.isDiscardToBeShown = true;
       this.operationName = "INSERT";
-      this.modalAlert.open(`Are you sure to create a copy of this record (ID: ${this.selectedItems[0]['id']}) ?`)
+      this.handleAdd(event,"copy");
+      // this.modalAlert.open(`Are you sure to create a copy of this record (ID: ${this.selectedItems[0]['id']}) ?`)
     }
   }
 
@@ -477,7 +484,7 @@ class ViewDataComponentV2 extends Component {
       data["business_date"]=this.state.businessDate;
       data.update_info.id = null;
       this.props.insertSourceData(data,this.selectedIndexOfGrid + 1);
-      this.setState({showAuditModal:false});
+      // this.setState({showAuditModal:false});
 
     }
 
@@ -495,7 +502,7 @@ class ViewDataComponentV2 extends Component {
       data["business_date"]=this.state.businessDate;
 
       this.props.deleteFromSourceData(this.selectedItems[0]['id'],data, this.selectedIndexOfGrid);
-      this.setState({showAuditModal:false});
+      // this.setState({showAuditModal:false});
     }
 
    if(this.operationName=='UPDATE'){
@@ -512,11 +519,13 @@ class ViewDataComponentV2 extends Component {
      data["update_info"]=this.updateInfo;
      data["business_date"]=this.state.businessDate;
      this.props.updateSourceData(data);
-     this.setState({showAuditModal:false});
+    //  this.setState({showAuditModal:false});
 
    }
 
-   this.handleRefreshGrid(event);
+   this.setState({showAuditModal:false},
+     ()=>{this.handleRefreshGrid(event);}
+     );
 
   }
 
