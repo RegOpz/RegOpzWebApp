@@ -208,7 +208,12 @@ class ReportCatalogList extends Component {
               <tbody>
               {linkageData.map((item,index) => {
                 return (
-                  <tr key={index}>
+                  <tr key={index}
+                    onClick={
+                      (event)=>{
+                        this.props.handleReportClick(item)
+                      }
+                    }>
                     <td>
                       <button
                         className="btn btn-link btn-xs"
@@ -226,12 +231,12 @@ class ReportCatalogList extends Component {
                     </td>
                     <td>
                       <p
-                        className="preserve-text"
+                        className="truncate-text"
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
                         >
-                        <small>{item.report_description.toString().substring(0,200)+" ..."}</small>
+                        {item.report_description}
                       </p>
                     </td>
                     <td>{item.last_updated_by}</td>
@@ -265,7 +270,12 @@ class ReportCatalogList extends Component {
             <tbody>
               {
                 linkageData.map((item,index) => (
-                    <tr key={index}>
+                    <tr key={index}
+                      onClick={
+                        (event)=>{
+                          this.props.handleReportClick(item)
+                        }
+                      }>
                       <td>
                         <button
                           className="btn btn-link btn-xs"

@@ -143,7 +143,12 @@ class SourceCatalogList extends Component {
               <tbody>
               {linkageData.map((item,index) => {
                 return (
-                  <tr key={index}>
+                  <tr key={index}
+                    onClick={
+                      (event)=>{
+                        this.props.handleSourceClick(item)
+                      }
+                    }>
                     <td>{item.source_id}</td>
                     <td>
                       <button
@@ -202,7 +207,12 @@ class SourceCatalogList extends Component {
             <tbody>
               {
                 linkageData.map((item,index) => (
-                    <tr key={index}>
+                    <tr key={index}
+                      onClick={
+                        (event)=>{
+                          this.props.handleSourceClick(item)
+                        }
+                      }>
                       <td>{item.source_id}</td>
                       <td>
                         <button

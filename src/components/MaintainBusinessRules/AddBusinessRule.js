@@ -29,7 +29,7 @@ class AddBusinessRule extends Component {
       fieldsSuggestions: [],
       dataFieldsSuggestions: [],
       componentDidUpdateCount: 0,
-      requestType: this.props.businessRule ? "update":"add",
+      requestType: this.props.businessRule && this.props.businessRule.id ? "update":"add",
       ruleIndex: null,
       readOnly: !this.props.editable,
       form: {

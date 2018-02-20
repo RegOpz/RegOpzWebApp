@@ -299,6 +299,7 @@ class MaintainBusinessRules extends Component {
               if(this.selectedItems){
                 this.selectedItems = this.flatGrid.deSelectAll();
               }
+              this.handleRefreshGrid();
             }
       )
     } else {
@@ -317,7 +318,12 @@ class MaintainBusinessRules extends Component {
                 return;
             }else{
               this.form_data = this.selectedItems[0];
-              itemEditable = (this.form_data.dml_allowed == "Y");
+              if (requestType=="copy"){
+                itemEditable = true;
+                this.form_data.id=null;
+              }else {
+                itemEditable = (this.form_data.dml_allowed == "Y");
+              }
             }
           }
           this.requestType = requestType;
@@ -411,7 +417,8 @@ class MaintainBusinessRules extends Component {
     } else {
       this.modalAlert.isDiscardToBeShown = true;
       this.operationName = "INSERT";
-      this.modalAlert.open(`Are you sure to create a copy of this record (ID: ${this.selectedItems[0]['id']}) ?`)
+      this.handleAdd(event,"copy");
+      // this.modalAlert.open(`Are you sure to create a copy of this record (ID: ${this.selectedItems[0]['id']}) ?`)
     }
   }
 
@@ -454,7 +461,7 @@ class MaintainBusinessRules extends Component {
       data["update_info"]={...this.selectedItems[0]};
       data.update_info.id = null;
       this.props.insertBusinessRule(data,this.selectedIndexOfGrid + 1);
-      this.setState({showAuditModal:false});
+      // this.setState({showAuditModal:false});
 
     }
 
@@ -470,7 +477,7 @@ class MaintainBusinessRules extends Component {
       data["update_info"]=this.selectedItems[0];
 
       this.props.deleteBusinessRule(data, this.selectedItems[0]['id'], this.selectedIndexOfGrid);
-      this.setState({showAuditModal:false});
+      // this.setState({showAuditModal:false});
     }
 
    if(this.operationName=='UPDATE'){
@@ -485,11 +492,13 @@ class MaintainBusinessRules extends Component {
      data["audit_info"]=this.auditInfo;
      data["update_info"]=this.updateInfo;
      this.props.updateBusinessRule(data);
-     this.setState({showAuditModal:false});
+    //  this.setState({showAuditModal:false});
 
    }
 
-   this.handleRefreshGrid(event);
+   this.setState({showAuditModal:false},
+     ()=>{this.handleRefreshGrid(event);}
+     );
 
   }
 

@@ -40,6 +40,7 @@ class AddData extends Component {
     this.all_cols=this.props.all_cols;
     this.table_name=this.props.table_name;
     this.readOnly=this.props.readOnly;
+    this.nonEditableFields=['in_use','dml_allowed','last_updated_by','id','business_date'];
     this.state={
       audit_form:{comment:null},
       showToggleColumns: false,
@@ -50,7 +51,7 @@ class AddData extends Component {
   }
 
   componentDidMount(){
-    if(this.requestType=='update'){
+    if(this.requestType=='update' || this.requestType=='copy'){
         this.props.initialize(this.form_data);
     }
 
@@ -200,13 +201,13 @@ class AddData extends Component {
   handleFormSubmit(submitData){
     let data={};
     data['table_name']=this.table_name;
-    data['change_type']=this.requestType=='add'?'INSERT':'UPDATE';
+    data['change_type']=this.requestType=='update'?'UPDATE':'INSERT';
 
     let audit_info={
       id:submitData.id,
       table_name:data.table_name,
       change_type:data.change_type,
-      change_reference:`Data: ${submitData.id} of Source: ${this.table_name}`,
+      change_reference:`Data Source: ${this.table_name}`,
       maker:this.props.login_details.user,
       business_date:submitData.business_date
     };
@@ -224,7 +225,7 @@ class AddData extends Component {
     }
 
     //insert is sending only changed column,so we need to expand for all columns
-    if(this.requestType=='add'){
+    if(['add','copy'].includes(this.requestType)){
 
         data['update_info']={};
 
@@ -262,7 +263,7 @@ class AddData extends Component {
             type="text"
             component={renderField}
             label={ item }
-            readOnly={item == "id" || item=="business_date" || item=="dml_allowed" || item=="in_use" || this.readOnly}
+            readOnly={this.nonEditableFields.includes(item) || this.readOnly}
           />
       );
     });
