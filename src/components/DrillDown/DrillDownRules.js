@@ -332,6 +332,31 @@ class DrillDownRules extends Component {
 
   renderCalcRulesBtn(){
     console.log("Inside renderCalcRulesBtn",this.props.addRulesBtn);
+    let cellCalcRef='';
+    if (this.cellRules.cell_rules.length ==0){
+        cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.000';
+    }
+    else {
+        let seq=[];
+        let i=0;
+        let existingCellCalcRefs=this.cellRules.cell_rules.map(e=>e.cell_calc_ref);
+        console.log("Inside renderCalcRulesBtn cellCalcRefs",existingCellCalcRefs)
+        for(let cellRef of existingCellCalcRefs){
+          seq[i]=cellRef.split(/\./g)[1]
+          console.log("Inside renderCalcRulesBtn",seq)
+          i++;
+        }
+        let maxCellRef=Math.max(...seq)+1;
+        if(maxCellRef > 999){ console.log("Error:Number can't be greater than 1000");}
+        cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.'+
+                             ((num,size)=>{
+                                  var s = num+"";
+                                  while (s.length < size) s = "0" + s;
+                                  return s;
+                                })(maxCellRef,3);
+
+    }
+
     if (this.props.addRulesBtn) {
         return(
             <button
@@ -341,13 +366,14 @@ class DrillDownRules extends Component {
               onClick={
                 (event) => {
                     let calcRuleFilter = {
-                      form: {},
+                      form: {cell_calc_ref:cellCalcRef},
                       params:{
                         drill_kwargs: {
                             index: -1,
                             report_id: this.selectedCell.reportId,
                             sheet: this.selectedCell.sheetName,
                             cell: this.selectedCell.cell,
+                            cell_calc_ref:cellCalcRef,
                             reporting_date: this.reportingDate,
                             in_use: 'N',
                             dml_allowed: 'Y',
