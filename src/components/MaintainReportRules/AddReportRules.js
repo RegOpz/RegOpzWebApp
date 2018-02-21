@@ -77,7 +77,7 @@ class AddReportRules extends Component {
                   });
     } else {
       let formData = {
-        cell_calc_ref:null,
+        cell_calc_ref:this.props.cell_calc_ref,
         report_id: this.props.report_id,
         sheet_id: this.props.sheet,
         cell_id:this.props.cell,
@@ -110,7 +110,7 @@ class AddReportRules extends Component {
                         });
           } else {
             let formData = {
-              cell_calc_ref:null,
+              cell_calc_ref:nextProps.cell_calc_ref,
               report_id: nextProps.report_id,
               sheet_id: nextProps.sheet,
               cell_id:nextProps.cell,
@@ -331,7 +331,7 @@ class AddReportRules extends Component {
                       value={this.state.form.cell_calc_ref}
                       type="text"
                       required="required"
-                      readOnly={this.viewOnly}
+                      readOnly={true}
                       className="form-control col-md-7 col-xs-12"
                       onChange={
                         (event) => {
