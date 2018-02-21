@@ -127,7 +127,7 @@ class DrillDownRules extends Component {
                               (event)=>{
                                 let item = {
                                     id: null,
-                                    comp_agg_ref: null,
+                                    comp_agg_ref: cellRules.comp_agg_ref,
                                     comp_agg_rule: null,
                                     reporting_scale: null,
                                     rounding_option: null,
