@@ -305,25 +305,6 @@ class AddReportRules extends Component {
                 onSubmit={this.handleSubmit.bind(this)}
               >
                 <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">ID <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <input
-                      value={this.state.form.id}
-                      placeholder="System Reference ID"
-                      readOnly="readonly"
-                      type="text"
-                      className="form-control col-md-7 col-xs-12"
-                      onChange={
-                        (event) => {
-                          let form=this.state.form;
-                          form.id = event.target.value;
-                          this.setState({form:form});
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Cell Calc Ref <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <input
