@@ -194,7 +194,7 @@ class AddReportAggRules extends Component {
                         value={this.state.form.comp_agg_ref}
                         type="text"
                         className="form-control col-md-7 col-xs-12"
-                        readOnly={this.viewOnly}
+                        readOnly={true}
                         onChange={(event) => {
                           let newState = {...this.state};
                           //if(this.checkRuleValidity(event) == "valid") {
