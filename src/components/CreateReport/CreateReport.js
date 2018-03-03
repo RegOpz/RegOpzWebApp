@@ -9,7 +9,7 @@ import { actionFetchReportList,
       actionCreateReport } from '../../actions/CreateReportAction';
 import DatePicker from 'react-datepicker';
 import './CreateReport.css';
-
+import Parameter from './Parameter';
 
 
  class CreateReport extends Component{
@@ -27,9 +27,13 @@ import './CreateReport.css';
       refDateRate:null,
       rateType:null,
       reportParameters:null,
-      reportCreateDate:null
+      reportCreateDate:null,
+      additionalParameters:[]
     };
 
+    this.addNewParameter = this.addNewParameter.bind(this);
+    this.removeParameter = this.removeParameter.bind(this);
+    this.handleParameterChange = this.handleParameterChange.bind(this);
 
   }
 
@@ -51,6 +55,44 @@ import './CreateReport.css';
 
     this.setState({asOfReportingDate:date});
 
+  }
+
+  addNewParameter(parameterTag, keyValue, disabled) {
+
+      let additionalParameters = this.state.additionalParameters;
+
+      additionalParameters.push({
+          parameterTag: parameterTag ? parameterTag : '',
+          keyValue: keyValue ? keyValue : '',
+          disabled: disabled ? true : false
+      });
+      this.setState({ additionalParameters: additionalParameters });
+  }
+
+  removeParameter(index) {
+      var additionalParameters = [...this.state.additionalParameters];
+      additionalParameters.splice(index, 1);
+      this.setState({ additionalParameters: additionalParameters });
+  }
+
+  handleParameterChange(event, eventType, index) {
+      var additionalParameters = [...this.state.additionalParameters];
+      var value;
+      var checked;
+      switch (eventType) {
+          case 'parameterTag':
+              value = event.target.value;
+              value = value.replace(/[^A-Za-z0-9_]/g, "");
+              additionalParameters[index].parameterTag = value;
+              this.setState({ additionalParameters: additionalParameters });
+              break;
+          case 'keyValue':
+              value = event.target.value;
+              value = value.replace(/[:]/g, "");
+              additionalParameters[index].keyValue = value;
+              this.setState({ additionalParameters: additionalParameters });
+              break;
+      }
   }
 
   handleSubmit(event){
@@ -96,17 +138,18 @@ import './CreateReport.css';
 
               <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="country">Country <span className="required">*</span></label>
-                  <div className="col-md-2 col-sm-2 col-xs-12">
+                  <div className="col-md-3 col-sm-3 col-xs-12">
                     <select
                       className="form-control"
+                      required="required"
                       onChange={(event)=>{
-
-                        this.setState({country:event.target.value});
+                        this.setState({country:event.target.value, reportId: null});
+                        document.getElementById("reportId").value=null;
                         this.props.fetchReportList(event.target.value);
                       }
                     }
                     >
-                      <option>Choose option</option>
+                      <option value="">Choose a Country</option>
                         {this.props.country_list.map(function(item,index){
                             return <option key={index} value={item.country}> {item.country}</option>
                             }
@@ -119,13 +162,15 @@ import './CreateReport.css';
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="report-id">Report ID <span className="required">*</span></label>
                   <div className="col-md-3 col-sm-3 col-xs-12">
                     <select
+                      id="reportId"
                       className="form-control"
+                      required="required"
                       onChange={(event)=>{
                         this.setState({reportId:event.target.value});
                         }
                       }
                     >
-                      <option>Choose option</option>
+                      <option value="">Choose a Report</option>
                       {this.props.report_list.map(function(item,index){
                           return <option key={index} value={item.report_id}> {item.report_id}</option>
                           }
@@ -142,7 +187,11 @@ import './CreateReport.css';
                             selected={this.state.businessStartDate}
                             onChange={this.handleStartDateChange.bind(this)}
                             placeholderText="Start date (DD-MMM-YYYY)"
+                            showMonthDropdown
+                            showYearDropdown
+                            monthsShown={2}
                             className="view_data_date_picker_input form-control"
+                            required="required"
                         />
 
                         <DatePicker
@@ -150,7 +199,11 @@ import './CreateReport.css';
                             selected={this.state.businessEndDate}
                             onChange={this.handleEndDateChange.bind(this)}
                             placeholderText="End date (DD-MMM-YYYY)"
+                            showMonthDropdown
+                            showYearDropdown
+                            monthsShown={2}
                             className="view_data_date_picker_input form-control"
+                            required="required"
                         />
 
                     </div>
@@ -195,7 +248,10 @@ import './CreateReport.css';
                           selected={this.state.asOfReportingDate}
                           onChange={this.handleAsOfDateChange.bind(this)}
                           placeholderText="DD-MMM-YYYY"
+                          showMonthDropdown
+                          showYearDropdown
                           className="view_data_date_picker_input form-control"
+                          required="required"
                       />
                   </div>
                 </div>
@@ -208,8 +264,9 @@ import './CreateReport.css';
                       type="text"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
+                      value={this.state.reportingCurrency}
                       onChange={(event)=>{
-                        this.setState({reportingCurrency:event.target.value});
+                        this.setState({reportingCurrency:event.target.value.toLocaleUpperCase()});
                       }
                     }
                     />
@@ -218,16 +275,19 @@ import './CreateReport.css';
 
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="ref-date-rate">Reference Date Rate <span className="required">*</span></label>
-                  <div className="col-md-1 col-sm-1 col-xs-12">
-                    <input
-                      placeholder="B or R"
-                      type="text"
+                  <div className="col-md-3 col-sm-3 col-xs-12">
+                    <select
+                      className="form-control"
                       required="required"
-                      className="form-control col-md-7 col-xs-12"
                       onChange={(event)=>{
                         this.setState({refDateRate:event.target.value});
-                      }}
-                    />
+                        }
+                      }
+                    >
+                      <option value="">Choose Reference Rate</option>
+                      <option key={1} value={"B"}> Business Date Rate</option>
+                      <option key={2} value={"R"}> Reporting Date Rate</option>
+                    </select>
                   </div>
                 </div>
 
@@ -245,21 +305,50 @@ import './CreateReport.css';
                     />
                   </div>
                 </div>
-
                 <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-parameters">Report Parameters <span className="required">*</span></label>
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-parameters"> <span className="required"></span></label>
                   <div className="col-md-3 col-sm-6 col-xs-12">
-                    <input
-                      placeholder="Enter Report Parameters"
-                      type="text"
-                      className="form-control col-md-7 col-xs-12"
-                      onChange={(event)=>{
-                        this.setState({reportParameters:event.target.value});
-                      }}
-                    />
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-default"
+                      onClick={() => { this.addNewParameter(); }}
+                      >
+                      <i className="fa fa-cogs"></i> Add Parameters</button>
                   </div>
                 </div>
-
+                {
+                    this.state.additionalParameters.length > 0 &&
+                    <div className="form-group">
+                      <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-parameters">Additional Parameters <span className="required"></span></label>
+                      <div className="col-md-6 col-sm-6 col-xs-12">
+                        <table className="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Parameter <span className="required">*</span></th>
+                                    <th>Value <span className="required">*</span></th>
+                                    <th>Clear</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {
+                                this.state.additionalParameters.map((element, index) => {
+                                    return (
+                                        <Parameter
+                                          {...element}
+                                          index={index}
+                                          maxIndex={this.state.additionalParameters.length - 1}
+                                          handleChange={this.handleParameterChange}
+                                          removeRow={this.removeParameter}
+                                          key={index}
+                                        />
+                                    )
+                                })
+                              }
+                            </tbody>
+                          </table>
+                      </div>
+                    </div>
+                }
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
 

@@ -105,7 +105,8 @@ class DataCatalogList extends Component {
             dateFormat="DD-MMM-YYYY"
             selected={this.state.startDate}
             onChange={this.handleStartDateChange.bind(this)}
-
+            showMonthDropdown
+            showYearDropdown
             placeholderText="Select start date"
             className="view_data_date_picker_input form-control"
             />
@@ -114,7 +115,8 @@ class DataCatalogList extends Component {
               dateFormat="DD-MMM-YYYY"
               selected={this.state.endDate}
               onChange={this.handleEndDateChange.bind(this)}
-
+              showMonthDropdown
+              showYearDropdown
               placeholderText="Select end date"
               className="view_data_date_picker_input form-control "
               />
