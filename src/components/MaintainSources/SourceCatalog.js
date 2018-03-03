@@ -167,12 +167,12 @@ class SourceCatalogList extends Component {
                     </td>
                     <td>
                       <p
-                        className="preserve-text"
+                        className="truncate-text"
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.source_description}
                         >
-                        <small>{item.source_description.toString().substring(0,200)+" ..."}</small>
+                        <small>{item.source_description}</small>
                       </p>
                     </td>
                     <td>{item.last_updated_by}</td>

@@ -153,7 +153,7 @@ class VarianceAnalysis extends Component {
         sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
      },
       ()=>{
-        this.fetchDataToGrid(event);
+        this.fetchDataToGrid();
         //this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);
       }
     );
