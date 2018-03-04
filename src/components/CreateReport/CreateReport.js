@@ -53,17 +53,32 @@ import Parameter from './Parameter';
   }
 
   handleStartDateChange(date){
+    if(this.state.businessEndDate && date > this.state.businessEndDate){
+      this.setState({businessStartDate:null});
+    }
+    else{
+      this.setState({businessStartDate:date});
+    }
 
-    this.setState({businessStartDate:date});
   }
   handleEndDateChange(date){
 
-    this.setState({businessEndDate:date});
+    if(this.state.businessStartDate && date < this.state.businessStartDate){
+      this.setState({businessEndDate:null});
+    }
+    else {
+      this.setState({businessEndDate:date});
+    }
 
   }
   handleAsOfDateChange(date){
 
-    this.setState({asOfReportingDate:date});
+    if(this.state.businessStartDate && date < this.state.businessStartDate){
+      this.setState({asOfReportingDate:null});
+    }
+    else {
+      this.setState({asOfReportingDate:date});
+    }
 
   }
 
@@ -149,6 +164,7 @@ import Parameter from './Parameter';
       switch (eventType) {
           case 'parameterTag':
               value = event.target.value;
+              value= value.length>0 & value[0]!='_' ? "_" + value : value;
               value = value.replace(/[^A-Za-z0-9_]/g, "");
               additionalParameters[index].parameterTag = value;
               this.setState({ additionalParameters: additionalParameters });
@@ -247,7 +263,7 @@ import Parameter from './Parameter';
                               country:event.target.value,
                               reportId: null
                             });
-                            document.getElementById("reportId").value=null;
+                            document.getElementById("reportId").value="";
                             this.props.fetchReportList(event.target.value);
                           }
                         }
@@ -498,7 +514,26 @@ import Parameter from './Parameter';
                     }
                     {
                       !this.props.report_parameters &&
-                      <button type="reset" className="btn btn-primary">Reset</button>
+                      <button type="reset" className="btn btn-primary"
+                        onClick={
+                          ()=>{
+                            let newState={
+                              businessStartDate:null,
+                              businessEndDate:null,
+                              asOfReportingDate:null,
+                              reportId:null,
+                              reportCreateStatus:null,
+                              country:null,
+                              reportingCurrency:null,
+                              refDateRate:null,
+                              rateType:null,
+                              reportParameters:null,
+                              reportCreateDate:null,
+                              additionalParameters:[]
+                            };
+                            this.setState(newState);
+                          }
+                        }>Reset</button>
                     }
                     <button type="submit" className="btn btn-success">Submit</button>
                   </div>
