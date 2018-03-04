@@ -218,6 +218,11 @@ class ReportCatalogList extends Component {
                           data-toggle="tooltip"
                           data-placement="top"
                           title="Edit Report Parameters"
+                          onClick={
+                            (event)=>{
+                              this.props.editParameter(item)
+                            }
+                          }
                         >
                           <i className="fa fa-code" aria-hidden="true"></i>
                         </button>
@@ -230,7 +235,10 @@ class ReportCatalogList extends Component {
                               let report_info = {
                                 report_id: item.report_id,
                                 report_parameters: item.report_parameters,
-                                reporting_date: item.reporting_date
+                                reporting_date: item.reporting_date,
+                                ref_date_rate:item.ref_date_rate,
+                                rate_type: item.rate_type,
+                                reporting_currency: item.reporting_currency
                               }
                               //console.log(report_info);
                               this.props.generateReport(report_info);

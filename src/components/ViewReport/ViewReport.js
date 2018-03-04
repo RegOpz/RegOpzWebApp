@@ -38,6 +38,7 @@ import DrillDownRules from '../DrillDown/DrillDownRules';
 import AddReportAggRules from '../MaintainReportRules/AddReportAggRules';
 import ViewData from '../ViewData/ViewDataComponentV2';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import CreateReport from '../CreateReport/CreateReport';
 require('react-datepicker/dist/react-datepicker.css');
 
 class ViewReport extends Component {
@@ -58,7 +59,8 @@ class ViewReport extends Component {
       showDrillDownCalcBusinessRules: false,
       showCellChangeHistory: false,
 
-      display: false
+      display: false,
+      selectedRecord: {},
     }
 
     this.pages=0;
@@ -89,6 +91,7 @@ class ViewReport extends Component {
     this.renderDynamic = this.renderDynamic.bind(this);
 
     this.handleReportClick = this.handleReportClick.bind(this);
+    this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
     this.handleDateFilter = this.handleDateFilter.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
@@ -142,6 +145,31 @@ class ViewReport extends Component {
      },
       ()=>{this.props.fetchReportData(this.state.reportId,this.state.reportingDate);}
     );
+  }
+
+  handleEditParameterClick(item) {
+    console.log("selected item",item);
+    let isOpen = this.state.display === "editParameter";
+    if(isOpen){
+      this.setState({
+        display: false,
+        reportId: null,
+        reportingDate: null,
+        businessDate: null,
+        selectedRecord: null,
+      });
+    }
+    else {
+      this.setState({
+        display: "editParameter",
+        reportId: item.report_id,
+        reportingDate: item.reporting_date,
+        businessDate: item.as_of_reporting_date,
+        selectedRecord: item,
+       },
+        // Nothing to add at this stage
+      );
+    }
   }
 
   handleDateFilter(dates) {
@@ -452,6 +480,14 @@ class ViewReport extends Component {
                   );
               }
               break;
+          case "editParameter":
+              return(
+                      <CreateReport
+                        {...this.state.selectedRecord}
+                        handleCancel={this.handleEditParameterClick}
+                      />
+                    );
+              break;
           default:
               return(
                   <ReportCatalogList
@@ -459,6 +495,7 @@ class ViewReport extends Component {
                     navMenu={false}
                     handleReportClick={this.handleReportClick}
                     dateFilter={this.handleDateFilter}
+                    editParameter={this.handleEditParameterClick}
                     generateReport={this.props.generateReport}
                     />
               );

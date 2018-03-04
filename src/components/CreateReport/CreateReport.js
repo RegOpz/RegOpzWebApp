@@ -6,7 +6,8 @@ import {hashHistory} from 'react-router';
 import Breadcrumbs from 'react-breadcrumbs';
 import { actionFetchReportList,
       actionFetchCountryList,
-      actionCreateReport } from '../../actions/CreateReportAction';
+      actionCreateReport} from '../../actions/CreateReportAction';
+import {actionGenerateReport} from '../../actions/ViewDataAction';
 import DatePicker from 'react-datepicker';
 import './CreateReport.css';
 import Parameter from './Parameter';
@@ -30,7 +31,7 @@ import Parameter from './Parameter';
       reportCreateDate:null,
       additionalParameters:[]
     };
-
+    this.disabled = this.props.report_parameters ? true : false;
     this.addNewParameter = this.addNewParameter.bind(this);
     this.removeParameter = this.removeParameter.bind(this);
     this.handleParameterChange = this.handleParameterChange.bind(this);
@@ -38,8 +39,17 @@ import Parameter from './Parameter';
   }
 
   componentWillMount(){
-    this.props.fetchCountryList();
-    this.props.fetchReportList('XYZ');
+    if(this.props.report_parameters){
+        this.populateParameters();
+    }
+    else {
+        this.props.fetchCountryList();
+        this.props.fetchReportList('XYZ');
+    }
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // TODO
   }
 
   handleStartDateChange(date){
@@ -55,6 +65,63 @@ import Parameter from './Parameter';
 
     this.setState({asOfReportingDate:date});
 
+  }
+
+  populateParameters(){
+    let newState = {...this.state};
+    let reportParameters=JSON.parse("{"+this.props.report_parameters.replace(/'/g,'"')+"}")
+    // console.log("populateParameters....",this.props,reportParameters)
+    newState.reportId=this.props.report_id;
+    newState.country=this.props.country;
+    newState.reportCreateStatus=this.props.report_create_status;
+    newState.asOfReportingDate=moment(this.props.as_of_reporting_date,"YYYYMMDD");
+    this.todayDate=this.props.report_create_timestamp
+    Object.keys(reportParameters).map((item,index)=>{
+      // console.log("Inside map of switch...",item)
+      // Poorly written code for now, need to cleanup this piece to be inline with the parameters expected in API call as well
+      switch(item){
+        case "business_date_from":
+          newState.businessStartDate=moment(reportParameters.business_date_from,"YYYYMMDD");
+          break;
+        case "business_date_to":
+          newState.businessEndDate=moment(reportParameters.business_date_to,"YYYYMMDD");
+          break;
+        case "as_of_reporting_date":
+          newState.asOfReportingDate=moment(reportParameters.as_of_reporting_date,"YYYYMMDD");
+          break;
+        case "country":
+          newState.country=reportParameters.country;
+          break;
+        case "report_id":
+          newState.reportId=reportParameters.report_id;
+          break;
+        case "reporting_currency":
+          newState.reportingCurrency=reportParameters.reporting_currency;
+          break;
+        case "ref_date_rate":
+          newState.refDateRate=reportParameters.ref_date_rate;
+          break;
+        case "rate_type":
+          newState.rateType=reportParameters.rate_type;
+          break;
+        default:
+          newState.additionalParameters.push({
+              parameterTag: item,
+              keyValue: reportParameters[item],
+              disabled: false
+          });
+          break;
+      }
+    })
+    // console.log("populateParameters post mapping",newState)
+    this.setState(
+      newState,
+      ()=>{
+        // console.log("populateParameters inside setstate....",this.state)
+        this.props.fetchCountryList();
+        this.props.fetchReportList(this.props.country);
+      }
+    );
   }
 
   addNewParameter(parameterTag, keyValue, disabled) {
@@ -98,7 +165,7 @@ import Parameter from './Parameter';
   handleSubmit(event){
     event.preventDefault();
     this.todayDate=moment().format("DD-MMM-YYYY h:mm:ss a");
-    const report_info={
+    let report_info={
       report_id:this.state.reportId,
       reporting_currency:this.state.reportingCurrency,
       business_date_from:this.state.businessStartDate.format("YYYYMMDD"),
@@ -107,20 +174,35 @@ import Parameter from './Parameter';
       as_of_reporting_date:this.state.asOfReportingDate.format("YYYYMMDD"),
       ref_date_rate:this.state.refDateRate,
       rate_type:this.state.rateType,
-      report_parameters:this.state.reportParameters,
+      report_parameters:null,
       report_create_status:this.state.reportCreateStatus,
       report_create_date:this.todayDate
-
     };
+    report_info.report_parameters='"business_date_from":"' + report_info.business_date_from + '",' +
+                                '"business_date_to":"' + report_info.business_date_to + '",' +
+                                '"reporting_currency":"' + report_info.reporting_currency + '",' +
+                                '"ref_date_rate":"' + report_info.ref_date_rate + '",' +
+                                '"rate_type":"' + report_info.rate_type +'"'
+    this.state.additionalParameters.map((item,index)=>{
+        report_info.report_parameters=report_info.report_parameters+',"'+item.parameterTag+'":"'+item.keyValue+'"'
+    })
     console.log(report_info);
-    this.props.createReport(report_info);
-    hashHistory.push('/dashboard/view-report');
+    if(this.props.report_parameters){
+      this.props.generateReport(report_info);
+      this.props.handleCancel();
+    }
+    else {
+      this.props.createReport(report_info);
+      hashHistory.push('/dashboard/view-report');
+    }
+
   }
 
   render(){
 
+    // console.log("This props log",this.state)
     if(typeof this.props.country_list==='undefined'|| typeof this.props.report_list==='undefined'){
-      return <h1> Loading...</h1>;
+      return <h4> Loading...</h4>;
     }
 
     //console.log('Business start date',this.state.businessStartDate);
@@ -139,43 +221,86 @@ import Parameter from './Parameter';
               <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="country">Country <span className="required">*</span></label>
                   <div className="col-md-3 col-sm-3 col-xs-12">
-                    <select
-                      className="form-control"
-                      required="required"
-                      onChange={(event)=>{
-                        this.setState({country:event.target.value, reportId: null});
-                        document.getElementById("reportId").value=null;
-                        this.props.fetchReportList(event.target.value);
-                      }
+                    {
+                      this.props.report_parameters &&
+                      <input
+                        placeholder="Report creation Date"
+                        value={this.state.country}
+                        readOnly="true"
+                        type="text"
+                        className="form-control col-md-7 col-xs-12"
+                      />
                     }
-                    >
-                      <option value="">Choose a Country</option>
-                        {this.props.country_list.map(function(item,index){
-                            return <option key={index} value={item.country}> {item.country}</option>
-                            }
-                        )}
-                    </select>
+                    {
+                      !this.props.report_parameters &&
+                      <select
+                        className="form-control"
+                        required="required"
+                        readOnly={this.disabled}
+                        value={this.state.country}
+                        onChange={(event)=>{
+                          if(this.props.report_id){
+                            // DO NOTHING
+                          }
+                          else {
+                            this.setState({
+                              country:event.target.value,
+                              reportId: null
+                            });
+                            document.getElementById("reportId").value=null;
+                            this.props.fetchReportList(event.target.value);
+                          }
+                        }
+                      }
+                      >
+                        <option value="">Choose a Country</option>
+                          {this.props.country_list.map(function(item,index){
+                              return <option key={index} value={item.country}> {item.country}</option>
+                              }
+                          )}
+                      </select>
+                    }
                   </div>
                 </div>
 
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="report-id">Report ID <span className="required">*</span></label>
                   <div className="col-md-3 col-sm-3 col-xs-12">
-                    <select
-                      id="reportId"
-                      className="form-control"
-                      required="required"
-                      onChange={(event)=>{
-                        this.setState({reportId:event.target.value});
-                        }
-                      }
-                    >
-                      <option value="">Choose a Report</option>
-                      {this.props.report_list.map(function(item,index){
-                          return <option key={index} value={item.report_id}> {item.report_id}</option>
+                    {
+                      this.props.report_parameters &&
+                      <input
+                        placeholder="Report creation Date"
+                        value={this.state.reportId}
+                        readOnly="true"
+                        type="text"
+                        className="form-control col-md-7 col-xs-12"
+                      />
+                    }
+                    {
+                      !this.props.report_parameters &&
+                      <select
+                        id="reportId"
+                        className="form-control"
+                        required="required"
+                        readOnly={this.disabled}
+                        value={this.state.reportId}
+                        onChange={(event)=>{
+                            if(this.props.report_id){
+                              // DO NOTHING
+                            }
+                            else {
+                              this.setState({reportId:event.target.value});
+                            }
                           }
-                      )}
-                    </select>
+                        }
+                      >
+                        <option value="">Choose a Report</option>
+                        {this.props.report_list.map(function(item,index){
+                            return <option key={index} value={item.report_id}> {item.report_id}</option>
+                            }
+                        )}
+                      </select>
+                    }
                   </div>
                 </div>
 
@@ -192,6 +317,7 @@ import Parameter from './Parameter';
                             monthsShown={2}
                             className="view_data_date_picker_input form-control"
                             required="required"
+                            disabled={this.disabled}
                         />
 
                         <DatePicker
@@ -204,6 +330,7 @@ import Parameter from './Parameter';
                             monthsShown={2}
                             className="view_data_date_picker_input form-control"
                             required="required"
+                            disabled={this.disabled}
                         />
 
                     </div>
@@ -213,7 +340,7 @@ import Parameter from './Parameter';
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="report-create-date">Report Create Date <span className="required">*</span></label>
                   <div className="col-md-3 col-sm-6 col-xs-12">
                     <input
-                      placeholder="Enter Start Business Date"
+                      placeholder="Report creation Date"
                       value={this.todayDate}
                       readOnly="true"
                       type="text"
@@ -231,6 +358,7 @@ import Parameter from './Parameter';
                       readOnly="true"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
+                      value={this.state.reportCreateStatus}
                       onChange={(event)=>{
                         this.setState({reportCreateStatus:event.target.value});
                       }
@@ -252,6 +380,7 @@ import Parameter from './Parameter';
                           showYearDropdown
                           className="view_data_date_picker_input form-control"
                           required="required"
+                          disabled={this.disabled}
                       />
                   </div>
                 </div>
@@ -279,6 +408,7 @@ import Parameter from './Parameter';
                     <select
                       className="form-control"
                       required="required"
+                      value={this.state.refDateRate}
                       onChange={(event)=>{
                         this.setState({refDateRate:event.target.value});
                         }
@@ -299,6 +429,7 @@ import Parameter from './Parameter';
                       type="text"
                       required="required"
                       className="form-control col-md-7 col-xs-12"
+                      value={this.state.rateType}
                       onChange={(event)=>{
                         this.setState({rateType:event.target.value});
                       }}
@@ -321,38 +452,54 @@ import Parameter from './Parameter';
                     <div className="form-group">
                       <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-parameters">Additional Parameters <span className="required"></span></label>
                       <div className="col-md-6 col-sm-6 col-xs-12">
-                        <table className="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Parameter <span className="required">*</span></th>
-                                    <th>Value <span className="required">*</span></th>
-                                    <th>Clear</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                              {
-                                this.state.additionalParameters.map((element, index) => {
-                                    return (
-                                        <Parameter
-                                          {...element}
-                                          index={index}
-                                          maxIndex={this.state.additionalParameters.length - 1}
-                                          handleChange={this.handleParameterChange}
-                                          removeRow={this.removeParameter}
-                                          key={index}
-                                        />
-                                    )
-                                })
-                              }
-                            </tbody>
-                          </table>
+                        <div className="x_panel">
+                          <div className="x_title">
+                            <h2>Additional Parameters <small> for report {this.state.reportId}</small></h2>
+                          <div className="clearfix"></div>
+                          </div>
+                          <div className="x_content">
+                            <table className="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Parameter <span className="required">*</span></th>
+                                        <th>Value <span className="required">*</span></th>
+                                        <th>Clear</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                  {
+                                    this.state.additionalParameters.map((element, index) => {
+                                        return (
+                                            <Parameter
+                                              {...element}
+                                              index={index}
+                                              maxIndex={this.state.additionalParameters.length - 1}
+                                              handleChange={this.handleParameterChange}
+                                              removeRow={this.removeParameter}
+                                              key={index}
+                                            />
+                                        )
+                                    })
+                                  }
+                                </tbody>
+                            </table>
+                          </div>
+                        </div>
                       </div>
                     </div>
                 }
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
 
-                    <button type="reset" className="btn btn-primary">Reset</button>
+                    {
+                      this.props.report_parameters &&
+                      <button type="button" className="btn btn-primary"
+                        onClick={this.props.handleCancel}>Cancel</button>
+                    }
+                    {
+                      !this.props.report_parameters &&
+                      <button type="reset" className="btn btn-primary">Reset</button>
+                    }
                     <button type="submit" className="btn btn-success">Submit</button>
                   </div>
                 </div>
@@ -384,7 +531,10 @@ const mapDispatchToProps=(dispatch)=>{
     },
     createReport:(reportInfo)=>{
       dispatch(actionCreateReport(reportInfo));
-    }
+    },
+    generateReport: (report_info) => {
+      dispatch(actionGenerateReport(report_info));
+    },
   };
 }
 

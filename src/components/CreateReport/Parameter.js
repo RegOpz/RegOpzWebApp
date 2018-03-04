@@ -24,6 +24,7 @@ class Parameter extends Component {
                         required="required"
                         maxLength="30"
                         placeholder="Enter parameter name"
+                        bsSize="small"
                         value={this.props.parameterTag}
                         onChange={(event) => { this.props.handleChange(event, 'parameterTag', this.props.index); }}
                         disabled={this.props.disabled}
@@ -35,6 +36,7 @@ class Parameter extends Component {
                         required="required"
                         maxLength="100"
                         placeholder="Enter parameter value"
+                        bsSize="small"
                         value={this.props.keyValue}
                         onChange={(event) => { this.props.handleChange(event, 'keyValue', this.props.index) }}
                     />
@@ -44,10 +46,11 @@ class Parameter extends Component {
                         <button
                             type="button"
                             className="btn btn-circle btn-warning btn-xs"
+                            title="Remove Parameter"
                             onClick={() => { this.props.removeRow(this.props.index) }}
                             disabled={this.props.disabled}
                         >
-                            <i className="fa fa-trash"></i>
+                            <small><i className="fa fa-trash"></i></small>
                         </button>
                     </div>
                 </td>
