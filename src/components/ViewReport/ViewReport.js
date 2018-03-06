@@ -480,14 +480,15 @@ class ViewReport extends Component {
                   );
               }
               break;
-          case "editParameter":
-              return(
-                      <CreateReport
-                        {...this.state.selectedRecord}
-                        handleCancel={this.handleEditParameterClick}
-                      />
-                    );
-              break;
+        case "editParameter":
+            return(
+                    <CreateReport
+                      reportDetails={this.state.selectedRecord}
+                      reGenerateReport={true}
+                      handleCancel={this.handleEditParameterClick}
+                    />
+                  );
+            break;
           default:
               return(
                   <ReportCatalogList

@@ -52,7 +52,7 @@ class ReportCatalogList extends Component {
 
           if (startDate !== null) {
               dataCatalog.forEach(item => {
-                  let report_list = item.report.filter(item => moment(item.valid_from) > moment(startDate));
+                  let report_list = item.report.filter(item => moment(item.date_of_change) > moment(startDate));
                   if (report_list.length > 0) {
                       linkageData.push({
                           country: item.country,
@@ -65,7 +65,7 @@ class ReportCatalogList extends Component {
 
           if (endDate !== null) {
               dataCatalog.forEach(item => {
-                  let report_list = item.report.filter(item => moment(item.valid_to) < moment(endDate));
+                  let report_list = item.report.filter(item => moment(item.date_of_change) < moment(endDate));
                   if (report_list.length > 0) {
                       linkageData.push({
                           country: item.country,
@@ -81,8 +81,8 @@ class ReportCatalogList extends Component {
               dataCatalog.forEach(item => {
                   let report_list = item.report.filter(item =>
                       item.report_id.toString().match(matchText) ||
-                      moment(item.valid_from).format("DD-MMM-YYYY").match(matchText) ||
-                      moment(item.valid_to).format("DD-MMM-YYYY").match(matchText) //||
+                      moment(item.date_of_change).format("DD-MMM-YYYY").match(matchText) ||
+                      item.last_updated_by.toString().match(matchText) //||
                      // item.last_updated_by.match(matchText)
                   );
                   if (report_list.length > 0) {
@@ -240,7 +240,7 @@ class ReportCatalogList extends Component {
                       </p>
                     </td>
                     <td>{item.last_updated_by}</td>
-                    <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>
+                    <td>{moment(item.date_of_change).format("DD-MMM-YYYY, h:mm:ss a")}</td>
                   </tr>
                 )
               })}

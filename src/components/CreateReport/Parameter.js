@@ -22,6 +22,7 @@ class Parameter extends Component {
                     <FormControl
                         type="text"
                         required="required"
+                        readOnly={this.props.maintainReportParameter? false : true}
                         maxLength="30"
                         placeholder="Enter parameter name"
                         bsSize="small"
@@ -33,7 +34,7 @@ class Parameter extends Component {
                 <td>
                     <FormControl
                         type="text"
-                        required="required"
+                        required={this.props.maintainReportParameter? false : true}
                         maxLength="100"
                         placeholder="Enter parameter value"
                         bsSize="small"
@@ -48,7 +49,7 @@ class Parameter extends Component {
                             className="btn btn-circle btn-warning btn-xs"
                             title="Remove Parameter"
                             onClick={() => { this.props.removeRow(this.props.index) }}
-                            disabled={this.props.disabled}
+                            disabled={this.props.disabled || this.props.disableRemove}
                         >
                             <small><i className="fa fa-trash"></i></small>
                         </button>

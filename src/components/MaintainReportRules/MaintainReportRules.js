@@ -9,7 +9,8 @@ import {
   actionFetchReportTemplate,
   actionExportXlsx,
   actionExportRulesXlsx,
-  actionFetchReportChangeHistory
+  actionFetchReportChangeHistory,
+  actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
   //actionFetchDates,
@@ -39,6 +40,7 @@ import DrillDownRules from '../DrillDown/DrillDownRules';
 import AddReportAggRules from './AddReportAggRules';
 import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import EditParameters from '../CreateReport/EditParameters';
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainReportRules extends Component {
@@ -57,7 +59,8 @@ class MaintainReportRules extends Component {
       showDrillDownCalcBusinessRules: false,
       showCellChangeHistory: false,
 
-      display: false
+      display: false,
+      selectedReport: {}
     }
 
     this.pages=0;
@@ -80,6 +83,7 @@ class MaintainReportRules extends Component {
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
@@ -92,7 +96,9 @@ class MaintainReportRules extends Component {
     this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
+    this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
 
+    this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
@@ -120,7 +126,11 @@ class MaintainReportRules extends Component {
         showAggRuleDetails: false,
         showDrillDownCalcBusinessRules: false,
         showCellChangeHistory: false,
-      });
+        },
+        ()=>{
+          this.props.fetchReportTemplateList();
+        }
+      );
     }
   }
 
@@ -134,6 +144,7 @@ class MaintainReportRules extends Component {
         reportId: item.report_id,
         reportingDate: item.reporting_date,
         businessDate: item.as_of_reporting_date,
+        selectedReport: item,
      },
       ()=>{ this.props.fetchReportData(this.state.reportId) }
     );
@@ -283,6 +294,29 @@ class MaintainReportRules extends Component {
     }
   }
 
+  handleEditParameterClick() {
+    let isOpen = this.state.display === "editParameter";
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+        },
+        ()=>{
+          this.props.fetchReportTemplateList();
+        }
+      );
+    } else {
+      //this.props.fetchReportChangeHistory(this.state.reportId);
+      //console.log("Repot Linkage",this.props.change_history);
+      this.setState({
+        display: "editParameter"
+        },
+        ()=>{
+          //TODO save in the def catalog
+        }
+      );
+    }
+  }
+
   handleExportCSV(event) {
     let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
     this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
@@ -295,6 +329,13 @@ class MaintainReportRules extends Component {
   handleExportReport(event) {
     let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
     this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
+  }
+
+  handleSaveParameterClick(report_info){
+    // TODO
+    console.log("handleSaveParameterClick...",report_info);
+    this.props.updateReportParameter(this.state.reportId,report_info)
+    this.handleEditParameterClick();
   }
 
   handleModalOkayClick(event){
@@ -440,6 +481,16 @@ class MaintainReportRules extends Component {
                   );
               }
               break;
+          case "editParameter":
+              return(
+                      <EditParameters
+                        maintainReportParameter={true}
+                        reportDetails={this.state.selectedReport}
+                        handleCancel={this.handleEditParameterClick}
+                        handleSubmit={this.handleSaveParameterClick}
+                      />
+                    );
+              break;
           default:
               return(
                   <ReportCatalogList
@@ -489,7 +540,10 @@ class MaintainReportRules extends Component {
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li style={{ "padding": "5px" }}>
                                 <Link to="/dashboard/maintain-report-rules"
-                                  onClick={()=>{ this.setState({ display: false }) }}
+                                  onClick={()=>{ this.setState({ display: false },
+                                                                ()=>{this.props.fetchReportTemplateList();})
+                                                }
+                                          }
                                 >
                                     <i className="fa fa-bars"></i> All Report List
                                 </Link>
@@ -580,6 +634,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
+    },
+    updateReportParameter:(id, data) => {
+      dispatch(actionUpdateRuleData(id, data));
     },
   }
 }
