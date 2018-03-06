@@ -33,8 +33,8 @@ import './CreateReport.css';
       reportCreateDate:null,
       additionalParameters:[]
     };
-    this.reportParameters="";
-    this.disabled = this.props.report_parameters ? true : false;
+    this.reportParameters=undefined;
+    this.disabled = this.props.createReport ? false : true;
     this.addNewParameter = this.addNewParameter.bind(this);
     this.removeParameter = this.removeParameter.bind(this);
     this.handleParameterChange = this.handleParameterChange.bind(this);
