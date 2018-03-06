@@ -199,7 +199,7 @@ class ReportCatalogList extends Component {
                     </td>
                     <td>{item.report_create_status}</td>
                     <td>{item.report_created_by}</td>
-                    <td>{moment(item.report_create_timestamp).format("DD-MMM-YYYY, h:mm:ss a")}</td>
+                    <td><small>{item.report_create_date}</small></td>
                     <td>
                       <div className="ops_icons">
                         <div className="btn-group">

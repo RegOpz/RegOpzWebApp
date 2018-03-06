@@ -18,7 +18,8 @@ import './CreateReport.css';
  class ReportParameterTemplate extends Component{
   constructor(props){
     super(props);
-    this.todayDate=moment().format("DD-MMM-YYYY h:mm:ss a");
+    console.log("Inside constructor......",this.props);
+    this.todayDate=this.props.report_create_date;
     this.state={
       businessStartDate:null,
       businessEndDate:null,
@@ -112,7 +113,7 @@ import './CreateReport.css';
       newState.asOfReportingDate=this.props.maintainReportParameter ? undefined : moment(this.props.as_of_reporting_date,"YYYYMMDD");
     }
     // console.log("populateParameters....",this.props,reportParameters)
-    this.todayDate=this.props.report_create_timestamp
+    this.todayDate=this.props.report_create_date;
     Object.keys(reportParameters).map((item,index)=>{
       // console.log("Inside map of switch...",item)
       // Poorly written code for now, need to cleanup this piece to be inline with the parameters expected in API call as well
