@@ -104,7 +104,8 @@ import './CreateReport.css';
       reportParameters=JSON.parse("{"+this.reportParameters.report_parameters.replace(/'/g,'"')+"}");
     }
     else {
-      reportParameters=JSON.parse("{"+this.props.report_parameters.replace(/'/g,'"')+"}");
+      reportParameters=this.props.report_parameters?this.props.report_parameters:"";
+      reportParameters=JSON.parse("{"+reportParameters.replace(/'/g,'"')+"}");
       newState.reportId=this.props.report_id;
       newState.country=this.props.country;
       newState.reportCreateStatus=this.props.report_create_status;
