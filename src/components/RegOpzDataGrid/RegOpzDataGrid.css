@@ -33,6 +33,8 @@
     border-left: 1px solid #ddd;
     float: left;
     height: 30px;
+    overflow: hidden;
+    resize: vertical;
 }
 
 .rowMarker:first-child {
@@ -63,6 +65,7 @@
     overflow: auto;
     height: 69vh;
     position: relative;
+    resize:vertical;
 }
 
 .reg_header {
@@ -133,6 +136,10 @@
     display: table-cell;
     vertical-align: middle;
     overflow: hidden;
+    white-space: pre-wrap;
+    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+    word-break: break-all;
 }
 
 .reg_sheet_buttons_holder {

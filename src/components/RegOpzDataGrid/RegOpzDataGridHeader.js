@@ -4,12 +4,14 @@ import ReactDOM from 'react-dom';
 export default class RegOpzDataGridHeader extends Component {
     constructor(props) {
         super(props);
+        this.widthAtMouseEnter = 0;
         this.numberofCols = this.props.numberofCols;
         this.colAttr = this.props.colAttr;
         this.columns = [];
         for(let i = 0; i < this.numberofCols; i++){
             this.columns[i] = this.alphaSequence(i);
         }
+        this.element=undefined;
 
     }
 
@@ -26,7 +28,7 @@ export default class RegOpzDataGridHeader extends Component {
         var _self = this;
         return (
             <div className="reg_header">
-                <div className="reg_col_first">
+                <div id="None" className="reg_col_first">
                   <span></span>
                 </div>
                 {
@@ -34,10 +36,34 @@ export default class RegOpzDataGridHeader extends Component {
                         let colStyleForHeader = {};
                         if(typeof(this.colAttr[item]) != 'undefined'){
                           colStyleForHeader.width = parseInt(this.colAttr[item]['width'])*9;
+                          colStyleForHeader.overflow = "hidden";
+                          colStyleForHeader.resize = "horizontal";
+                          colStyleForHeader.cursor = "col-resize";
                         }
                         return (
-                            <div key={index} className="reg_col">
-                                <span style={colStyleForHeader}>{item}</span>
+                            <div id={item} key={index} className="reg_col">
+                                <span  style={colStyleForHeader}
+                                  onMouseEnter={
+                                    ()=>{
+                                      this.element=document.getElementById(item);
+                                      this.widthAtMouseEnter = this.element.offsetWidth;
+                                      this.element.addEvent
+                                    }
+                                  }
+                                  onMouseLeave={
+                                    ()=>{
+                                      let renderedGridWidth = parseInt(this.colAttr[item]['width'])*9 + 1;
+                                      console.log("Width at mouse Leave ... ", item, renderedGridWidth,this.widthAtMouseEnter );
+                                      this.element=document.getElementById(item);
+                                      if (this.element.offsetWidth != this.widthAtMouseEnter || renderedGridWidth !=this.element.offsetWidth){
+                                        let width=this.element.offsetWidth/9;
+                                        this.props.handleResize(item,width,"column");
+                                      }
+
+                                    }
+                                  }
+                                  >{item}
+                                </span>
                             </div>
                         )
                     }.bind(this))

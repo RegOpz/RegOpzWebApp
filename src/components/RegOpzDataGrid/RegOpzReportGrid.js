@@ -16,6 +16,7 @@ class RegOpzReportGrid extends Component {
     this.state = {
       isModalOpen:false,
       selectedSheet: 0,
+      reRenDer: false,
     };
     this.numberofCols = 52;
     this.numberofRows = 1000;
@@ -33,6 +34,7 @@ class RegOpzReportGrid extends Component {
     this.tabBody = null;
     this.renderTabs = this.renderTabs.bind(this);
     this.alphaSequence = this.alphaSequence.bind(this);
+    this.handleResize = this.handleResize.bind(this);
 
     console.log('Inside Constructor');
     console.log(this.props.gridData);
@@ -113,6 +115,22 @@ class RegOpzReportGrid extends Component {
     }
   }
 
+  handleResize(item,value,elementType){
+    console.log("Inside handleResize ", item,value,elementType);
+    switch(elementType){
+      case "row":
+        this.gridData[this.state.selectedSheet].row_attr[item].height=value;
+        break;
+      case "column":
+        this.gridData[this.state.selectedSheet].col_attr[item].width=value;
+        break;
+      default:
+        break;
+    }
+    // This is to trigger refresh only, no other purpose
+    this.setState({reRenDer: true});
+  }
+
   renderTabs(index){
     //let index = this.state.selectedSheet;
     this.data = this.gridData[index].matrix;
@@ -145,11 +163,13 @@ class RegOpzReportGrid extends Component {
         <RegOpzDataGridHeader
           numberofCols={this.numberofCols}
           colAttr={this.gridData[index].col_attr}
+          handleResize={this.handleResize}
         />
         <div className="clearfix"></div>
         <RegOpzDataGridSideMarker
           numberofRows={this.numberofRows}
           rowAttr={this.gridData[index].row_attr}
+          handleResize={this.handleResize}
         />
         <div className="reg_grid_drawing_container">
             <RegOpzDataGridHorizontalLines
