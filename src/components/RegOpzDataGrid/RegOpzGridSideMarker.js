@@ -38,10 +38,11 @@ export default class RegOpzDataGridSideMarker extends Component {
                             }
                             onMouseLeave={
                               ()=>{
+                                let renderedGridHeight = parseInt(this.rowAttr[(index+1)+""].height) * 2;
                                 console.log("Item in row marker .. ", index+1)
                                 this.element=document.getElementById(index+1)
-                                if(this.element.clientHeight !=this.heightatMouseEnter) {
-                                  let height=this.element.clientHeight/2;
+                                if(this.element.clientHeight !=this.heightatMouseEnter || renderedGridHeight !=this.element.clientHeight) {
+                                  let height=parseInt(this.element.clientHeight/2)+1;
                                   console.log("Compare height values...",height,this.element.clientHeight )
                                   this.props.handleResize(index+1,height,"row");
                                 }
