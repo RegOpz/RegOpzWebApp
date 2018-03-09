@@ -13,6 +13,9 @@ export default class RegOpzDataGridHeader extends Component {
         }
         this.element=undefined;
 
+        this.handleEnableResize = this.handleEnableResize.bind(this);
+        this.handleDisableResize = this.handleDisableResize.bind(this);
+
     }
 
     componentWillReceiveProps(nextProps) {
@@ -22,6 +25,26 @@ export default class RegOpzDataGridHeader extends Component {
       for(let i = 0; i < this.numberofCols; i++){
           this.columns[i] = this.alphaSequence(i);
       }
+    }
+
+    handleEnableResize(event,item){
+      console.log("Recorded at event ... ", event.type);
+      $(event.target).css("resize","horizontal");
+      this.element=document.getElementById(item);
+      this.widthAtMouseEnter = this.element.offsetWidth;
+    }
+
+    handleDisableResize(event,item){
+      $(event.target).css("resize","none");
+      console.log("Recorded at event ... ", event.type);
+      let renderedGridWidth = parseInt(this.colAttr[item]['width'])*9 + 1;
+      console.log("Width at mouse Leave ... ", item, renderedGridWidth,this.widthAtMouseEnter );
+      this.element=document.getElementById(item);
+      if (this.element.offsetWidth != this.widthAtMouseEnter || renderedGridWidth !=this.element.offsetWidth){
+        let width=this.element.offsetWidth/9;
+        this.props.handleResize(item,width,"column");
+      }
+
     }
 
     render() {
@@ -37,30 +60,17 @@ export default class RegOpzDataGridHeader extends Component {
                         if(typeof(this.colAttr[item]) != 'undefined'){
                           colStyleForHeader.width = parseInt(this.colAttr[item]['width'])*9;
                           colStyleForHeader.overflow = "hidden";
-                          colStyleForHeader.resize = "horizontal";
-                          colStyleForHeader.cursor = "col-resize";
+                          // colStyleForHeader.resize = "horizontal";
+                          // colStyleForHeader.cursor = "col-resize";
                         }
                         return (
                             <div id={item} key={index} className="reg_col">
                                 <span  style={colStyleForHeader}
                                   onMouseEnter={
-                                    ()=>{
-                                      this.element=document.getElementById(item);
-                                      this.widthAtMouseEnter = this.element.offsetWidth;
-                                      this.element.addEvent
-                                    }
+                                    (event)=>{this.handleEnableResize(event,item)}
                                   }
                                   onMouseLeave={
-                                    ()=>{
-                                      let renderedGridWidth = parseInt(this.colAttr[item]['width'])*9 + 1;
-                                      console.log("Width at mouse Leave ... ", item, renderedGridWidth,this.widthAtMouseEnter );
-                                      this.element=document.getElementById(item);
-                                      if (this.element.offsetWidth != this.widthAtMouseEnter || renderedGridWidth !=this.element.offsetWidth){
-                                        let width=this.element.offsetWidth/9;
-                                        this.props.handleResize(item,width,"column");
-                                      }
-
-                                    }
+                                    (event)=>{this.handleDisableResize(event,item)}
                                   }
                                   >{item}
                                 </span>

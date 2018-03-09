@@ -525,7 +525,7 @@ class MaintainReportRules extends Component {
                             return(
                                 <h2>Maintain Report Rules <small>{' Report '}</small>
                                   <small><i className="fa fa-file-text"></i></small>
-                                  <small>{this.state.reportId }</small>
+                                  <small title={this.state.selectedReport.report_description}>{this.state.reportId }</small>
                                 </h2>
                             );
                         })(this.state.display)

@@ -34,7 +34,7 @@
     float: left;
     height: 30px;
     overflow: hidden;
-    resize: vertical;
+    /*resize: vertical;*/
 }
 
 .rowMarker:first-child {
@@ -139,7 +139,7 @@
     white-space: pre-wrap;
     text-overflow: ellipsis;
     overflow-wrap: break-word;
-    word-break: break-all;
+    /*word-break: break-all;*/
 }
 
 .reg_sheet_buttons_holder {

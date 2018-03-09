@@ -20,13 +20,13 @@ export default class RegOpzFlatGridCell extends Component {
     }
     render() {
         return (
-            <div className="flat_grid_row_cell">
+            <div className="flat_grid_row_cell" onClick={this.handleCellSingleClick.bind(this)}>
                 <span
                   onDoubleClick={this.handleCellDoubleClick.bind(this)}
                   onClick={this.handleCellSingleClick.bind(this)}
                   onKeyPress={this.handleCellKeyPress.bind(this)}
                 >
-                    {(this.state.value != null && this.state.value.toString().length !=0 ) ? this.state.value.toString().substring(0,30) : "---"}
+                    {(this.state.value != null && this.state.value.toString().length !=0 ) ? this.state.value : "---"}
                 </span>
                   <ModalAlert ref="modalAlert" showDiscard={true} onClickOkay={this.handleAlertOkayClick.bind(this)} onClickDiscard={this.handleAlertDiscardClick.bind(this)} />
             </div>
@@ -52,7 +52,7 @@ export default class RegOpzFlatGridCell extends Component {
       }
     }
     handleCellSingleClick(event){
-      console.log("In single click...")
+      console.log("In single click...",event.target)
       $(".flat_grid_row_cell > span").removeClass('selectedCell');
       $(event.target).addClass('selectedCell');
     }
