@@ -30,6 +30,7 @@ export default class RegOpzDataGridSideMarker extends Component {
       this.element=document.getElementById(index+1)
       if(this.element.clientHeight !=this.heightatMouseEnter || renderedGridHeight !=this.element.clientHeight) {
         let height=parseInt(this.element.clientHeight/2)+1;
+        height = (height >= 12) ? height : 12; 
         console.log("Compare height values...",height,this.element.clientHeight )
         this.props.handleResize(index+1,height,"row");
 

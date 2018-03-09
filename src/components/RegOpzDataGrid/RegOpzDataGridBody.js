@@ -62,7 +62,8 @@ export default class RegOpzDataGridBody extends Component {
                             top:top,
                             left:left,
                             width:width -1,
-                            height:height -1
+                            height:height -1,
+                            "white-space": "pre-wrap"
                           }
                         } else {
                           for(var i = parseInt(this.numberFromWord(coord.col)) - 1; i >= parseInt(this.numberFromWord('A')); i--){
@@ -84,7 +85,8 @@ export default class RegOpzDataGridBody extends Component {
                               top:top,
                               left:left,
                               width:width,
-                              height:height
+                              height:height,
+                              "white-space": "pre-wrap"
                             }
                         }
                         if (isNaN(value) || item.origin == "TEMPLATE" ){
@@ -94,6 +96,26 @@ export default class RegOpzDataGridBody extends Component {
                           //Now format number as per international number format 99,999,999
                           value = Intl.NumberFormat().format(value);
                         }
+                        // TODO : This is done poorly!!! There must be a betterway to implement this.
+                        // The challanges are: Seemlee mouse move for edge resize, both width and height
+                        // (height) particularly challanging because:
+                        // 1. This is to support multiline text, for which width length may vary for each text arrayline
+                        // 2. Ensuring the height is properly reflected based on font size
+                        // Now check the cell width and legth and check how to organise the display value
+                        const noOfLines = parseInt(stylex.height/20);
+                        const noOfCharPerLine = parseInt(stylex.width/9);
+                        let maxCharacter = noOfLines*noOfCharPerLine;
+                        let arrValue=value.split(/\r\n|\r|\n/g);
+                        let valueLines = arrValue.length;
+                        if (valueLines > noOfLines) {
+                          value=value.replace(/\r\n|\r|\n/g," ");
+                        }
+                        if (value.length > maxCharacter ||  valueLines > noOfLines){
+                          console.log("No fo lines "+ noOfLines + " " + maxCharacter + " " + noOfCharPerLine + " " + valueLines + " " + value)
+                          stylex['white-space']="nowrap";
+                          value = value.length > maxCharacter ? value.substring(0,maxCharacter-3)+"..." : value;
+                        }
+
                         return(
                             <div
                               key={cell+index}

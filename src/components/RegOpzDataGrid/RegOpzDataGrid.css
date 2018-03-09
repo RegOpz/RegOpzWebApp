@@ -136,10 +136,9 @@
     display: table-cell;
     vertical-align: middle;
     overflow: hidden;
-    white-space: pre-wrap;
     text-overflow: ellipsis;
     overflow-wrap: break-word;
-    /*word-break: break-all;*/
+    word-break:break-all;
 }
 
 .reg_sheet_buttons_holder {
