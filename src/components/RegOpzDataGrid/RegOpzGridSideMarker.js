@@ -6,33 +6,41 @@ export default class RegOpzDataGridSideMarker extends Component {
         this.heightatMouseEnter = 0;
         this.numberofRows = this.props.numberofRows;
         this.rowAttr = this.props.rowAttr;
+        this.item=0;
+        this.height=0
+        this.elementVS=0;
+        this.elementVE=0;
 
-        this.handleEnableResize = this.handleEnableResize.bind(this);
-        this.handleDisableResize = this.handleDisableResize.bind(this);
+        this.handleResizeRow = this.handleResizeRow.bind(this);
     }
     componentWillReceiveProps(nextProps){
       this.rowAttr = nextProps.rowAttr;
       this.numberofRows = nextProps.numberofRows;
     }
-    handleEnableResize(event,index){
-      console.log("Recorded at event ... ", event.type);
-      console.log("Item in row marker Mouse Enter.. ", index+1)
-      $(event.target).css("resize","vertical");
-      this.element=document.getElementById(index+1)
-      this.heightatMouseEnter=this.element.clientHeight;
-    }
 
-    handleDisableResize(event,index){
-      console.log("Recorded at event ... ", event.type);
-      $(event.target).css("resize","none");
-      let renderedGridHeight = parseInt(this.rowAttr[(index+1)+""].height) * 2;
-      console.log("Item in row marker .. ", index+1)
-      this.element=document.getElementById(index+1)
-      if(this.element.clientHeight !=this.heightatMouseEnter || renderedGridHeight !=this.element.clientHeight) {
-        let height=parseInt(this.element.clientHeight/2)+1;
-        height = (height >= 12) ? height : 12; 
-        console.log("Compare height values...",height,this.element.clientHeight )
-        this.props.handleResize(index+1,height,"row");
+    handleResizeRow(event,index){
+      // console.log("cursor resize .... element ....",event.type,event.pageY, index, "wh:"+ event.nativeEvent.which, "R:"+ (this.elementVE-event.clientY),this.item,"Y:" + event.clientY,"VE:"+this.elementVE,"VS:"+this.elementVS,$(event.target).height())
+      if(event.nativeEvent.which===0){
+        this.elementVS=$(event.target).offset().top;
+        this.elementVE= this.elementVS + $(event.target).height();
+      }
+      if( this.elementVE - event.pageY < 9 && event.nativeEvent.which!=1){
+        $(event.target).css("cursor","row-resize");
+        // console.log("cursor resize .... element ....",index, this.item)
+        this.item=index+1;
+      }
+      else {
+        if(event.nativeEvent.which!=1){
+          $(event.target).css("cursor","default");
+          this.item=0;
+        }
+        else{
+          $(event.target).css("cursor","row-resize");
+          this.height=parseInt((event.pageY - this.elementVS)/2)+1;
+          this.height=this.height>=12 ? this.height : 12;
+          // console.log("Native event values ...", this.item,this.height, this.elementVS,this.elementVE,event.clientY, event.clientY,event.nativeEvent.which)
+          this.props.handleResize(this.item,this.height,"row");
+        }
 
       }
     }
@@ -51,11 +59,8 @@ export default class RegOpzDataGridSideMarker extends Component {
                             className="rowMarker"
                             style={stylex}
                             key={index}
-                            onMouseEnter={
-                              (event)=>{this.handleEnableResize(event,index)}
-                            }
-                            onMouseLeave={
-                              (event)=>{this.handleDisableResize(event,index)}
+                            onMouseMove={
+                              (event)=>{this.handleResizeRow(event,index)}
                             }
                             >
                             <span style={stylex}>{index+1}</span>

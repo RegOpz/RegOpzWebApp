@@ -111,9 +111,9 @@ export default class RegOpzDataGridBody extends Component {
                           value=value.replace(/\r\n|\r|\n/g," ");
                         }
                         if (value.length > maxCharacter ||  valueLines > noOfLines){
-                          console.log("No fo lines "+ noOfLines + " " + maxCharacter + " " + noOfCharPerLine + " " + valueLines + " " + value)
+                          // console.log("No fo lines "+ noOfLines + " " + maxCharacter + " " + noOfCharPerLine + " " + valueLines + " " + value.length + " " + value)
                           stylex['white-space']="nowrap";
-                          value = value.length > maxCharacter ? value.substring(0,maxCharacter-3)+"..." : value;
+                          value = value.length > noOfCharPerLine ? value.substring(0,noOfCharPerLine-3)+"..." : value;
                         }
 
                         return(
