@@ -18,6 +18,7 @@ class RegOpzFlatGridActionButtons extends Component {
         //Simplified: Use className as btn-link
         //Else use override className for all buttons
         this.buttonClassOverride = this.props.buttonClassOverride ? this.props.buttonClassOverride : "None";
+        this.donotDisplayName = this.props.donotDisplayName;
 
         this.handleClassName = this.handleClassName.bind(this);
     }
@@ -31,6 +32,7 @@ class RegOpzFlatGridActionButtons extends Component {
         this.checkDisabled = nextProps.checkDisabled;
         this.buttonClassOverride = nextProps.buttonClassOverride ? nextProps.buttonClassOverride : "None";
         this.dataNavigation = nextProps.dataNavigation;
+        this.donotDisplayName = nextProps.donotDisplayName;
     }
 
     handleClassName(item){
@@ -76,7 +78,7 @@ class RegOpzFlatGridActionButtons extends Component {
                           className={ this.handleClassName(item) }
                           disabled={ item.checkDisabled=="Yes" ? this.checkDisabled(name) : false}
                         >
-                          <i className={'fa '+ item.iconClass }></i>{' ' + name }
+                          <i className={'fa '+ item.iconClass }></i>{this.donotDisplayName ? '' : ' ' + name }
                         </button>
                       </div>
                     );

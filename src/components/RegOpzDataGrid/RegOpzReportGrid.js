@@ -188,6 +188,7 @@ class RegOpzReportGrid extends Component {
               data={this.data}
               colAttr={this.gridData[index].col_attr}
               rowAttr={this.gridData[index].row_attr}
+              cellStyle={this.gridData[index].cell_style}
               onSelect = {
                 (item) => {
                   //console.log("item",item);
@@ -197,12 +198,14 @@ class RegOpzReportGrid extends Component {
                     item: item.item,
                     sheetName: this.selectedSheetName,
                     reportId: this.report_id,
-                    reportingDate: this.reporting_date
+                    reportingDate: this.reporting_date,
+                    multiSelect: item.multiSelect
                   };
                   //console.log("On select",this.selectedCell);
                   this.props.handleSelectCell(this.selectedCell);
                 }
               }
+              multiSelectAllowed={this.props.multiSelectAllowed}
             />
         </div>
       </div>

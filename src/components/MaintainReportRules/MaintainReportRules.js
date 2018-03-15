@@ -70,7 +70,7 @@ class MaintainReportRules extends Component {
     this.changeHistory=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
-    this.selectedCell={};
+    this.selectedCell=[];
     this.selectedItems = [];
     this.selectedIndexOfGrid = 0;
     this.form_data={};
@@ -84,6 +84,22 @@ class MaintainReportRules extends Component {
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
       { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+    ];
+    this.editTools=[
+      { title: 'Fornt', iconClass: 'fa-font', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Text Size', iconClass: 'fa-text-height', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Fornt Colour', iconClass: 'fa-paint-brush', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+      { title: 'Background Colour', iconClass: 'fa-square', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+      { title: 'Bold', iconClass: 'fa-bold', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Italic', iconClass: 'fa-italic', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Align Left', iconClass: 'fa-align-left', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Align Centre', iconClass: 'fa-align-center', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Align Rigt', iconClass: 'fa-align-right', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Border', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      { title: 'Image', iconClass: 'fa-photo', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'merge', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+      { title: 'split', iconClass: 'fa-th', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      { title: 'Save', iconClass: 'fa-save', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
@@ -179,7 +195,7 @@ class MaintainReportRules extends Component {
 
   handleDetails(event){
     //TODO
-    console.log('Showing the details of the selected cell');
+    console.log('Showing the details of the selected cell',this.selectedCell);
     let isOpen = this.state.display === "showDrillDownRules";
     if(isOpen){
       this.setState({
@@ -191,7 +207,7 @@ class MaintainReportRules extends Component {
       });
     } else {
       //console.log("handleSelectCell",this.selectedCell.cell);
-      if(!this.selectedCell.cell){
+      if(!this.selectedCell[0].cell || this.selectedCell.length!=1){
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select a cell for details");
       } else {
@@ -203,7 +219,7 @@ class MaintainReportRules extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: false,
           },
-          this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
+          this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,this.selectedCell[0].cell)
         );
       }
     }
@@ -211,8 +227,13 @@ class MaintainReportRules extends Component {
   }
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
-    console.log(this.props.gridDataViewReport);
-    this.selectedCell = cell;
+    // console.log(this.props.gridDataViewReport);
+    if (cell.multiSelect){
+      this.selectedCell.push(cell);
+    } else {
+      this.selectedCell = [cell];
+    }
+    console.log("handleSelectCell selectedCell ... ",this.selectedCell);
   }
 
   handleCalcRuleClicked(event,calcRuleFilter){
@@ -360,11 +381,21 @@ class MaintainReportRules extends Component {
                             pageNo={this.currentPage}
                             buttonClassOverride={this.buttonClassOverride}
                           />
+                          <RegOpzFlatGridActionButtons
+                            editable={this.writeOnly}
+                            checkDisabled={this.checkDisabled}
+                            buttons={this.editTools}
+                            dataNavigation={false}
+                            pageNo={this.currentPage}
+                            buttonClassOverride={"Simplified"}
+                            donotDisplayName={true}
+                          />
                           <RegOpzReportGrid
                             report_id={this.state.reportId}
                             reporting_date={this.state.reportingDate}
                             gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
+                            multiSelectAllowed={true}
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;
@@ -386,7 +417,7 @@ class MaintainReportRules extends Component {
                         cellRules = {this.props.cell_rules}
                         readOnly = {this.readOnly}
                         addRulesBtn = {this.writeOnly}
-                        selectedCell = {this.selectedCell}
+                        selectedCell = {this.selectedCell[0]}
                         handleClose={ this.handleDetails.bind(this) }
                         reportingDate={this.state.reportingDate}
                         handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }

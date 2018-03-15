@@ -7,6 +7,7 @@ export default class RegOpzDataGridBody extends Component {
         this.delTop = 29;
         this.colAttr = this.props.colAttr;
         this.rowAttr = this.props.rowAttr;
+        this.cellStyle = this.props.cellStyle;
         this.state = {
           contextMenuStyle:{
             display:"none"
@@ -19,6 +20,7 @@ export default class RegOpzDataGridBody extends Component {
       this.delTop = 29;
       this.colAttr = nextProps.colAttr;
       this.rowAttr = nextProps.rowAttr;
+      this.cellStyle = nextProps.cellStyle;
     }
     render(){
         return(
@@ -27,12 +29,13 @@ export default class RegOpzDataGridBody extends Component {
                     this.data.map(function(item,index){
                         //console.log("Cell,value,index",item.cell,item.value,index,item);
                         let cell = item.cell;
+                        let cellStyle = this.cellStyle[cell];
                         let value = item.displayattribute ? item[item.displayattribute] : item.value; // this will be based on the props which attribute to show
                         let title = "[" + item['cell'] + "] "+ (item.title ? item.title : ""); // this is again prop based tool tip help
                         let spanClassName = item.classname ? item.classname : "";
                         let coord = this.getRealCoords(cell);
                         let merged = item.merged;
-                        var stylex = {};
+                        var stylex = this.getCellStyle(cellStyle);
                         let cellClassName = "reg_cell";
                         var left = 0;
                         var width = 0;
@@ -44,6 +47,7 @@ export default class RegOpzDataGridBody extends Component {
                             left += (parseInt(this.colAttr[this.alphaSequence(i)].width) * 9 + 1);
                           }
                           for(var i = parseInt(this.numberFromWord(marged_coord.col)); i >= parseInt(this.numberFromWord(coord.col)); i--){
+                            console.log('Column ', this.alphaSequence(i))
                             width += (parseInt(this.colAttr[this.alphaSequence(i)].width) * 9 + 1);
                           }
                           let currentRow = parseInt(coord.row) + 1;
@@ -58,13 +62,12 @@ export default class RegOpzDataGridBody extends Component {
                               height += parseInt(this.rowAttr[j + ""].height) * 2;
                             }
                           }
-                          stylex = {
-                            top:top,
-                            left:left,
-                            width:width -1,
-                            height:height -1,
-                            "white-space": "pre-wrap"
-                          }
+
+                          stylex["top"]=top;
+                          stylex["left"]=left;
+                          stylex["width"]=width - 1;
+                          stylex["height"]=height - 1;
+                          stylex["white-space"]= "pre-wrap";
                         } else {
                           for(var i = parseInt(this.numberFromWord(coord.col)) - 1; i >= parseInt(this.numberFromWord('A')); i--){
                             left += (parseInt(this.colAttr[this.alphaSequence(i)].width) * 9 + 1);
@@ -81,13 +84,11 @@ export default class RegOpzDataGridBody extends Component {
                             height = parseInt(this.rowAttr[currentRow+""].height) * 2 -1;
                           else
                             height = 12.3;
-                            stylex = {
-                              top:top,
-                              left:left,
-                              width:width,
-                              height:height,
-                              "white-space": "pre-wrap"
-                            }
+                            stylex["top"]=top;
+                            stylex["left"]=left;
+                            stylex["width"]=width;
+                            stylex["height"]=height;
+                            stylex["white-space"]= "pre-wrap";
                         }
                         if (isNaN(value) || item.origin == "TEMPLATE" ){
                           cellClassName = cellClassName + " reg_cell_text";
@@ -127,8 +128,37 @@ export default class RegOpzDataGridBody extends Component {
                             >
                                 <span
                                   className={spanClassName}
+                                  contentEditable = {true}
+                                  onCopy={
+                                    (event)=>{
+                                      $(event.target).select()
+                                      console.log("onCopy....",$(event.target).text())
+                                    }
+                                  }
+                                  onPaste={
+                                    (event)=>{
+                                      //console.log("OnPaste....",event.clipboardData)
+                                    }
+                                  }
+                                  onKeyUp={
+                                    (event)=>{
+                                      let newText=$(event.target).text()
+                                      console.log("OnPaste....",newText,event.ctrlKey,event.key)
+                                    }
+                                  }
+                                  onKeyDown={
+                                    (event)=>{
+                                      if(event.ctrlKey && event.key=='c'){
+                                        // console.log("ctrlKey+" + event.key)
+                                        let newText=$(event.target).text()
+                                      }
+                                    }
+                                  }
                                   onClick={
                                     (event) => {
+                                      //Make content of span element editable
+                                      // event.target.contentEditable = true;
+                                      console.log("OnClick....",$(event.target).text())
                                       this.handleCellClick(event,value,item);
                                     }
                                   }
@@ -144,12 +174,15 @@ export default class RegOpzDataGridBody extends Component {
     handleCellClick(event,value,item){
       // this condition to check is to prevent selecting the <span> and <i> content in the cell
       if(event.target.getAttribute("target")){
-        $(".reg_cell > span").removeClass("reg_cell_selected");
+        if ((!event.ctrlKey && this.props.multiSelectAllowed) || (!this.props.multiSelectAllowed)){
+          $(".reg_cell > span").removeClass("reg_cell_selected");
+        }
         $(event.target).addClass("reg_cell_selected");
         this.selectedCell = {
                       cell: event.target.getAttribute("target"),
                       value: value,
-                      item: item
+                      item: item,
+                      multiSelect: event.ctrlKey
                     };
         //console.log("handleCellClick",this.selectedCell);
         this.props.onSelect(this.selectedCell);
@@ -181,5 +214,48 @@ export default class RegOpzDataGridBody extends Component {
         let x = this.numberFromWord(cell_split[0]);
         let y = cell_split[1] - 1;
         return {x,y,col:cell_split[0],row:cell_split[1] - 1};
+    }
+    getCellStyle(cellStyle){
+        let stylex = {};
+        // console.log("cellStyle.....",cellStyle)
+        if (cellStyle){
+            let _font=(cellStyle.font.italic ? "italic " : " ") +
+                  (cellStyle.font.bold ? "bold " : " ") +
+                  cellStyle.font.size + "px " +
+                  "\"" + cellStyle.font.name + "\"";
+            let _color = cellStyle.font.colour=="None"? "black" : "#"+cellStyle.font.colour.substring(2,);
+            let _textAlign = cellStyle.alignment.horizontal;
+            let _verticalAlign = cellStyle.alignment.vertical;
+            let _backgroundColor = cellStyle.fill.type ? "#"+cellStyle.fill.colour.substring(2,) : "#ffffff";
+            let _borderRight = cellStyle.border.right.style ?
+                                  ("solid " + cellStyle.border.right.style +
+                                           (cellStyle.border.right.colour=="None"? " black" : " #" + cellStyle.border.right.colour.substring(2,))
+                                  ) : "";
+            let _borderLeft = cellStyle.border.left.style ?
+                                  ("solid " + cellStyle.border.left.style +
+                                           (cellStyle.border.left.colour=="None"? " black" : " #" + cellStyle.border.left.colour.substring(2,))
+                                  ) : "";
+            let _borderTop = cellStyle.border.top.style ?
+                                  ("solid " + cellStyle.border.top.style +
+                                           (cellStyle.border.top.colour=="None"? " black" : " #" + cellStyle.border.top.colour.substring(2,))
+                                  ) : "";
+            let _borderBottom = cellStyle.border.bottom.style ?
+                                  ("solid " + cellStyle.border.bottom.style +
+                                           (cellStyle.border.bottom.colour=="None"? " black" : " #" + cellStyle.border.bottom.colour.substring(2,))
+                                  ) : "";
+            stylex = {
+                            font: _font,
+                            color: _color,
+                            "text-align": _textAlign,
+                            "vertical-align": _verticalAlign,
+                            "background-color": _backgroundColor,
+                            "border-right" : _borderRight,
+                            "border-left" : _borderLeft,
+                            "border-top" : _borderTop,
+                            "border-bottom" : _borderBottom,
+            };
+        }
+
+        return stylex;
     }
 }

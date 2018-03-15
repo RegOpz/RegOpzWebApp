@@ -365,6 +365,7 @@ class ViewReport extends Component {
                             reporting_date={this.state.reportingDate}
                             gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
+                            multiSelectAllowed={false}
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;
