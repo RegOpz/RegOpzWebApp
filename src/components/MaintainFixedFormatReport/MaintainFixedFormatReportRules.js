@@ -6,19 +6,24 @@ import { Link } from 'react-router';
 import { Tab, Tabs } from 'react-bootstrap';
 import _ from 'lodash';
 import {
+  actionFetchReportTemplate,
   actionExportXlsx,
   actionExportRulesXlsx,
-  actionFetchReportChangeHistory
+  actionFetchReportChangeHistory,
+  actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
+  //actionFetchDates,
+  actionFetchReportCatalog,
+  //actionFetchReportLinkage,
+  //actionFetchDataChangeHistory,
   actionExportCSV,
+  actionApplyRules,
 } from '../../actions/ViewDataAction';
 import {
+  actionFetchReportData,
   actionDrillDown
 } from '../../actions/CaptureReportAction';
-import {
-  actionFetchVarianceData,
-} from '../../actions/VarianceAnalysisAction';
 import {
   actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
@@ -26,140 +31,144 @@ import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
-import VarianceAnalysisForm from './VarianceAnalysisForm';
+import ReportCatalogList from '../MaintainReportRules/ReportRuleCatalog';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import DrillDownRules from '../DrillDown/DrillDownRules';
-import AddReportAggRules from '../MaintainFixedFormatReport/AddReportAggRules';
-import ViewData from '../ViewData/ViewDataComponentV2';
+import AddReportAggRules from './AddReportAggRules';
+import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
-import VarianceAnalysisChart from './VarianceAnalysisChart';
+import EditParameters from '../CreateReport/EditParameters';
 require('react-datepicker/dist/react-datepicker.css');
 
-class VarianceAnalysis extends Component {
+class MaintainFixedFormatReportRules extends Component {
   constructor(props){
     super(props)
     this.state = {
-      startDate:moment().subtract(1,'months').format("YYYYMMDD"),
-      endDate:moment().format('YYYYMMDD'),
       sources:null,
       itemEditable: true,
       reportId: null,
-      varianceTolerance: 0,
-      firstReportingDate: null,
-      subsequentReportingDate: null,
+      reportingDate: null,
+      businessDate: null,
       selectedAuditSheet: 0,
 
       showDrillDownData: false,
       showAggRuleDetails: false,
       showDrillDownCalcBusinessRules: false,
       showCellChangeHistory: false,
-      showCharts: false,
-      refreshedData: true,
 
       display: false,
-      selectedCell: {},
-      chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
-      sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
-      sheetChartDataKeys: [],
-      sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
+      selectedReport: {}
     }
 
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
-    this.gridData=undefined;
+    this.gridDataViewReport=undefined;
     this.changeHistory=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
+    this.selectedCell=[];
     this.selectedItems = [];
-    this.selectedSheetIndex = null;
+    this.selectedIndexOfGrid = 0;
     this.form_data={};
     this.selectedViewColumns=[];
     this.operationName=null;
-    this.flatGrid = null;
     this.aggRuleData = null;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
-      { title: 'Variance Charts', iconClass: 'fa-bar-chart', checkDisabled: 'No', className: "btn-info", onClick: this.handleShowCharts.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+    ];
+    this.editTools=[
+      { title: 'Fornt', iconClass: 'fa-font', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Text Size', iconClass: 'fa-text-height', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Fornt Colour', iconClass: 'fa-paint-brush', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+      { title: 'Background Colour', iconClass: 'fa-square', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+      { title: 'Bold', iconClass: 'fa-bold', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Italic', iconClass: 'fa-italic', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'Align Left', iconClass: 'fa-align-left', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Align Centre', iconClass: 'fa-align-center', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Align Rigt', iconClass: 'fa-align-right', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      { title: 'Border', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      { title: 'Image', iconClass: 'fa-photo', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      { title: 'merge', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+      { title: 'split', iconClass: 'fa-th', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      { title: 'Save', iconClass: 'fa-save', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
     ];
     this.buttonClassOverride = "None";
 
     this.renderDynamic = this.renderDynamic.bind(this);
 
-    this.handleSubmitVAForm = this.handleSubmitVAForm.bind(this);
+    this.handleReportClick = this.handleReportClick.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
     this.handleCalcRuleClicked = this.handleCalcRuleClicked.bind(this);
     this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
-    this.handleShowCharts = this.handleShowCharts.bind(this);
+    this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
 
+    this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
-    this.handleSelectedSheet = this.handleSelectedSheet.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "Variance Analysis" }) ? true : false;
-    //this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report" }) ? true : false;
-    this.writeOnly = false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
   }
 
-  componentWillMount(){
-    //TODO
+  componentWillMount() {
+      // Now required to call as it is being called in the first instance of MAINTAIN REPORT RULE CALL
+      // this.props.fetchReportTemplateList();
   }
-  componentDidUpdate(){
-    console.log("Dates",this.state.startDate,this.flatGrid,this.props.leftmenu);
+
+  componentDidUpdate() {
+    console.log("Dates",this.state.startDate);
     this.props.leftMenuClick(false);
   }
   componentWillReceiveProps(nextProps){
-    this.gridData=nextProps.gridDataViewReport;
+    this.gridDataViewReport=nextProps.gridDataViewReport;
     this.changeHistory=nextProps.change_history;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
         display: false,
         showDrillDownData: false,
-        showDrillDownCalcBusinessRules: false,
         showAggRuleDetails: false,
+        showDrillDownCalcBusinessRules: false,
         showCellChangeHistory: false,
-      });
+        },
+        ()=>{
+          // Not required as this is fired by maintain report rule left click
+          // this.props.fetchReportTemplateList();
+        }
+      );
     }
   }
 
-  handleSubmitVAForm(formObj) {
-    console.log("handleSubmitVAForm selected report",formObj);
+  handleReportClick(item) {
+    console.log("selected item",item);
     this.currentPage = 0;
     this.selectedViewColumns=[];
-    this.selectedSheetIndex = 0;
-    this.gridData=undefined;
+    this.gridDataViewReport=undefined;
     this.setState({
         display: "showReportGrid",
-        refreshedData: true,
-        reportId: formObj.report_id,
-        varianceTolerance: formObj.variance_tolerance,
-        firstReportingDate: formObj.first_date,
-        subsequentReportingDate: formObj.subsequent_date,
-        chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
-        sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
-        sheetChartDataKeys: [],
-        sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
+        reportId: item.report_id,
+        reportingDate: item.reporting_date,
+        businessDate: item.as_of_reporting_date,
+        selectedReport: item,
      },
-      ()=>{
-        this.fetchDataToGrid();
-        //this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);
-      }
+      ()=>{ this.props.fetchReportData(this.state.reportId) }
     );
   }
 
-  checkDisabled(item){
+  checkDisabled(item) {
     console.log("checkDisabled",item );
     switch (item){
       case "Add":
@@ -177,47 +186,18 @@ class VarianceAnalysis extends Component {
   handleRefreshGrid(event){
     //this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
-    this.setState({
-        display: "showReportGrid",
-        refreshedData: true,
-        showDrillDownData: false,
-        showDrillDownCalcBusinessRules: false,
-        showAggRuleDetails: false,
-        showCellChangeHistory: false,
-        showCharts: false,
-        selectedCell: {},
-        chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
-        sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
-        sheetChartDataKeys: [],
-        sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
-     },
-      ()=>{this.fetchDataToGrid(event);}
-    );
-  }
-
-  handleShowCharts(event){
-    let isOpen = this.state.showCharts;
-    if(isOpen){
-      this.setState({showCharts:false});
-    } else {
-      this.setState({showCharts:true},
-        ()=>{
-          if(this.state.refreshedData && this.props.gridDataViewReport){
-            let sheetDetail = { sheetIndex:this.selectedSheetIndex, reportId: this.state.reportId };
-            this.handleSelectedSheet(sheetDetail);
-          }
-        }
-      );
-    }
+    this.setState({itemEditable:true});
+    this.fetchDataToGrid(event);
   }
 
 
   fetchDataToGrid(event){
-    this.props.fetchVarianceData(this.state.reportId,this.state.firstReportingDate,this.state.subsequentReportingDate,this.state.varianceTolerance);
+    this.props.fetchReportData(this.state.reportId);
   }
 
   handleDetails(event){
     //TODO
+    console.log('Showing the details of the selected cell',this.selectedCell);
     let isOpen = this.state.display === "showDrillDownRules";
     if(isOpen){
       this.setState({
@@ -226,12 +206,10 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules: false,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
-        showCharts: false,
-        selectedCell: {},
       });
     } else {
-      console.log("handleSelectCellDetails",this.state.chartData,this.state.selectedCell);
-      if(!this.state.selectedCell.cell){
+      //console.log("handleSelectCell",this.selectedCell.cell);
+      if(!this.selectedCell[0].cell || this.selectedCell.length!=1){
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select a cell for details");
       } else {
@@ -242,91 +220,22 @@ class VarianceAnalysis extends Component {
           showDrillDownCalcBusinessRules: false,
           showAggRuleDetails: false,
           showCellChangeHistory: false,
-          showCharts: false,
           },
-          this.props.drillDown(this.state.selectedCell.reportId,this.state.selectedCell.sheetName,this.state.selectedCell.cell)
+          this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,this.selectedCell[0].cell)
         );
       }
     }
 
   }
-  handleSelectedSheet(sheetDetail){
-    console.log("handleSelectedSheet",sheetDetail,this.state.refreshedData,this.state.reportId)
-    let { chartData, sheetChartData, sheetChartDataKeys, sheetVarianceData } = this.state;
-    let firstPeriod = moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM");
-    let subsequentPeriod = moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM");
-
-    if ( this.state.refreshedData || this.state.reportId != sheetDetail.reportId || this.selectedSheetIndex != sheetDetail.sheetIndex) {
-      let matrixData =[];
-      let varianceData = [];
-      let VAelement ={};
-      this.selectedSheetIndex = sheetDetail.sheetIndex;
-      this.gridData[this.selectedSheetIndex].matrix.map(item => {
-          VAelement ={};
-          if(item.origin == "DATA" && (item.variance != 0 || typeof item.variance != 'number')){
-            VAelement['name'] = item.cell;
-            VAelement[firstPeriod] = item.first_value;
-            VAelement[subsequentPeriod] = item.subsequent_value;
-            VAelement['Variance'] = item.variance;
-            matrixData.push(VAelement)
-            varianceData.push({name:item.cell,Variance:item.variance})
-          }
-      })
-      sheetChartData = {
-        title: 'Variance Value Chart for Sheet ' + this.gridData[this.selectedSheetIndex].sheet,
-        value:  'Values with Variances %',
-        rate: 'inc',
-        data: matrixData.length ? matrixData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
-      }
-      sheetChartDataKeys = [
-        {key: 'name'},
-        {key: firstPeriod, keyType: "Bar"},
-        {key: subsequentPeriod, keyType: "Bar"},
-        {key: 'Variance', keyType: "Line", yAxisId: "right", color: '#778490' }, //#778490 #c5a1a1
-      ]
-      sheetVarianceData = {
-        title: 'Variance Chart for Sheet ' + this.gridData[this.selectedSheetIndex].sheet,
-        value:  '% Variances',
-        rate: 'inc',
-        data: varianceData.length ? varianceData : [{name: "Variance", Info: "All Variances are Zero", Scale: 0}]
-      }
-      chartData = {
-        title: "Variance",
-        rate: "inc",
-        value:"varaince %",
-        data:[{name: "Variance", value1:0,value2:0}]
-      }
-      console.log("handleSelectedSheet",sheetDetail,sheetChartData,sheetVarianceData);
-      this.setState({
-                      refreshedData: false,
-                      chartData: chartData,
-                      sheetChartData: sheetChartData,
-                      sheetChartDataKeys: sheetChartDataKeys,
-                      sheetVarianceData: sheetVarianceData
-                    });
-    }
-  }
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
-    let { chartData } = this.state;
-    let firstPeriod = moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM");
-    let subsequentPeriod = moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM");
-
-    if(typeof cell.item != 'undefined'){
-      chartData = {
-          title: 'Variance Chart ' + cell.sheetName,
-          value:  ' Cell ' + cell.cell + ' Variance ' + cell.value + ' %',
-          rate: 'inc',
-          data: [
-              { name: cell.cell },
-          ]
-      }
-      chartData.data[0][firstPeriod] = cell.item.first_value;
-      chartData.data[0][subsequentPeriod] = cell.item.subsequent_value;
-      this.setState({selectedCell: cell, chartData:chartData });
+    // console.log(this.props.gridDataViewReport);
+    if (cell.multiSelect){
+      this.selectedCell.push(cell);
+    } else {
+      this.selectedCell = [cell];
     }
-
-    //console.log("chartData",this.state.selectedCell,this.state.chartData,this.state.sheetChartData);
+    console.log("handleSelectCell selectedCell ... ",this.selectedCell);
   }
 
   handleCalcRuleClicked(event,calcRuleFilter){
@@ -337,7 +246,6 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules : false,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
-        showCharts: false,
       });
 
   }
@@ -350,13 +258,12 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules : true,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
-        showCharts: false,
       });
 
   }
 
-  handleAggeRuleClicked(event,item){
-    console.log("Clicked aggRuleData ruleFilterParam",item);
+  handleAggeRuleClicked(event, item){
+    console.log("Clicked aggRuleData ruleFilterParam", item);
     this.aggRuleData = item;
     // TODO AddReportAggRules as form and then pass aggRuleData
     this.setState({
@@ -364,8 +271,8 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules : false,
         showAggRuleDetails: true,
         showCellChangeHistory: false,
-        showCharts: false,
-      });
+      },
+      ()=>{console.log("aggRuleData",this.aggRuleData)});
 
   }
 
@@ -383,8 +290,7 @@ class VarianceAnalysis extends Component {
           showDrillDownData : false,
           showDrillDownCalcBusinessRules : false,
           showAggRuleDetails: false,
-          showCellChangeHistory: true,
-          showCharts: false,
+          showCellChangeHistory: true
         },
         ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.cell_id)}
       );
@@ -402,20 +308,41 @@ class VarianceAnalysis extends Component {
     } else {
       //this.props.fetchReportChangeHistory(this.state.reportId);
       //console.log("Repot Linkage",this.props.change_history);
-      let sheetName = this.gridData[0].sheet;
+      let sheetName = this.props.gridDataViewReport[0].sheet;
       this.setState({
-        display: "showHistory",
-        showCharts: false,
-        selectedAuditSheet: 0
+        display: "showHistory"
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
       );
     }
   }
 
+  handleEditParameterClick() {
+    let isOpen = this.state.display === "editParameter";
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+        },
+        ()=>{
+          this.props.fetchReportTemplateList();
+        }
+      );
+    } else {
+      //this.props.fetchReportChangeHistory(this.state.reportId);
+      //console.log("Repot Linkage",this.props.change_history);
+      this.setState({
+        display: "editParameter"
+        },
+        ()=>{
+          //TODO save in the def catalog
+        }
+      );
+    }
+  }
+
   handleExportCSV(event) {
-    let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.subsequentReportingDate + "_";
-    this.props.exportCSV(this.gridData.table_name,business_ref,this.gridData.sql);
+    let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
+    this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
   }
 
   handleExportRules(event) {
@@ -423,8 +350,15 @@ class VarianceAnalysis extends Component {
   }
 
   handleExportReport(event) {
-    let firstReportingDate = this.state.firstReportingDate ? this.state.firstReportingDate : "1900010119000101";
-    this.props.exportXlsx(this.state.reportId, firstReportingDate,'Y')
+    let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
+    this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
+  }
+
+  handleSaveParameterClick(report_info){
+    // TODO
+    console.log("handleSaveParameterClick...",report_info);
+    this.props.updateReportParameter(this.state.reportId,report_info)
+    this.handleEditParameterClick();
   }
 
   handleModalOkayClick(event){
@@ -438,7 +372,7 @@ class VarianceAnalysis extends Component {
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "showReportGrid":
-              if (this.gridData) {
+              if (this.gridDataViewReport) {
                   return(
                       <div>
                           <RegOpzFlatGridActionButtons
@@ -449,12 +383,21 @@ class VarianceAnalysis extends Component {
                             pageNo={this.currentPage}
                             buttonClassOverride={this.buttonClassOverride}
                           />
+                          <RegOpzFlatGridActionButtons
+                            editable={this.writeOnly}
+                            checkDisabled={this.checkDisabled}
+                            buttons={this.editTools}
+                            dataNavigation={false}
+                            pageNo={this.currentPage}
+                            buttonClassOverride={"Simplified"}
+                            donotDisplayName={true}
+                          />
                           <RegOpzReportGrid
                             report_id={this.state.reportId}
-                            reporting_date={this.state.firstReportingDate}
-                            gridData={this.gridData}
+                            reporting_date={this.state.reportingDate}
+                            gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
-                            handleSelectedSheet={ this.handleSelectedSheet.bind(this) }
+                            multiSelectAllowed={true}
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;
@@ -475,9 +418,10 @@ class VarianceAnalysis extends Component {
                       <DrillDownRules
                         cellRules = {this.props.cell_rules}
                         readOnly = {this.readOnly}
-                        selectedCell = {this.state.selectedCell}
+                        addRulesBtn = {this.writeOnly}
+                        selectedCell = {this.selectedCell[0]}
                         handleClose={ this.handleDetails.bind(this) }
-                        reportingDate={this.state.firstReportingDate}
+                        reportingDate={this.state.reportingDate}
                         handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }
                         handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
                         handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
@@ -486,21 +430,21 @@ class VarianceAnalysis extends Component {
                   ];
                   if (this.state.showDrillDownData) {
                       content.push(
-                          <ViewData
-                            showDataGrid={true}
-                            flagDataDrillDown={true}
-                            sourceId={this.state.sourceId}
-                            businessDate={this.state.subsequentReportingDate}
-                            dataFilterParam={this.calcRuleFilter}
+                          <AddReportRules
+                            writeOnly={this.writeOnly}
+                            handleClose={this.handleDetails.bind(this)}
+                            {...this.calcRuleFilter.params.drill_kwargs}
+                            formData={this.calcRuleFilter.form}
                           />
                       );
                   } else if (this.state.showAggRuleDetails) {
                       content.push(
                           <AddReportAggRules
-                            writeOnly={false}
+                            writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             aggRuleData = { this.aggRuleData }
                             dml_allowed = { this.aggRuleData.dml_allowed }
+                            gridData={this.props.gridDataViewReport}
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
@@ -512,10 +456,10 @@ class VarianceAnalysis extends Component {
                             ruleFilterParam={this.businessRuleFilterParam}
                           />
                       );
-                  } else if (this.state.showCellChangeHistory && this.changeHistory) {
+                  } else if (this.state.showCellChangeHistory && this.props.change_history) {
                       content.push(
                         <DefAuditHistory
-                          data={ this.changeHistory }
+                          data={ this.props.change_history }
                           historyReference={ "" }
                           handleClose={ this.handleCellHistoryClicked.bind(this) }
                          />
@@ -525,13 +469,13 @@ class VarianceAnalysis extends Component {
               }
               break;
           case "showHistory":
-              if (this.gridData) {
+              if (this.gridDataViewReport) {
                   return(
                     <Tabs
                       defaultActiveKey={0}
                       activeKey={this.state.selectedAuditSheet}
                       onSelect={(key) => {
-                          let sheetName = this.gridData[key].sheet;
+                          let sheetName = this.gridDataViewReport[key].sheet;
                           this.setState({selectedAuditSheet:key},
                           ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
                         );
@@ -539,7 +483,7 @@ class VarianceAnalysis extends Component {
                       }}
                       >
                       {
-                        this.gridData.map((item,index) => {
+                        this.gridDataViewReport.map((item,index) => {
                           console.log("Inside dridData map");
                           return(
                               <Tab
@@ -570,21 +514,34 @@ class VarianceAnalysis extends Component {
                   );
               }
               break;
+          case "editParameter":
+              return(
+                      <EditParameters
+                        maintainReportParameter={true}
+                        reportDetails={this.state.selectedReport}
+                        handleCancel={this.handleEditParameterClick}
+                        handleSubmit={this.handleSaveParameterClick}
+                      />
+                    );
+              break;
           default:
               return(
-                  <VarianceAnalysisForm
-                    onSubmitForm = { this.handleSubmitVAForm }
+                  <ReportCatalogList
+                    dataCatalog={this.props.dataCatalog}
                     navMenu={false}
+                    handleReportClick={this.handleReportClick}
+                    applyRules={this.props.applyRules}
+                    constantFilter={"FIXEDFORMAT"}
                     />
               );
       }
   }
 
   render(){
-
-        let firstPeriod = this.state.firstReportingDate ? moment(this.state.firstReportingDate.substring(0,8)).format("DD-MMM-YYYY") + "-" + moment(this.state.firstReportingDate.substring(8,)).format("DD-MMM-YYYY") : "";
-        let subsequentPeriod = this.state.subsequentReportingDate ? moment(this.state.subsequentReportingDate.substring(0,8)).format("DD-MMM-YYYY") + "-" + moment(this.state.subsequentReportingDate.substring(8,)).format("DD-MMM-YYYY") : "";
-
+    if (typeof this.props.dataCatalog !== 'undefined') {
+        if (typeof this.props.gridDataViewReport != 'undefined' ){
+          this.pages = Math.ceil(this.props.gridDataViewReport.count / 100);
+        }
         return(
           <div>
             <div className="row form-container">
@@ -594,15 +551,15 @@ class VarianceAnalysis extends Component {
                         ((displayOption) => {
                             if (!displayOption) {
                                 return(
-                                    <h2>Variance Analysis <small> of Reports from Different Reporting Period</small>
+                                    <h2>View Report Rules <small>Available Report Rules for </small>
+                                      <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
                                     </h2>
                                 );
                             }
                             return(
-                                <h2>Variance Analysis Report <small>{' Report '}</small>
+                                <h2>Maintain Report Rules <small>{' Report '}</small>
                                   <small><i className="fa fa-file-text"></i></small>
-                                  <small>{this.state.reportId }</small>
-                                  <small>{' Reporting Periods: ' + firstPeriod + ' & ' + subsequentPeriod }</small>
+                                  <small title={this.state.selectedReport.report_description}>{this.state.reportId }</small>
                                 </h2>
                             );
                         })(this.state.display)
@@ -611,16 +568,27 @@ class VarianceAnalysis extends Component {
                         <ul className="nav navbar-right panel_toolbox">
                           <li>
                             <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-bar-chart"></i><small>{' Variance Analyais '}</small>
+                              <i className="fa fa-file-text-o"></i><small>{' Reports '}</small>
                               <i className="fa fa-caret-down"></i>
                             </a>
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li>
-                                <Link to="/dashboard/variance-analysis"
-                                  onClick={()=>{ this.setState({ display: false,showCharts: false, }) }}
+                              <li style={{ "padding": "5px" }}>
+                                <Link to="/dashboard/maintain-report-rules"
+                                  onClick={()=>{ this.setState({ display: false },
+                                                                ()=>{this.props.fetchReportTemplateList();})
+                                                }
+                                          }
                                 >
-                                    <i className="fa fa-calculator"></i>{' variance Anaylsis Form'}
+                                    <i className="fa fa-bars"></i> All Report List
                                 </Link>
+                              </li>
+                              <li>
+                                <ReportCatalogList
+                                  dataCatalog={this.props.dataCatalog}
+                                  navMenu={true}
+                                  handleReportClick={this.handleReportClick}
+                                  constantFilter={"FIXEDFORMAT"}
+                                  />
                               </li>
                             </ul>
                           </li>
@@ -628,29 +596,6 @@ class VarianceAnalysis extends Component {
                       </div>
                     <div className="clearfix"></div>
                 </div>
-                {
-                  this.state.display &&
-                  this.state.showCharts &&
-                  <div>
-                    <VarianceAnalysisChart
-                      height = {150}
-                      chartData = { this.state.sheetVarianceData }
-                      chartType = "BarChart"
-                      showBrush = { true }
-                      tileType = "full_width" />
-                    <VarianceAnalysisChart
-                      height = {200}
-                      chartData = { this.state.chartData }
-                      tileType = "one_third" />
-                    <VarianceAnalysisChart
-                      height = {200}
-                      chartType = "ComposedChart"
-                      chartData = { this.state.sheetChartData }
-                      keys = { this.state.sheetChartDataKeys }
-                      showBrush = { true }
-                      tileType = "two_third" />
-                  </div>
-                }
                 <div className="x_content">
                 {
                     this.renderDynamic(this.state.display)
@@ -668,13 +613,41 @@ class VarianceAnalysis extends Component {
           />
         </div>
       );
+    } else {
+      return(
+        <h4> Loading.....</h4>
+      );
+    }
+  }
+}
+
+function mapStateToProps(state){
+  console.log("On mapState ", state, state.view_data_store, state.report_store);
+  return {
+    //data_date_heads:state.view_data_store.dates,
+    dataCatalog: state.maintain_report_rules_store.report_template_list,
+    gridDataViewReport: state.captured_report,
+    gridData: state.view_data_store.gridData,
+    cell_rules: state.report_store.cell_rules,
+    change_history:state.maintain_report_rules_store.change_history,
+    login_details: state.login_store,
+    leftmenu: state.leftmenu_store.leftmenuclick,
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchVarianceData:(report_id, first_reporting_date, subsequent_reporting_date, variance_tolerance)=>{
-      dispatch(actionFetchVarianceData(report_id, first_reporting_date, subsequent_reporting_date, variance_tolerance))
+    fetchReportTemplateList:(reports,country)=>{
+        dispatch(actionFetchReportTemplate(reports,country))
+    },
+    fetchCapturedReport:(report_id, reporting_date) => {
+        dispatch(actionFetchReportData(report_id, reporting_date));
+    },
+    fetchReportCatalog:(startDate,endDate)=>{
+      dispatch(actionFetchReportCatalog(startDate,endDate))
+    },
+    fetchReportData:(report_id, reporting_date)=>{
+      dispatch(actionFetchReportData(report_id, reporting_date))
     },
     drillDown:(report_id,sheet,cell) => {
       dispatch(actionDrillDown(report_id,sheet,cell));
@@ -685,6 +658,9 @@ const mapDispatchToProps = (dispatch) => {
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
     },
+    applyRules:(source_info) => {
+      dispatch(actionApplyRules(source_info));
+    },
     exportXlsx:(report_id,reporting_date,cell_format_yn) => {
       dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn));
     },
@@ -694,24 +670,15 @@ const mapDispatchToProps = (dispatch) => {
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
+    updateReportParameter:(id, data) => {
+      dispatch(actionUpdateRuleData(id, data));
+    },
   }
 }
 
-function mapStateToProps(state){
-  console.log("On mapState ", state);
-  return {
-    //data_date_heads:state.view_data_store.dates,
-    gridDataViewReport: state.variance_analysis_store.variance_report,
-    cell_rules: state.report_store.cell_rules,
-    change_history:state.maintain_report_rules_store.change_history,
-    login_details:state.login_store,
-    leftmenu: state.leftmenu_store.leftmenuclick,
-  }
-}
-
-const VisibleVarianceAnalysis = connect(
+const VisibleMaintainFixedFormatReportRules = connect(
   mapStateToProps,
   mapDispatchToProps
-)(VarianceAnalysis);
+)(MaintainFixedFormatReportRules);
 
-export default VisibleVarianceAnalysis;
+export default VisibleMaintainFixedFormatReportRules;

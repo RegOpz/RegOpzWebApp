@@ -35,7 +35,7 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import DrillDownRules from '../DrillDown/DrillDownRules';
-import AddReportAggRules from '../MaintainReportRules/AddReportAggRules';
+import AddReportAggRules from '../MaintainFixedFormatReport/AddReportAggRules';
 import ViewData from '../ViewData/ViewDataComponentV2';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 import CreateReport from '../CreateReport/CreateReport';

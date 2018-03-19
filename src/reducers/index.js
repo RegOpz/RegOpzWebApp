@@ -21,6 +21,7 @@ import LeftMenuReducer from './LeftMenuReducer';
 import LoadDataReducer from './LoadDataReducer';
 import DisplayMessageReducer from './MiddleWareReducer';
 import CaptureTemplateReducer from './CaptureReportTemplateReducer';
+import TransactionReportReducer from './TransactionReportReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -45,7 +46,8 @@ const rootReducer = combineReducers({
   leftmenu_store: LeftMenuReducer,
   loadData: LoadDataReducer,
   displayMessage: DisplayMessageReducer,
-  capture_template:CaptureTemplateReducer
+  capture_template:CaptureTemplateReducer,
+  transreport: TransactionReportReducer,
 });
 
 export default rootReducer;

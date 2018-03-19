@@ -16,6 +16,7 @@ class ReportCatalogList extends Component {
       open: {}
     }
     this.dataCatalog = this.props.dataCatalog;
+    this.constantFilter = this.props.constantFilter ? this.props.constantFilter : null;
     this.linkageData = [];
   }
 
@@ -76,13 +77,15 @@ class ReportCatalogList extends Component {
               dataCatalog = linkageData, linkageData = [];
           }
 
-          if (filterText !== null) {
-              let matchText = RegExp(`(${filterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+          if (filterText !== null || this.constantFilter !== null) {
+              let newFilterText = (filterText ? filterText : "") + (this.constantFilter ? this.constantFilter : "")
+              let matchText = RegExp(`(${newFilterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
               dataCatalog.forEach(item => {
                   let report_list = item.report.filter(item =>
                       item.report_id.toString().match(matchText) ||
+                      item.report_type.toString().match(matchText) ||
                       moment(item.date_of_change).format("DD-MMM-YYYY").match(matchText) ||
-                      item.last_updated_by.toString().match(matchText) //||
+                      (item.last_updated_by ? item.last_updated_by.toString().match(matchText) : null) //||
                      // item.last_updated_by.match(matchText)
                   );
                   if (report_list.length > 0) {

@@ -16,7 +16,7 @@ import {
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 
-class AddReportRules extends Component {
+class AddReportTransRules extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -29,6 +29,7 @@ class AddReportRules extends Component {
           report_id: this.props.report_id,
           sheet_id: this.props.sheet,
           cell_id:this.props.cell,
+          section_id: this.props.section_id,
           source_id:null,
           cell_business_rules:null,
           aggregation_ref:null,
@@ -81,6 +82,7 @@ class AddReportRules extends Component {
         report_id: this.props.report_id,
         sheet_id: this.props.sheet,
         cell_id:this.props.cell,
+        section_id: this.props.section_id,
         source_id:null,
         cell_business_rules:null,
         aggregation_ref:null,
@@ -114,6 +116,7 @@ class AddReportRules extends Component {
               report_id: nextProps.report_id,
               sheet_id: nextProps.sheet,
               cell_id:nextProps.cell,
+              section_id: nextProps.section_id,
               source_id:null,
               cell_business_rules:null,
               aggregation_ref:null,
@@ -305,6 +308,26 @@ class AddReportRules extends Component {
                 onSubmit={this.handleSubmit.bind(this)}
               >
                 <div className="form-group">
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Section Ref <span className="required">*</span></label>
+                  <div className="col-md-6 col-sm-6 col-xs-12">
+                    <input
+                      placeholder="Enter Transactional Section Ref"
+                      value={this.state.form.section_id}
+                      type="text"
+                      required="required"
+                      readOnly={true}
+                      className="form-control col-md-7 col-xs-12"
+                      onChange={
+                        (event) => {
+                          let form=this.state.form;
+                          form.section_id = event.target.value;
+                          this.setState({form:form});
+                        }
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Cell Calc Ref <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <input
@@ -352,6 +375,7 @@ class AddReportRules extends Component {
                             <select
                               value = {this.state.form.source_id}
                               className="form-control"
+                              required="required"
                               onChange={
                                 (event) => {
                                   let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
@@ -365,7 +389,7 @@ class AddReportRules extends Component {
                                 }
                               }
                             >
-                              <option>Choose option</option>
+                              <option value="">Choose option</option>
                               {
                                 source_suggestion.map(function(item,index){
                                   return(
@@ -415,6 +439,10 @@ class AddReportRules extends Component {
                         handleDelete={this.handleAggRefDelete}
                         handleAddition={this.handleAggRefAddition}
                         handleDrag={this.handleAggRefDrag}
+                        handleFilterSuggestions={this.searchAnywhere}
+                        allowDeleteFromEmptyInput={false}
+                        autocomplete={true}
+                        minQueryLength={1}
                         classNames={{
                           tagInput: 'tagInputClass',
                           tagInputField: 'tagInputFieldClass form-control',
@@ -425,21 +453,19 @@ class AddReportRules extends Component {
                   </div>
                 </div>
 
+
                 <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Aggregation Funciton <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-scale">Reporting Scale<span className="required"> +</span></label>
+                  <div className="col-md-2 col-sm-2 col-xs-12">
                     <input
-                      type="text"
-                      placeholder="Enter Aggregation function"
+                      value={this.state.form.reporting_scale}
                       readOnly={this.viewOnly}
-                      required="required"
+                      type="number"
                       className="form-control col-md-7 col-xs-12"
-                      value={this.state.form.aggregation_func}
-                      onChange={
-                        (event) => {
-                          let form=this.state.form;
-                          form.aggregation_func = event.target.value;
-                          this.setState({form:form});
+                      onChange={(event) => {
+                          let newState = {...this.state};
+                          newState.form.reporting_scale = event.target.value;
+                          this.setState(newState);
                         }
                       }
                     />
@@ -447,30 +473,37 @@ class AddReportRules extends Component {
                 </div>
 
                 <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Valid from <span className="required"> </span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <DatePicker
-                        dateFormat="YYYYMMDD"
-                        selected={this.state.form.valid_from}
-                        onChange={console.log("this.handleValidFromDateChange.bind(this)")}
-                        placeholderText="Rule Valid From"
-                        readOnly="readonly"
-                        className="view_data_date_picker_input form-control"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Valid till <span className="required"> </span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <DatePicker
-                        dateFormat="YYYYMMDD"
-                        selected={this.state.form.valid_to}
-                        onChange={console.log("this.handleValidTillDateChange.bind(this)")}
-                        placeholderText="Rule Valid Till"
-                        readOnly="readonly"
-                        className="view_data_date_picker_input form-control"
-                    />
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="rounding-option">Rounding Option<span className="required"> +</span></label>
+                  <div className="col-md-3 col-sm-3 col-xs-12">
+                    <select
+                      defaultValue = {this.state.form.rounding_option}
+                      className="form-control"
+                      readOnly={this.viewOnly}
+                      onChange={
+                        (event) => {
+                          let newState = {...this.state};
+                          newState.form.rounding_option = event.target.value;
+                          this.setState(newState);
+                        }
+                      }
+                    >
+                      <option>Choose option</option>
+                      <option value="NONE">NONE</option>
+                      <option value="CEIL">CEIL</option>
+                      <option value="FLOOR">FLOOR</option>
+                      <option value="TRUNC">TRUNC</option>
+                      <option value="DECIMAL0">DECIMAL0</option>
+                      <option value="DECIMAL1">DECIMAL1</option>
+                      <option value="DECIMAL2">DECIMAL2</option>
+                      <option value="DECIMAL3">DECIMAL3</option>
+                      <option value="DECIMAL4">DECIMAL4</option>
+                      <option value="DECIMAL5">DECIMAL5</option>
+                      <option value="DECIMAL6">DECIMAL6</option>
+                      <option value="DECIMAL7">DECIMAL7</option>
+                      <option value="DECIMAL8">DECIMAL8</option>
+                      <option value="DECIMAL9">DECIMAL9</option>
+                      <option value="DECIMAL10">DECIMAL10</option>
+                    </select>
                   </div>
                 </div>
 
@@ -587,8 +620,8 @@ const mapDispatchToProps = (dispatch) => {
     }
   }
 }
-const VisibleAddReportRules = connect(
+const VisibleAddReportTransRules = connect(
   mapStateToProps,
   mapDispatchToProps
-)(AddReportRules);
-export default VisibleAddReportRules;
+)(AddReportTransRules);
+export default VisibleAddReportTransRules;

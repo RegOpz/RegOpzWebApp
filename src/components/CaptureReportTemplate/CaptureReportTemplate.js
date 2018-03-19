@@ -15,6 +15,7 @@ class CaptureTemplate extends Component {
     this.fileInput = null;
     this.uploadForm = null;
     this.state = {
+      report_type: "",
       report_id:"",
       country:"",
       report_description:"",
@@ -39,6 +40,29 @@ class CaptureTemplate extends Component {
                   onSubmit={this.handleFormSubmit.bind(this)}
                   className="form-horizontal form-label-left">
                   <div className="form-group">
+                      <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report Type <span className="required">*</span> </label>
+                      <div className="col-md-6 col-sm-6 col-xs-12">
+                        <select
+                          name="report_type"
+                          value = {this.state.report_type}
+                          className="form-control col-md-7 col-xs-12"
+                          required="required"
+                          onChange={
+                            (event) => {
+                              let report_type = event.target.value;
+                              this.setState({report_type: report_type});
+                            }
+                          }
+                        >
+                          <option value="">Choose option</option>
+                          <option value="FIXEDFORMAT">Fixed Format</option>
+                          <option value="TRANSACTION">Transactional</option>
+                          <option value="DYNAGG">Dynamic Aggregation</option>
+                          <option value="COMPOSIT">Composit</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="form-group">
                       <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Country <span className="required">*</span> </label>
                       <div className="col-md-6 col-sm-6 col-xs-12">
 
@@ -163,7 +187,7 @@ class CaptureTemplate extends Component {
     this.fileInput.click();
   }
   resetForm(){
-    this.setState({report_id:"",country:"",report_description:""});
+    this.setState({report_type: "",report_id:"",country:"",report_description:""});
     document.getElementById("file").value = "";
 
   }
@@ -178,6 +202,7 @@ class CaptureTemplate extends Component {
     hashHistory.push('/dashboard');
   }
   handleFileSelect(){
+    var report_type = this.state.report_type;
     var report_id = this.state.report_id;
     var country = this.state.country;
     var report_description = this.state.report_description;
@@ -185,7 +210,7 @@ class CaptureTemplate extends Component {
     $.each($('#file')[0].files, function(i, file) {
         data.append('file', file);
     });
-   this.props.loadTemplate(data);
+   this.props.loadTemplate(data,report_type);
   }
 }
 
@@ -197,8 +222,8 @@ function mapStateToProps(state){
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        loadTemplate: (formElement) => {
-            dispatch(actionLoadTemplateFile(formElement));
+        loadTemplate: (formElement,reportType) => {
+            dispatch(actionLoadTemplateFile(formElement,reportType));
         }
     }
 }
