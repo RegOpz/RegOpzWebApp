@@ -20,12 +20,13 @@ import {
   actionExportCSV,
   actionApplyRules,
 } from '../../actions/ViewDataAction';
-import {
-  // actionFetchReportData,
-  actionDrillDown
-} from '../../actions/CaptureReportAction';
+// import {
+//   // actionFetchReportData,
+//   // actionDrillDown
+// } from '../../actions/CaptureReportAction';
 import {
   actionFetchTransReportTemplateData,
+  actionFetchTransReportSecRules,
 } from '../../actions/TransactionReportAction';
 import {
   actionLeftMenuClick,
@@ -220,8 +221,13 @@ class MaintainTransactionReportRules extends Component {
       if(!this.selectedCell[0].cell || this.selectedCell.length!=1){
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select a cell for details");
+      }
+      else if (this.selectedCell[0].item.sectionType!="DYNDATA"){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select a dynamic data section for details. Dynamic Data cells will appear as DYNDATA(<dynamic Section id>).");
       } else {
         //this.buttons=this.dataButtons;
+        let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"")
         this.setState({
           display: "showDrillDownRules",
           showDrillDownData: false,
@@ -229,7 +235,7 @@ class MaintainTransactionReportRules extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: false,
           },
-          this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,this.selectedCell[0].cell)
+          this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId)
         );
       }
     }
@@ -288,9 +294,17 @@ class MaintainTransactionReportRules extends Component {
     console.log("handleSelectCell selectedCell ... ",this.selectedCell);
   }
 
-  handleCalcRuleClicked(event,calcRuleFilter){
-    console.log("Clicked calcRuleFilter",calcRuleFilter);
-    this.calcRuleFilter = calcRuleFilter;
+  handleCalcRuleClicked(event,rule,sectionColumns, addEdit){
+    console.log("Clicked calcRuleFilter",rule,sectionColumns, addEdit);
+    let index = (addEdit == "add") ? -1 : rule.cell_calc_ref;
+    this.calcRuleFilter = {
+                          rule,
+                          sectionColumns,
+                          index: index,
+                          dml_allowed: addEdit=="add" ? "Y" :  rule.dml_allowed,
+                          writeOnly: this.writeOnly
+                          };
+    console.log("Clicked calcRuleFilter",this.calcRuleFilter);
     this.setState({
         showDrillDownData : true,
         showDrillDownCalcBusinessRules : false,
@@ -483,10 +497,21 @@ class MaintainTransactionReportRules extends Component {
                           <AddReportTransRules
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
-                            {...this.calcRuleFilter.params.drill_kwargs}
-                            formData={this.calcRuleFilter.form}
+                            {...this.calcRuleFilter}
                           />
                       );
+                      // content.push(
+                      //   <div className="row form-container">
+                      //   <div className="x_panel">
+                      //     <div className="x_content">
+                      //     <TransSecColumnRule
+                      //       {...this.calcRuleFilter}
+                      //     />
+                      //   </div>
+                      //   </div>
+                      // </div>
+                      //
+                      // );
                   } else if (this.state.showAggRuleDetails) {
                       content.push(
                           <AddTransReportSectionOrder
@@ -694,7 +719,7 @@ function mapStateToProps(state){
     dataCatalog: state.maintain_report_rules_store.report_template_list,
     gridDataViewReport: state.transreport.reportGridData,
     gridData: state.view_data_store.gridData,
-    cell_rules: state.report_store.cell_rules,
+    cell_rules: state.transreport.secRules,
     change_history:state.maintain_report_rules_store.change_history,
     login_details: state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,
@@ -713,7 +738,7 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(actionFetchTransReportTemplateData(report_id))
     },
     drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+      dispatch(actionFetchTransReportSecRules(report_id,sheet,cell));
     },
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
       dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));

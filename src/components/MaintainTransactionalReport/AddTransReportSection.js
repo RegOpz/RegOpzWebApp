@@ -8,6 +8,7 @@ import {
   actionTransReportDefineSec,
   actionFetchTransReportSecDef,
 } from '../../actions/TransactionReportAction';
+import _ from 'lodash';
 
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
@@ -26,6 +27,7 @@ class AddTransReportSection extends Component {
             section_type: null,
             sectionStart: null,
             sectionEnd: null,
+            sectionRange: null,
           },
           audit_form:{
             comment:null
@@ -42,6 +44,7 @@ class AddTransReportSection extends Component {
 
         this.updateRuleFormula = this.updateRuleFormula.bind(this);
         this.handleSelectCell = this.handleSelectCell.bind(this);
+        this.handleResetSec = this.handleResetSec.bind(this);
     }
 
     componentWillMount() {
@@ -69,7 +72,11 @@ class AddTransReportSection extends Component {
             form.section_type = nextProps.sectionDetails.section_type;
             form.sectionStart = nextProps.sectionDetails.min_col_id + nextProps.sectionDetails.min_row_id.toString();
             form.sectionEnd = nextProps.sectionDetails.max_col_id + nextProps.sectionDetails.max_row_id.toString();
-            this.setState({form:form});
+            form.sectionRange = form.sectionStart + ":" + form.sectionEnd;
+            this.setState({form:form, openDataGridCollapsible: false});
+          }
+          else{
+            this.setState({openDataGridCollapsible: true});
           }
 
         }
@@ -80,9 +87,32 @@ class AddTransReportSection extends Component {
     handleSelectCell(data){
       console.log("handleSelectCell in AddTransReportSection",data,$("input:focus"));
       if(data.cell){
-        this.setState({selectedCell : data.cell});
+        // this.setState({selectedCell : data.cell});
         //console.log("inside if handleSelectCell",data);
         // this.props.drillDown(data.reportId,data.sheetName,data.cell)
+        let newState = {...this.state};
+        newState.selectedCell = data.cell;
+        if (this.viewOnly || (this.sectionData && this.sectionData.section_id)){
+          // READ ONLY DO NOTHING
+        }
+        else {
+
+          if(!newState.form.sectionRange){
+            newState.form.sectionRange = data.cell;
+          }
+          else if(newState.form.sectionRange.split(':').length == 1){
+            newState.form.sectionRange += ':'+(data.item.merged ? data.item.merged:data.cell);
+          }
+          else if(newState.form.sectionRange.split(':').length == 2){
+            newState.form.sectionRange = data.cell;
+          }
+          else {
+            newState.form.sectionRange = data.cell;
+          }
+        }
+        //if(this.checkRuleValidity(event) == "valid") {
+
+          this.setState(newState);
       }
     }
     updateRuleFormula(event,elementRef){
@@ -182,82 +212,71 @@ class AddTransReportSection extends Component {
                   </div>
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="cell-id">Section Type <span className="required">*</span></label>
-                    <div className="col-md-3 col-sm-3 col-xs-12">
-                      <select
-                        value={this.state.form.section_type}
-                        type="text"
-                        className="form-control col-md-7 col-xs-12"
-                        readOnly={this.viewOnly || (this.sectionData && this.sectionData.section_id)}
-                        required="required"
-                        onChange={
-                          (event)=>{
-                            if(this.viewOnly || (this.sectionData && this.sectionData.section_id)){
-                              // Do nothing
-                            }
-                            else {
-                              let newState = {...this.state};
-                              //if(this.checkRuleValidity(event) == "valid") {
-                                newState.form.section_type = event.target.value;
-                                this.setState(newState);
+                    {
+                      (this.viewOnly || (this.sectionData && this.sectionData.section_id)) &&
+                      <div className="col-md-3 col-sm-3 col-xs-12">
+                        <input
+                          value={this.state.form.section_type}
+                          type="text"
+                          className="form-control col-md-7 col-xs-12"
+                          readOnly={true}
+                          required="required"
+                        />
+                      </div>
+                    }
+                    {
+                      !(this.viewOnly || (this.sectionData && this.sectionData.section_id)) &&
+                      <div className="col-md-3 col-sm-3 col-xs-12">
+                        <select
+                          value={this.state.form.section_type}
+                          type="text"
+                          className="form-control col-md-7 col-xs-12"
+                          readOnly={false}
+                          required="required"
+                          onChange={
+                            (event)=>{
+                              if(this.viewOnly || (this.sectionData && this.sectionData.section_id)){
+                                // Do nothing
+                              }
+                              else {
+                                let newState = {...this.state};
+                                //if(this.checkRuleValidity(event) == "valid") {
+                                  newState.form.section_type = event.target.value;
+                                  this.setState(newState);
+                              }
                             }
                           }
-                        }
-                      >
-                      <option value="">Choose section type</option>
-                      <option value="DYNTEXT">Section Header Text</option>
-                      <option value="DYNDATA">Transaction Data</option>
-                    </select>
-                    </div>
+                        >
+                        <option value="">Choose section type</option>
+                        <option value="DYNTEXT">Section Header Text</option>
+                        <option value="DYNDATA">Transaction Data</option>
+                      </select>
+                      </div>
+                    }
                     </div>
 
                   <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Section Start <span className="required">*</span></label>
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Section Range <span className="required">*</span></label>
                     <div className="col-md-3 col-sm-3 col-xs-12">
                       <input
-                        value={this.state.form.sectionStart}
+                        value={this.state.form.sectionRange}
                         type="text"
+                        required="required"
                         className="form-control col-md-3 col-xs-12"
-                        readOnly={this.viewOnly || (this.sectionData && this.sectionData.section_id)}
+                        readOnly={false }
+                        title={"Select start and end cell range from the report grid.\n" +
+                                "For example, first select A1 and then select N12 to define A1:N13 range."}
                         onChange={(event) => {
-                          let newState = {...this.state};
-                          //if(this.checkRuleValidity(event) == "valid") {
-                            newState.form.sectionStart = event.target.value;
-                            this.setState(newState);
-                          // }
-                          // else {
-                          //   alert("Invalid formula, please check");
-                          //   this.setState(newState);
-                          // }
+                            // Do nothing
+                            let newState = {...this.state};
+                            //if(this.checkRuleValidity(event) == "valid") {
+                              newState.form.sectionRange = "";
+                              this.setState(newState);
+
                          }
                         }
                         ref={(element) => {
                           this.sectionStartField = element;
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Section Start <span className="required">*</span></label>
-                    <div className="col-md-3 col-sm-3 col-xs-12">
-                      <input
-                        value={this.state.form.sectionEnd}
-                        type="text"
-                        className="form-control col-md-3 col-xs-12"
-                        readOnly={this.viewOnly || (this.sectionData && this.sectionData.section_id)}
-                        onChange={(event) => {
-                          let newState = {...this.state};
-                          //if(this.checkRuleValidity(event) == "valid") {
-                            newState.form.sectionEnd = event.target.value;
-                            this.setState(newState);
-                          // }
-                          // else {
-                          //   alert("Invalid formula, please check");
-                          //   this.setState(newState);
-                          // }
-                         }
-                        }
-                        ref={(element) => {
-                          this.sectionEndField = element;
                         }}
                       />
                     </div>
@@ -274,7 +293,7 @@ class AddTransReportSection extends Component {
                             this.setState({openDataGridCollapsible: !currentState});
                           }}
                         >
-                          {this.state.openDataGridCollapsible ? "Hide" : "Show"} Data Grid
+                          {this.state.openDataGridCollapsible ? "Hide" : "Show"} Report Grid
                         </button>
                       </div>
                     }
@@ -289,7 +308,7 @@ class AddTransReportSection extends Component {
                         expanded={this.state.openDataGridCollapsible}
                         >
                           <RegOpzReportGrid
-                            gridData={this.props.gridData}
+                            gridData={_.filter(this.props.gridData,{sheet:this.state.form.sheet_id})}
                             report_id={this.state.form.report_id}
                             handleSelectCell={this.handleSelectCell.bind(this)}
                           />
@@ -337,12 +356,12 @@ class AddTransReportSection extends Component {
                         ((viewOnly)=>{
                           if(! viewOnly && this.sectionData && ! this.sectionData.section_id) {
                             return(
-                                <button type="submit" className="btn btn-success" >Submit</button>
+                                <button type="submit" className="btn btn-success" >Define Section</button>
                             );
                           }
                           if(! viewOnly && this.sectionData && this.sectionData.section_id) {
                             return(
-                                <button type="button" className="btn btn-warning" onClick={this.props.handleClose}>Clear Section</button>
+                                <button type="button" className="btn btn-warning" onClick={this.handleResetSec}>Undefine Section</button>
                             );
                           }
                         })(this.viewOnly)
@@ -388,9 +407,23 @@ class AddTransReportSection extends Component {
       sheet_id: this.state.form.sheet_id,
       section_id: (this.sectionData.section_id ? '': this.state.form.section_id),
       section_type: (this.sectionData.section_id ? '': this.state.form.section_type),
-      cell_group: [this.state.form.sectionStart , this.state.form.sectionEnd],
+      cell_group: this.state.form.sectionRange.split(":"),
     }
     console.log("Before call  of updateTransReportDefineSec",formData);
+    this.props.updateTransReportDefineSec(formData);
+    this.props.handleClose();
+  }
+
+  handleResetSec(){
+    event.preventDefault();
+    let formData={
+      report_id: this.state.form.report_id,
+      sheet_id: this.state.form.sheet_id,
+      section_id: '',
+      section_type: '',
+      cell_group: this.state.form.sectionRange.split(":"),
+    }
+    console.log("Inside call  of handleResetSec",formData);
     this.props.updateTransReportDefineSec(formData);
     this.props.handleClose();
   }

@@ -239,7 +239,8 @@ class ReportCatalogList extends Component {
                                 ref_date_rate:item.ref_date_rate,
                                 rate_type: item.rate_type,
                                 reporting_currency: item.reporting_currency,
-                                report_create_date: moment().format("DD-MMM-YYYY h:mm:ss a")
+                                report_create_date: moment().format("DD-MMM-YYYY h:mm:ss a"),
+                                report_type: item.report_type,
                               }
                               //console.log(report_info);
                               this.props.generateReport(report_info);

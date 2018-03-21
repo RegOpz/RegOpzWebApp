@@ -208,9 +208,7 @@ import './CreateReport.css';
       rate_type:this.state.rateType,
       report_parameters:null,
       report_create_status:this.state.reportCreateStatus,
-      report_create_date:this.todayDate,
-      report_type: this.props.report_def_catalog[0].report[0].report_type,
-      report_event: 'CREATEREPORT'
+      report_create_date:this.todayDate
     };
     report_info.report_parameters='"business_date_from":"' + report_info.business_date_from + '",' +
                                 '"business_date_to":"' + report_info.business_date_to + '",' +

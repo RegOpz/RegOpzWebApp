@@ -6,7 +6,9 @@ import { Label } from 'react-bootstrap';
 class DrillDownTransRules extends Component {
   constructor(props){
     super(props);
-    this.cellRules = this.props.cellRules;
+    this.cellRules = this.props.cellRules.secRules;
+    this.section = this.props.cellRules.section;
+    this.sectionColumns = this.props.cellRules.secColumns;
     this.readOnly = this.props.readOnly;
     this.selectedCell = this.props.selectedCell;
     this.reportingDate = this.props.reportingDate;
@@ -22,9 +24,11 @@ class DrillDownTransRules extends Component {
 
   componentWillReceiveProps(nextProps){
       //TODO
-      this.cellRules = nextProps.cellRules;
+      this.cellRules = nextProps.cellRules.secRules;
       this.readOnly = nextProps.readOnly;
       this.selectedCell = nextProps.selectedCell;
+      this.section = nextProps.cellRules.section;
+      this.sectionColumns = nextProps.cellRules.secColumns;
 
   }
 
@@ -45,7 +49,7 @@ class DrillDownTransRules extends Component {
           <div className="x_panel">
             <div className="x_title">
               <h2>Report Cell Rules
-              <small> for <b>{this.selectedCell.cell}</b> of <b>{this.selectedCell.sheetName}</b> Value <b>{this.selectedCell.value}</b></small>
+              <small> for Section <b>{this.section}</b> of Sheet <b>{this.selectedCell.sheetName}</b></small>
               </h2>
               <ul className="nav navbar-right panel_toolbox">
                 <li>
@@ -111,7 +115,7 @@ class DrillDownTransRules extends Component {
 
   renderOrderBy(cellRules) {
     console.log("Modal linkage data", cellRules);
-    if (cellRules.comp_agg_rules.length == 0 )
+    if (cellRules.length == 0 )
       return (
         <div>
           <h5>No Ordering Details defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
@@ -153,67 +157,13 @@ class DrillDownTransRules extends Component {
         </div>
       )
     else {
-      let item = cellRules.comp_agg_rules[0];
-      return (
-      <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
-        <div className="row">
-        <table className="table table-hover">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Aggregation Ref</th>
-              <th>Rounding Option</th>
-              <th>Reporting Scale</th>
-              <th>In Use</th>
-            </tr>
-          </thead>
-          <tbody>
-
-            <tr>
-              <td>1</td>
-              <td>
-                <small>{item.comp_agg_ref}</small>
-                  <button
-                    type="button"
-                    className="btn btn-link btn-xs"
-                    onClick={
-                      (event)=>{
-                        this.props.handleAggeRuleClicked(event, {...item});
-                        //this.showRulesPanel = !this.showRulesPanel;
-                        this.handleCollapse(event);
-                      }
-                    }>
-                    <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
-                  </button>
-              </td>
-              <td>{item.rounding_option}</td>
-              <td>{item.reporting_scale}</td>
-              <td>
-                {
-                  ((in_use) => {
-                    if (in_use == 'Y') {
-                      return (
-                        <Label bsStyle="success">{in_use}</Label>
-                      );
-                    } else {
-                      return (<Label bsStyle="warning">{in_use}</Label>);
-                    }
-                  })(item.in_use)
-                }
-              </td>
-            </tr>
-
-          </tbody>
-        </table>
-        </div>
-      </div>
-      )
+      // TODO
     }
   }
 
   renderCalcRules(cellRules) {
     console.log("Modal linkage data renderCalcRules", cellRules);
-    if (cellRules.cell_rules.length == 0 )
+    if (cellRules.length == 0 )
       return (
         <div>
           <h5>No Source Calculation Rule defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
@@ -225,7 +175,7 @@ class DrillDownTransRules extends Component {
         </div>
       )
     else {
-      let item = cellRules.cell_rules;
+      let item = cellRules;
       return (
       <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
         <div className="row">
@@ -242,6 +192,8 @@ class DrillDownTransRules extends Component {
           <tbody>
           {
             item.map((item,index)=>{
+              let cellCalc = JSON.parse(item.cell_calc_render_ref)
+              console.log("After parsing JSON string...", cellCalc);
               return(
                 <tr>
                   <td>{item.source_id}</td>
@@ -252,23 +204,7 @@ class DrillDownTransRules extends Component {
                       className="btn btn-link btn-xs"
                       onClick={
                         (event)=>{
-                          let calcRuleFilter = {
-                                  form: item,
-                                  params:{
-                                    drill_kwargs: {
-                                      index: index,
-                                      report_id: item.report_id,
-                                      sheet_id: item.sheet_id,
-                                      cell_id: item.cell_id,
-                                      reporting_date: this.reportingDate,
-                                      source_id: item.source_id,
-                                      cell_calc_ref: item.cell_calc_ref,
-                                      dml_allowed: item.dml_allowed,
-                                      page: 0
-                                    }
-                                  }
-                                }
-                          this.props.handleCalcRuleClicked(event, calcRuleFilter);
+                          this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "edit");
                           //this.showRulesPanel=!this.showRulesPanel;
                           this.handleCollapse(event);
                         }
@@ -276,9 +212,12 @@ class DrillDownTransRules extends Component {
                       <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
                     </button>
                   </td>
-                  <td><Label>{item.aggregation_func}</Label> <b>of</b> <small>{item.aggregation_ref.replace(/,/g,', ')}</small></td>
+                  <td><small>{Object.keys(cellCalc.calc).map(col=>{
+                      return(
+                        <p>{col} : {cellCalc.calc[col].column}</p>)
+                    })}</small></td>
                   <td>
-                    <small>{item.cell_business_rules.replace(/,/g,' ')}</small>
+                    <small>{cellCalc.rule}</small>
                     <button
                       type="button"
                       className="btn btn-link btn-xs"
@@ -291,7 +230,7 @@ class DrillDownTransRules extends Component {
                                   reporting_date: this.reportingDate,
                                   source_id: item.source_id,
                                   cell_calc_ref: item.cell_calc_ref,
-                                  rules: item.cell_business_rules,
+                                  rules: cellCalc.rule,
                                   page: 0
                                 }
                           this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
@@ -333,27 +272,27 @@ class DrillDownTransRules extends Component {
   renderCalcRulesBtn(){
     console.log("Inside renderCalcRulesBtn",this.props.addRulesBtn);
     let cellCalcRef='';
-    if (this.cellRules.cell_rules.length ==0){
-        cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.000';
+    if (this.cellRules.length ==0){
+        // cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.000';
     }
     else {
-        let seq=[];
-        let i=0;
-        let existingCellCalcRefs=this.cellRules.cell_rules.map(e=>e.cell_calc_ref);
-        console.log("Inside renderCalcRulesBtn cellCalcRefs",existingCellCalcRefs)
-        for(let cellRef of existingCellCalcRefs){
-          seq[i]=cellRef.split(/\./g)[1]
-          console.log("Inside renderCalcRulesBtn",seq)
-          i++;
-        }
-        let maxCellRef=Math.max(...seq)+1;
-        if(maxCellRef > 999){ console.log("Error:Number can't be greater than 1000");}
-        cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.'+
-                             ((num,size)=>{
-                                  var s = num+"";
-                                  while (s.length < size) s = "0" + s;
-                                  return s;
-                                })(maxCellRef,3);
+        // let seq=[];
+        // let i=0;
+        // let existingCellCalcRefs=this.cellRules.cell_rules.map(e=>e.cell_calc_ref);
+        // console.log("Inside renderCalcRulesBtn cellCalcRefs",existingCellCalcRefs)
+        // for(let cellRef of existingCellCalcRefs){
+        //   seq[i]=cellRef.split(/\./g)[1]
+        //   console.log("Inside renderCalcRulesBtn",seq)
+        //   i++;
+        // }
+        // let maxCellRef=Math.max(...seq)+1;
+        // if(maxCellRef > 999){ console.log("Error:Number can't be greater than 1000");}
+        // cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.'+
+        //                      ((num,size)=>{
+        //                           var s = num+"";
+        //                           while (s.length < size) s = "0" + s;
+        //                           return s;
+        //                         })(maxCellRef,3);
 
     }
 
@@ -365,23 +304,13 @@ class DrillDownTransRules extends Component {
               className="btn btn-primary btn-sm"
               onClick={
                 (event) => {
-                    let calcRuleFilter = {
-                      form: {cell_calc_ref:cellCalcRef},
-                      params:{
-                        drill_kwargs: {
-                            index: -1,
-                            report_id: this.selectedCell.reportId,
-                            sheet: this.selectedCell.sheetName,
-                            cell: this.selectedCell.cell,
-                            cell_calc_ref:cellCalcRef,
-                            reporting_date: this.reportingDate,
-                            in_use: 'N',
-                            dml_allowed: 'Y',
-                            page: 0
-                        }
-                      }
-                    }
-                    this.props.handleCalcRuleClicked(event, calcRuleFilter);
+                    let rule = {
+                      report_id: this.selectedCell.reportId,
+                      cell_id: this.selectedCell.cell,
+                      sheet_id: this.selectedCell.sheetName,
+                      section_id: this.section,
+                    };
+                    this.props.handleCalcRuleClicked(event, rule, this.sectionColumns,"add");
                     //this.showRulesPanel=!this.showRulesPanel;
                     this.handleCollapse(event);
                  }

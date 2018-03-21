@@ -6,6 +6,7 @@ import {hashHistory} from 'react-router';
 import Breadcrumbs from 'react-breadcrumbs';
 import {actionCreateReport} from '../../actions/CreateReportAction';
 import {actionGenerateReport} from '../../actions/ViewDataAction';
+import {actionCreateTransReport} from '../../actions/TransactionReportAction';
 import DatePicker from 'react-datepicker';
 import './CreateReport.css';
 import ReportParameterTemplate from './ReportParameterTemplate';
@@ -28,11 +29,20 @@ import ReportParameterTemplate from './ReportParameterTemplate';
 
   handleSubmit(report_info){
     if(this.props.reGenerateReport){
-      this.props.generateReport(report_info);
+      if(report_info.report_type=="TRANSACTION"){
+        this.props.createTransReport(report_info);
+      } else {
+        this.props.generateReport(report_info);
+      }
       this.props.handleCancel();
+
     }
     else {
-      this.props.createReport(report_info);
+      if(report_info.report_type=="TRANSACTION"){
+        this.props.createTransReport(report_info);
+      } else {
+        this.props.createReport(report_info);
+      }
       hashHistory.push('/dashboard/view-report');
     }
   }
@@ -63,6 +73,9 @@ const mapDispatchToProps=(dispatch)=>{
     },
     generateReport: (report_info) => {
       dispatch(actionGenerateReport(report_info));
+    },
+    createTransReport:(reportInfo)=>{
+      dispatch(actionCreateTransReport(reportInfo));
     },
   };
 }

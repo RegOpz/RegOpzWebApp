@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import {bindActionCreators, dispatch} from 'redux';
 import DatePicker from 'react-datepicker';
+import moment from 'moment';
 import {
   Link,
   hashHistory
@@ -15,6 +16,11 @@ import {
   actionInsertRuleData,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
+import {
+  actionTransReportUpdateRule,
+  actionTransReportInsertRule
+} from '../../actions/TransactionReportAction';
+import TransSecColumnRule from './TransSecColumnRule';
 
 class AddReportTransRules extends Component {
   constructor(props) {
@@ -24,25 +30,29 @@ class AddReportTransRules extends Component {
         aggRefTags:[],
         rulesSuggestions: [],
         fieldsSuggestions:[],
+        dynamicDataColumns:[],
+        renderRef: this.props.rule.cell_calc_render_ref ? JSON.parse(this.props.rule.cell_calc_render_ref) : null,
         form:{
-          cell_calc_ref:null,
-          report_id: this.props.report_id,
-          sheet_id: this.props.sheet,
+          cell_calc_ref:this.props.rule.cell_calc_ref,
+          report_id: this.props.rule.report_id,
+          sheet_id: this.props.rule.sheet_id,
           cell_id:this.props.cell,
-          section_id: this.props.section_id,
-          source_id:null,
-          cell_business_rules:null,
+          section_id: this.props.rule.section_id,
+          source_id:this.props.rule.source_id ? this.props.rule.source_id:null,
+          cell_business_rules:this.props.rule.cell_calc_render_ref ? JSON.parse(this.props.rule.cell_calc_render_ref).rule : null,
           aggregation_ref:null,
           aggregation_func:null,
           valid_from:null,
           valid_to:null,
           last_updated_by:null,
-          id:null,
+          id:this.props.rule.id ? this.props.rule.id : null ,
           },
         audit_form:{
           comment:null
         }
     };
+
+    this.sectionColumns = this.props.sectionColumns;
 
     this.handleDelete = this.handleDelete.bind(this);
     this.handleAddition = this.handleAddition.bind(this);
@@ -53,6 +63,8 @@ class AddReportTransRules extends Component {
     this.handleAggRefDrag = this.handleAggRefDrag.bind(this);
 
     this.searchAnywhere = this.searchAnywhere.bind(this);
+    this.populateDynDataColumns = this.populateDynDataColumns.bind(this);
+    this.handleParameterChange = this.handleParameterChange.bind(this);
 
     this.ruleIndex = typeof this.props.index !== 'undefined' ? this.props.index : -1;
     this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
@@ -69,21 +81,22 @@ class AddReportTransRules extends Component {
     //     }
     // }
     if (this.ruleIndex !== -1) {
-      this.setState({form: this.props.formData,
+      this.setState({
                       rulesTags: [],
                       aggRefTags: []},
                   ()=>{
                     this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                     this.initialiseFormFields();
+                    this.populateDynDataColumns();
                   });
     } else {
       let formData = {
-        cell_calc_ref:this.props.cell_calc_ref,
-        report_id: this.props.report_id,
-        sheet_id: this.props.sheet,
+        cell_calc_ref:moment().format('YYYYMMDDHHMMSS'),
+        report_id: this.props.rule.report_id,
+        sheet_id: this.props.rule.sheet_id,
         cell_id:this.props.cell,
-        section_id: this.props.section_id,
-        source_id:null,
+        section_id: this.props.rule.section_id,
+        source_id:null, //this.props.rule.source_id,
         cell_business_rules:null,
         aggregation_ref:null,
         aggregation_func:null,
@@ -94,30 +107,61 @@ class AddReportTransRules extends Component {
       };
       this.setState({form: formData,
                       rulesTags: [],
-                      aggRefTags: []
-                    });
+                      aggRefTags: [],
+                      renderRef: null,
+                      dynamicDataColumns:[],
+                    },
+                      ()=>{
+                        this.populateDynDataColumns();
+                      }
+                  );
     }
   }
 
   componentWillReceiveProps(nextProps) {
       if (typeof nextProps.index !== 'undefined' && this.ruleIndex !== nextProps.index) {
           this.ruleIndex = nextProps.index;
+          this.sectionColumns = nextProps.sectionColumns;
+          let selectedTable = _.filter(nextProps.sources.source_suggestion,{source_id: nextProps.rule.source_id});
+          // this.props.fetchSourceColumnList(selectedTable.source_table_name);
+          // console.log("_.filter....",nextProps.sources,selectedTable)
+          // console.log("AddReportTransRules this.sectionColumns",this.sectionColumns);
           if (this.ruleIndex !== -1) {
-            this.setState({form: nextProps.formData,
+            let renderRef= nextProps.rule.cell_calc_render_ref ? JSON.parse(nextProps.rule.cell_calc_render_ref) : null;
+            let form ={
+              cell_calc_ref:nextProps.rule.cell_calc_ref,
+              report_id: nextProps.rule.report_id,
+              sheet_id: nextProps.rule.sheet_id,
+              cell_id:nextProps.cell,
+              section_id: nextProps.rule.section_id,
+              source_id:nextProps.rule.source_id ? nextProps.rule.source_id:null,
+              cell_business_rules:nextProps.rule.cell_calc_render_ref ? JSON.parse(nextProps.rule.cell_calc_render_ref).rule : null,
+              aggregation_ref:null,
+              aggregation_func:null,
+              valid_from:null,
+              valid_to:null,
+              last_updated_by:null,
+              id:nextProps.rule.id ? nextProps.rule.id : null,
+              }
+            this.setState({ form: form,
                             rulesTags: [],
-                            aggRefTags: []},
+                            aggRefTags: [],
+                            dynamicDataColumns:[],
+                            renderRef: renderRef
+                          },
                         ()=>{
                           this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                           this.initialiseFormFields();
+                          this.populateDynDataColumns();
                         });
           } else {
             let formData = {
-              cell_calc_ref:nextProps.cell_calc_ref,
-              report_id: nextProps.report_id,
-              sheet_id: nextProps.sheet,
+              cell_calc_ref:moment().format('YYYYMMDDHHMMSS'),
+              report_id: nextProps.rule.report_id,
+              sheet_id: nextProps.rule.sheet_id,
               cell_id:nextProps.cell,
-              section_id: nextProps.section_id,
-              source_id:null,
+              section_id: nextProps.rule.section_id,
+              source_id:null, //nextProps.rule.source_id,
               cell_business_rules:null,
               aggregation_ref:null,
               aggregation_func:null,
@@ -128,7 +172,14 @@ class AddReportTransRules extends Component {
             };
             this.setState({form: formData,
                             rulesTags: [],
-                            aggRefTags: []
+                            aggRefTags: [],
+                            dynamicDataColumns:[],
+                            renderRef: null
+                          },
+                          ()=>{
+                            //this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                            this.initialiseFormFields();
+                            this.populateDynDataColumns();
                           });
             // Object.assign(this.state.rulesTags,[]);
             // Object.assign(this.state.aggRefTags,[]);
@@ -136,6 +187,41 @@ class AddReportTransRules extends Component {
 
           this.dml_allowed = nextProps.dml_allowed === 'Y' ? true : false;
           this.writeOnly = nextProps.writeOnly;
+      }
+  }
+
+  populateDynDataColumns(){
+    let newState={...this.state}
+    this.sectionColumns.map(col=>{
+      // console.log("Inside content push",col.col_id,this.props.source_table_columns, this.state.renderRef);
+      let colAttributes={
+                          col_id: col.col_id,
+                          mapped_column: this.state.renderRef && this.state.renderRef.calc[col.col_id] ? this.state.renderRef.calc[col.col_id].column:"",
+                        };
+      newState.dynamicDataColumns.push(colAttributes);
+    })
+
+    this.setState(newState);
+
+  }
+
+  handleParameterChange(event, eventType, index) {
+      var dynamicDataColumns = [...this.state.dynamicDataColumns];
+      var value;
+      var checked;
+      switch (eventType) {
+          case 'mappedColumn':
+              value = event.target.value;
+              dynamicDataColumns[index].mapped_column = value;
+              this.setState({ dynamicDataColumns: dynamicDataColumns });
+              // console.log("Changed value of the column mapping",dynamicDataColumns );
+              break;
+          case 'AddMoreKeyValue':
+              // value = event.target.value;
+              // value = value.replace(/[:]/g, "");
+              // additionalParameters[index].keyValue = value;
+              // this.setState({ additionalParameters: additionalParameters });
+              break;
       }
   }
 
@@ -257,6 +343,8 @@ class AddReportTransRules extends Component {
         //if(this.state.aggRefTags.length == 0){
           this.state.aggRefTags.push({id:1,text: this.state.form.aggregation_ref});
         //}
+
+        // Now populate the dynamicDataColumns:[]
       }
 
   render(){
@@ -317,13 +405,6 @@ class AddReportTransRules extends Component {
                       required="required"
                       readOnly={true}
                       className="form-control col-md-7 col-xs-12"
-                      onChange={
-                        (event) => {
-                          let form=this.state.form;
-                          form.section_id = event.target.value;
-                          this.setState({form:form});
-                        }
-                      }
                     />
                   </div>
                 </div>
@@ -351,12 +432,6 @@ class AddReportTransRules extends Component {
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report ID <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <input value={this.state.form.report_id}  readOnly="readonly" type="text" className="form-control col-md-7 col-xs-12" />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Cell ID <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <input value={this.state.form.cell_id} readOnly="readonly" type="text" required="required" className="form-control col-md-7 col-xs-12" />
                   </div>
                 </div>
                 <div className="form-group">
@@ -409,7 +484,7 @@ class AddReportTransRules extends Component {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Report Rules <span className="required">*</span></label>
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Section Calculation Rules <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <ReactTags tags={rulesTags}
                       suggestions={rulesSuggestions}
@@ -430,82 +505,33 @@ class AddReportTransRules extends Component {
                     />
                   </div>
                 </div>
+
                 <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Aggregation Logic <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <ReactTags tags={aggRefTags}
-                        suggestions={fieldsSuggestions}
-                        readOnly={this.viewOnly}
-                        handleDelete={this.handleAggRefDelete}
-                        handleAddition={this.handleAggRefAddition}
-                        handleDrag={this.handleAggRefDrag}
-                        handleFilterSuggestions={this.searchAnywhere}
-                        allowDeleteFromEmptyInput={false}
-                        autocomplete={true}
-                        minQueryLength={1}
-                        classNames={{
-                          tagInput: 'tagInputClass',
-                          tagInputField: 'tagInputFieldClass form-control',
-                          suggestions: 'suggestionsClass',
-                        }}
-                        placeholder="Enter Aggregation Definition"
-                      />
+                <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment"></label>
+                <div className="col-md-6 col-sm-6 col-xs-12">
+                  <div className="x_panel">
+                  <div className="x_title">
+                    <h2>Source Column Mapping <small> for the Rule </small></h2>
+                    <div className="clearfix"></div>
                   </div>
-                </div>
-
-
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-scale">Reporting Scale<span className="required"> +</span></label>
-                  <div className="col-md-2 col-sm-2 col-xs-12">
-                    <input
-                      value={this.state.form.reporting_scale}
-                      readOnly={this.viewOnly}
-                      type="number"
-                      className="form-control col-md-7 col-xs-12"
-                      onChange={(event) => {
-                          let newState = {...this.state};
-                          newState.form.reporting_scale = event.target.value;
-                          this.setState(newState);
+                  <div className="x_content">
+                    <table className="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>Report Column</th>
+                          <th>Source Field</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {
+                          this.renderColumns()
                         }
-                      }
-                    />
+                      </tbody>
+                    </table>
+                  </div>
                   </div>
                 </div>
-
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="rounding-option">Rounding Option<span className="required"> +</span></label>
-                  <div className="col-md-3 col-sm-3 col-xs-12">
-                    <select
-                      defaultValue = {this.state.form.rounding_option}
-                      className="form-control"
-                      readOnly={this.viewOnly}
-                      onChange={
-                        (event) => {
-                          let newState = {...this.state};
-                          newState.form.rounding_option = event.target.value;
-                          this.setState(newState);
-                        }
-                      }
-                    >
-                      <option>Choose option</option>
-                      <option value="NONE">NONE</option>
-                      <option value="CEIL">CEIL</option>
-                      <option value="FLOOR">FLOOR</option>
-                      <option value="TRUNC">TRUNC</option>
-                      <option value="DECIMAL0">DECIMAL0</option>
-                      <option value="DECIMAL1">DECIMAL1</option>
-                      <option value="DECIMAL2">DECIMAL2</option>
-                      <option value="DECIMAL3">DECIMAL3</option>
-                      <option value="DECIMAL4">DECIMAL4</option>
-                      <option value="DECIMAL5">DECIMAL5</option>
-                      <option value="DECIMAL6">DECIMAL6</option>
-                      <option value="DECIMAL7">DECIMAL7</option>
-                      <option value="DECIMAL8">DECIMAL8</option>
-                      <option value="DECIMAL9">DECIMAL9</option>
-                      <option value="DECIMAL10">DECIMAL10</option>
-                    </select>
-                  </div>
-                </div>
+              </div>
 
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment">Comment <span className="required">*</span></label>
@@ -558,35 +584,83 @@ class AddReportTransRules extends Component {
     }
   }
 
+  renderColumns(){
+        let content=[];
+        this.state.dynamicDataColumns.map((element,index)=>{
+          console.log("Inside content push",element,this.props.source_table_columns);
+          content.push(
+            <TransSecColumnRule
+              {...element}
+              index={index}
+              key={index}
+              sourceColumns={this.props.source_table_columns?this.props.source_table_columns:[{'Field':element.mapped_column}]}
+              handleChange={this.handleParameterChange}
+              />
+          );
+
+        })
+      console.log("Inside content push",content);
+      return content;
+  }
   handleSubmit(event){
     console.log('inside submit',this.state.form);
     event.preventDefault();
     this.flatenTags();
 
-    let data = {
-      table_name:"report_calc_def",
-      update_info:this.state.form
-    };
-    data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
-
-    let audit_info={
-      id:this.state.form.id,
-      table_name:data.table_name,
-      change_type:data.change_type,
-      change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id} [ Source: ${this.state.form.source_id} ]`,
-      maker: this.props.login_details.user,
-    };
-    Object.assign(audit_info,this.state.audit_form);
-
-    data['audit_info']=audit_info;
-
-    console.log('inside submit',this.state.form);
-    if(data['change_type'] == "INSERT"){
-      this.props.insertRuleData(data);
-    }
-    else if (data['change_type'] == "UPDATE"){
+    // let data = {
+    //   table_name:"report_calc_def",
+    //   update_info:this.state.form
+    // };
+    // data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
+    //
+    // let audit_info={
+    //   id:this.state.form.id,
+    //   table_name:data.table_name,
+    //   change_type:data.change_type,
+    //   change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id} [ Source: ${this.state.form.source_id} ]`,
+    //   maker: this.props.login_details.user,
+    // };
+    // Object.assign(audit_info,this.state.audit_form);
+    //
+    // data['audit_info']=audit_info;
+    //
+    // console.log('inside submit',this.state.form);
+    // if(data['change_type'] == "INSERT"){
+    //   this.props.insertRuleData(data);
+    // }
+    // else if (data['change_type'] == "UPDATE"){
+    //   this.props.updateRuleData(this.state.form.id,data);
+    // }
+    let calc = {};
+    this.state.dynamicDataColumns.map(element=>{
+      calc[element.col_id]={column:element.mapped_column}
+    })
+    let calcRenderRef = {
+                rule:this.state.form.cell_business_rules,
+                calc: calc
+              };
+    calcRenderRef = JSON.stringify(calcRenderRef);
+    console.log("calcRenderRef",calcRenderRef);
+    let data={
+              report_id: this.state.form.report_id,
+              sheet_id: this.state.form.sheet_id,
+              section_id: this.state.form.section_id,
+              source_id:this.state.form.source_id ,
+              cell_calc_ref: this.state.form.cell_calc_ref,
+              cell_calc_render_ref:calcRenderRef,
+              last_updated_by:null,
+              in_use: "Y",
+              dml_allowed: "Y",
+              id:this.state.form.id,
+            }
+    if (this.ruleIndex === -1){
+      // INSERT
+      this.props.insertRuleData(this.state.form.cell_calc_ref,data);
+    } else {
+      // UPDATE
       this.props.updateRuleData(this.state.form.id,data);
     }
+
 
     this.props.handleClose();
   }
@@ -612,11 +686,11 @@ const mapDispatchToProps = (dispatch) => {
     fetchSourceColumnList:(table_name) => {
       dispatch(actionFetchSourceColumnList(table_name));
     },
-    insertRuleData:(data) => {
-      dispatch(actionInsertRuleData(data));
+    insertRuleData:(calcRef,data) => {
+      dispatch(actionTransReportInsertRule(calcRef,data));
     },
     updateRuleData:(id,data) => {
-      dispatch(actionUpdateRuleData(id,data));
+      dispatch(actionTransReportUpdateRule(id,data));
     }
   }
 }

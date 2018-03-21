@@ -19,6 +19,10 @@ import {
   actionGenerateReport,
 } from '../../actions/ViewDataAction';
 import {
+  actionCreateTransReport,
+  actionFetchTransReportData
+} from '../../actions/TransactionReportAction';
+import {
   actionFetchReportData,
   actionDrillDown
 } from '../../actions/CaptureReportAction';
@@ -60,7 +64,7 @@ class ViewReport extends Component {
       showCellChangeHistory: false,
 
       display: false,
-      selectedRecord: {},
+      selectedRecord: null,
     }
 
     this.pages=0;
@@ -99,6 +103,7 @@ class ViewReport extends Component {
     this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
+    this.submitGenerateReport = this.submitGenerateReport.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
@@ -117,7 +122,12 @@ class ViewReport extends Component {
     this.props.leftMenuClick(false);
   }
   componentWillReceiveProps(nextProps){
-    this.gridDataViewReport=nextProps.gridDataViewReport;
+    if (this.state.selectedRecord && this.state.selectedRecord.report_type=="TRANSACTION"){
+      console.log("Inside this.state.selectedRecord && this.state.selectedRecord.report_type==TRANSACTION",this.state.selectedRecord)
+      this.gridDataViewReport = nextProps.gridDataViewTransReport;
+    } else {
+      this.gridDataViewReport=nextProps.gridDataViewReport;
+    }
     this.gridData=nextProps.gridData;
     this.changeHistory=nextProps.change_history;
     console.log("nextProps",this.props.leftmenu);
@@ -142,8 +152,16 @@ class ViewReport extends Component {
         reportId: item.report_id,
         reportingDate: item.reporting_date,
         businessDate: item.as_of_reporting_date,
+        selectedRecord: item,
      },
-      ()=>{this.props.fetchReportData(this.state.reportId,this.state.reportingDate);}
+      ()=>{
+        if (item.report_type=="TRANSACTION"){
+          this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
+        } else {
+          this.props.fetchReportData(this.state.reportId,this.state.reportingDate);
+        }
+
+      }
     );
   }
 
@@ -207,7 +225,11 @@ class ViewReport extends Component {
 
 
   fetchDataToGrid(event){
-    this.props.fetchReportData(this.state.reportId,this.state.reportingDate);
+    if (item.report_type=="TRANSACTION"){
+      this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
+    } else {
+      this.props.fetchReportData(this.state.reportId,this.state.reportingDate);
+    }
   }
 
   handleDetails(event){
@@ -344,6 +366,14 @@ class ViewReport extends Component {
 
   handleAuditOkayClick(auditInfo){
     //TODO
+  }
+
+  submitGenerateReport(reportInfo){
+    if (reportInfo.report_type=="TRANSACTION"){
+      this.props.createTransReport(reportInfo);
+    } else {
+      this.props.generateReport(reportInfo);
+    }
   }
 
   renderDynamic(displayOption) {
@@ -498,7 +528,7 @@ class ViewReport extends Component {
                     handleReportClick={this.handleReportClick}
                     dateFilter={this.handleDateFilter}
                     editParameter={this.handleEditParameterClick}
-                    generateReport={this.props.generateReport}
+                    generateReport={this.submitGenerateReport}
                     />
               );
       }
@@ -613,6 +643,9 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportData:(report_id, reporting_date)=>{
       dispatch(actionFetchReportData(report_id, reporting_date))
     },
+    fetchTransReportData:(report_id, reporting_date)=>{
+      dispatch(actionFetchTransReportData(report_id, reporting_date))
+    },
     drillDown:(report_id,sheet,cell) => {
       dispatch(actionDrillDown(report_id,sheet,cell));
     },
@@ -624,6 +657,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     generateReport: (report_info) => {
       dispatch(actionGenerateReport(report_info));
+    },
+    createTransReport:(reportInfo)=>{
+      dispatch(actionCreateTransReport(reportInfo));
     },
     exportXlsx:(report_id,reporting_date,cell_format_yn) => {
       dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn));
@@ -643,6 +679,7 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.report_store.reports,
     gridDataViewReport: state.captured_report,
+    gridDataViewTransReport: state.transreport.reportGridData,
     gridData: state.view_data_store.gridData,
     cell_rules: state.report_store.cell_rules,
     change_history:state.maintain_report_rules_store.change_history,
