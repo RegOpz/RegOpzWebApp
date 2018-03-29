@@ -14,6 +14,7 @@ export default class RegOpzDataGridBody extends Component {
           }
         }
         this.selectedCell = null;
+        this.cellSpan = this.cellSpan.bind(this);
     }
     componentWillReceiveProps(nextProps){
       this.data = nextProps.data;
@@ -21,6 +22,23 @@ export default class RegOpzDataGridBody extends Component {
       this.colAttr = nextProps.colAttr;
       this.rowAttr = nextProps.rowAttr;
       this.cellStyle = nextProps.cellStyle;
+    }
+
+    cellSpan(title,value, stylex,item){
+      if (item.origin =='TEMPLATEIMAGE')
+      {
+        console.log("Image style values...",stylex.height,stylex.width,(stylex.height/stylex.width)*100,Object.keys(stylex))
+        let imgStyle={
+          height: stylex.height < stylex.width?  stylex.height : "auto",
+          width: stylex.width < stylex.height ? stylex.width : "auto",
+          "max-height": stylex.height <= stylex.width ? "100%":"auto",
+          "max-width": stylex.width < stylex.height ? "100%" : "auto",
+        }
+        return(<img style={imgStyle} src="./images/logo.png"></img>);
+      } else {
+        return(value);
+      }
+
     }
     render(){
         return(
@@ -163,7 +181,10 @@ export default class RegOpzDataGridBody extends Component {
                                     }
                                   }
                                   target={cell}
-                                >{ value }</span>
+                                >{
+                                  this.cellSpan(title,value,stylex,item)
+
+                                }</span>
                             </div>
                         )
                     }.bind(this))

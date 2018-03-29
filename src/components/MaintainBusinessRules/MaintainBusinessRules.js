@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
+import ReactTable from 'react-table';
 import { actionFetchAuditList } from '../../actions/DefChangeAction';
 import {
   //actionFetchSources,
@@ -36,6 +37,7 @@ import RuleReportLinkage from './RuleReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 require('react-datepicker/dist/react-datepicker.css');
 require('./MaintainBusinessRules.css');
+require('react-table/react-table.css');
 
 class MaintainBusinessRules extends Component {
   constructor(props){
@@ -48,12 +50,18 @@ class MaintainBusinessRules extends Component {
       showAuditModal: false,
       sourceFileName: null,
       tableName: null,
+      // ReactTable variables
+      page: 0,
+      pageSize: 20,
+      rowIndex: [],
+      loading: true,
+      filtered: []
     }
 
     this.ruleFilterParam=this.props.ruleFilterParam;
     this.flagRuleDrillDown=this.props.flagRuleDrillDown ? this.props.flagRuleDrillDown : false;
     this.pages=0;
-    this.currentPage=0;
+    this.currentPage=undefined;
     this.dataSource = null;
     this.gridData=undefined;
     this.changeHistory=undefined;
@@ -100,6 +108,8 @@ class MaintainBusinessRules extends Component {
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
+    this.reactTableColumns = this.reactTableColumns.bind(this);
+
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Business Rules" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Business Rules" }) ? true : false;
@@ -115,7 +125,12 @@ class MaintainBusinessRules extends Component {
   }
 
   componentWillReceiveProps(nextProps){
-    this.gridData=nextProps.gridBusinessRulesData;
+    if (this.gridData != nextProps.gridBusinessRulesData){
+      this.gridData=nextProps.gridBusinessRulesData;
+      this.currentPage = undefined;
+      this.setState({loading: false});
+    }
+
     this.changeHistory=nextProps.change_history;
     this.reportLinkage=nextProps.report_linkage;
     //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
@@ -140,16 +155,18 @@ class MaintainBusinessRules extends Component {
 
   handleDataFileClick(item) {
     console.log("selected item",item);
-    this.currentPage = 0;
+    this.currentPage = undefined;
     this.selectedViewColumns=[];
     this.gridData=undefined;
+    this.selectedItems =[];
     this.setState({
         display: "showBusinessRuleGrid",
         sourceId: item.source_id,
         sourceFileName: item.source_file_name,
         tableName: item.source_table_name,
+        rowIndex: []
      },
-      this.props.fetchBusinesRules(item.source_id,this.currentPage)
+      this.props.fetchBusinesRules(item.source_id,0)
     );
   }
 
@@ -191,6 +208,17 @@ class MaintainBusinessRules extends Component {
     this.setState({ display: "showBusinessRuleGrid" });
   }
 
+  reactTableColumns(){
+    let columns = this.selectedViewColumns.length ? this.selectedViewColumns : this.gridData.cols;
+    let reactTableViewColumns=[];
+    if (columns){
+      columns.map(item =>{
+        reactTableViewColumns.push({Header: item.toString().replace(/_\$#/,' '), accessor: item})
+      })
+    }
+    return reactTableViewColumns;
+  }
+
   actionButtonClicked(event,itemClicked){
     console.log("actionButtonClicked",itemClicked ,event);
     switch (itemClicked){
@@ -216,49 +244,15 @@ class MaintainBusinessRules extends Component {
         this.handleHistoryClick(event);
         break;
       case "Deselect":
-        this.selectedItems = this.flatGrid.deSelectAll();
+        // this.selectedItems = this.flatGrid.deSelectAll();
+        this.setState({itemEditable:true, rowIndex: []});
+        this.selectedItems=[]
         break;
       case "Columns":
         this.handleToggle(event);
         break;
       case "Export":
         this.handleExportCSV(event);
-        break;
-      case "FirstPage":
-        if( this.currentPage !=0 ){
-          this.handlePageNavigation(event,0);
-        }
-        break;
-      case "NextPage":
-        if ( this.currentPage < this.pages - 1 ){
-          this.currentPage++;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "PrevPage":
-        if ( this.currentPage > 0 ){
-          this.currentPage--;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "LastPage":
-        if( this.currentPage != this.pages -1 ){
-          this.currentPage=this.pages -1;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "Page":
-        break;
-      case "PageOkay":
-        if(event.key == "Enter"){
-            if(event.target.value > this.pages){
-              this.modalAlert.isDiscardToBeShown = false;
-              this.modalAlert.open("Page does not exists");
-            } else {
-              this.currentPage = event.target.value;
-              this.fetchDataToGrid(event,this.currentPage);
-            }
-        }
         break;
       default:
         console.log("No specific action has been defined for ",itemClicked);
@@ -267,23 +261,30 @@ class MaintainBusinessRules extends Component {
   }
 
   handleRefreshGrid(event){
-    this.selectedItems = this.flatGrid.deSelectAll();
-    //this.currentPage = 0;
-    this.setState({itemEditable:true});
-    this.fetchDataToGrid(event);
+    //this.selectedItems = this.flatGrid.deSelectAll();
+    this.currentPage = this.state.page;
+    this.setState({itemEditable:true,
+                  rowIndex: [],
+                  loading: true},
+                  ()=>{
+                    this.selectedItems=[]
+                    this.fetchDataToGrid(event);
+                  }
+    );
+
   }
 
   handlePageNavigation(event, pageNo) {
-    this.currentPage = pageNo;
-    console.log("Inside handlePageNavigation",this.currentPage,pageNo);
+    console.log("Inside handlePageNavigation",this.state.page,pageNo);
     this.fetchDataToGrid(event);
   }
 
   fetchDataToGrid(event){
+    let fetchPage=0;
     if(this.flagRuleDrillDown){
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.currentPage);
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,fetchPage);
     } else {
-      this.props.fetchBusinesRules(this.state.sourceId,this.currentPage);
+      this.props.fetchBusinesRules(this.state.sourceId,fetchPage);
     }
   }
 
@@ -291,13 +292,17 @@ class MaintainBusinessRules extends Component {
 
     let isOpen = this.state.display === "showAddForm";
     if(isOpen) {
+      this.currentPage = this.state.page;
       this.setState({
         display: "showBusinessRuleGrid",
         itemEditable: true,
+        rowIndex: [],
+        loading: true,
         },
         ()=>{
               if(this.selectedItems){
-                this.selectedItems = this.flatGrid.deSelectAll();
+                // this.selectedItems = this.flatGrid.deSelectAll();
+                this.selectedItems=[]
               }
               this.handleRefreshGrid();
             }
@@ -309,7 +314,9 @@ class MaintainBusinessRules extends Component {
         } else {
           let itemEditable = true;
           if ( requestType == "add") {
-            this.selectedItems = this.flatGrid.deSelectAll();
+            // this.selectedItems = this.flatGrid.deSelectAll();
+            // this.setState({itemEditable:true, rowIndex: null});
+            this.selectedItems=[]
             this.form_data = null;
           } else {
             if(this.selectedItems.length==0){
@@ -338,11 +345,11 @@ class MaintainBusinessRules extends Component {
 
   handleSelectRow(indexOfGrid){
     console.log("Inside Single select....",this.selectedItems.length);
-    if(this.selectedItems.length == 1){
-      this.selectedIndexOfGrid = indexOfGrid;
-      this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
-      console.log("Inside Single select ", indexOfGrid);
-    }
+    // if(this.selectedItems.length == 1){
+    //   this.selectedIndexOfGrid = indexOfGrid;
+    //   this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
+    //   console.log("Inside Single select ", indexOfGrid);
+    // }
 
   }
 
@@ -357,6 +364,7 @@ class MaintainBusinessRules extends Component {
     let isOpen = this.state.display === "showReportLinkage";
     this.reportLinkage=undefined;
     if(isOpen) {
+      this.currentPage = this.state.page;
       this.setState({ display: "showBusinessRuleGrid" });
       this.selectedKeys = '';
     } else {
@@ -365,6 +373,7 @@ class MaintainBusinessRules extends Component {
         this.modalAlert.open("Please select atleast one record");
       } else {
         let selectedKeys='';
+        console.log("Inside handleReportLinkClick .. items", this.selectedItems);
         this.selectedItems.map((item,index)=>{
           selectedKeys += (selectedKeys ? ',' + item.business_rule : item.business_rule)
         })
@@ -374,13 +383,15 @@ class MaintainBusinessRules extends Component {
         this.setState({ display: "showReportLinkage" });
       }
     }
-    this.selectedItems = this.flatGrid.deSelectAll();
+    // this.selectedItems = this.flatGrid.deSelectAll();
+
   }
 
   handleHistoryClick(event) {
     let isOpen = this.state.display === "showHistory";
     this.changeHistory=undefined;
     if(isOpen) {
+      this.currentPage = this.state.page;
       this.setState({ display: "showBusinessRuleGrid" });
       this.selectedKeys = '';
     } else {
@@ -393,7 +404,7 @@ class MaintainBusinessRules extends Component {
       console.log("Repot Linkage",this.props.change_history);
       this.setState({ display: "showHistory" });
     }
-    this.selectedItems = this.flatGrid.deSelectAll();
+    // this.selectedItems = this.flatGrid.deSelectAll();
   }
 
   handleExportCSV(event) {
@@ -404,7 +415,7 @@ class MaintainBusinessRules extends Component {
   handleFullSelect(items){
     console.log("Selected Items ", items);
 
-    this.selectedItems = items;
+    // this.selectedItems = items;
     //this.props.setDisplayCols(this.props.gridData.cols,this.props.gridData.table_name);
     //this.props.setDisplayData(this.selectedItems[0]);
 
@@ -571,25 +582,73 @@ class MaintainBusinessRules extends Component {
                           buttonClicked={this.actionButtonClicked}
                           checkDisabled={this.checkDisabled}
                           buttons={this.buttons}
-                          dataNavigation={true}
-                          pageNo={this.currentPage}
+                          dataNavigation={false}
+                          pageNo={0}
                           buttonClassOverride={this.buttonClassOverride}
                           />
-                        <RegOpzFlatGrid
-                         columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.gridData.cols}
-                         dataSource={this.gridData.rows}
-                         onSelectRow={this.handleSelectRow.bind(this)}
-                         onUpdateRow = {this.handleUpdateRow.bind(this)}
-                         onSort = {()=>{}}
-                         onFilter = {()=>{}}
-                         onFullSelect = {this.handleFullSelect.bind(this)}
-                         isMultiSelectAllowed = { true }
-                         ref={
-                            (flatGrid) => {
-                                this.flatGrid = flatGrid;
-                            }
-                          }
-                          />
+                        <ReactTable
+                          data={this.gridData.rows}
+                          filterable={true}
+                          className="-highlight -striped"
+                          columns={this.reactTableColumns()}
+                          loading={this.state.loading}
+                          page={this.currentPage}
+                          pageSize={this.currentPage ? this.state.pageSize : undefined}
+                          onFetchData={(state,instance)=>{
+                                          console.log("Inside onFetchData ...",state.page, state.pageSize, this.currentPage);
+                                          this.currentPage = undefined;
+                                          this.setState({page: state.page,
+                                                         pageSize:  state.pageSize,
+                                                         filtered: state.filtered,
+                                                       });
+                                          console.log("Post onFetchData ...",state.page, state.pageSize, this.currentPage);
+                                        }
+                                      }
+                          getTrProps={(state, rowInfo, column) => {
+                                        let isSelected = rowInfo && this.state.rowIndex.length != 0 && this.state.rowIndex.includes(rowInfo.original.id)
+                                        return {
+                                            style : {
+                                                background: isSelected  ? '#2A3F54' : '',
+                                                color: isSelected  ? '#ECF0F1' : '',
+                                              }
+                                        }
+                                      }}
+                          getTdProps={(state, rowInfo, column, instance) => {
+                                        return {
+                                          onClick: (e, handleOriginal) => {
+                                            // console.log('A Td Element was clicked!')
+                                            // console.log('it produced this event:', e, e.ctrlKey)
+                                            // console.log('It was in this column:', column)
+                                            // console.log('It was in this row:', rowInfo, this.selectedItems.length,this.state.rowIndex)
+                                            // console.log('It was in this table instance:', instance)
+                                            if (e.ctrlKey){
+                                              let {rowIndex} = {...this.state}
+                                              rowIndex.push(rowInfo.original.id)
+                                              this.selectedItems.push(rowInfo.original);
+                                              this.setState({rowIndex: rowIndex})
+                                            }
+                                            else{
+                                              this.selectedItems = [rowInfo.original];
+                                              this.setState({rowIndex:[rowInfo.original.id],
+                                                            itemEditable : (this.selectedItems[0].dml_allowed == "Y")})
+                                            }
+                                            // console.log('No of selectedItems row:', this.selectedItems)
+
+
+                                            // IMPORTANT! React-Table uses onClick internally to trigger
+                                            // events like expanding SubComponents and pivots.
+                                            // By default a custom 'onClick' handler will override this functionality.
+                                            // If you want to fire the original onClick handler, call the
+                                            // 'handleOriginal' function.
+                                            if (handleOriginal) {
+                                              handleOriginal()
+                                            }
+                                          }
+                                        }
+                                      }}
+
+                        />
+
                       </div>
                   );
               }

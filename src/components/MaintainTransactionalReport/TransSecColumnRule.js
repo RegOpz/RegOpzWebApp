@@ -34,6 +34,7 @@ class TransSecColumnRule extends Component {
                 <td>
                   <FormControl
                       componentClass="select"
+                      className={this.props.mapped_column=="" ? "blue":""}
                       placeholder="Select Source Column"
                       value={this.props.mapped_column}
                       onChange={(event) => { this.props.handleChange(event, 'mappedColumn', this.props.index) }}

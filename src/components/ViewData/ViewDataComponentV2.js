@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
+import ReactTable from 'react-table';
 import {
   //actionFetchDates,
   actionFetchSource,
@@ -33,6 +34,7 @@ import DataReportLinkage from './DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 require('react-datepicker/dist/react-datepicker.css');
 require('./ViewDataComponentStyle.css');
+require('react-table/react-table.css');
 
 class ViewDataComponentV2 extends Component {
   constructor(props){
@@ -45,13 +47,26 @@ class ViewDataComponentV2 extends Component {
       itemEditable: true,
       sourceId: null,
       businessDate: null,
-      showAuditModal: false
+      showAuditModal: false,
+      // state variables for react-table
+      rowIndex: [],
+      currentPage: 0,
+      pages: 0,
+      pageSize: 20,
+      manual: false,
+      loading: true,
+      page: 0,
+      offsetPage:0,
+      isFetched: true,
+      sorted: [],
+      filtered: [],
+      filteredData: [],
     }
 
     this.dataFilterParam=this.props.dataFilterParam;
     this.flagDataDrillDown=this.props.flagDataDrillDown ? this.props.flagDataDrillDown : false;
-    this.pages=0;
-    this.currentPage=0;
+
+    this.useDataGridPageHandler=true;
     this.dataSource = null;
     this.dataGrid=undefined;
     this.reportLinkage=undefined;
@@ -98,6 +113,10 @@ class ViewDataComponentV2 extends Component {
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
+    this.reactTableColumns = this.reactTableColumns.bind(this);
+    this.recatTablePages = this.recatTablePages.bind(this);
+    this.reactTableData = this.reactTableData.bind(this);
+
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Data" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Data" }) ? true : false;
@@ -114,7 +133,11 @@ class ViewDataComponentV2 extends Component {
   }
 
   componentWillReceiveProps(nextProps){
-    this.gridData=nextProps.gridData;
+    if(this.gridData != nextProps.gridData){
+      console.log("nextProps gridData ...",this.gridData, nextProps.gridData,this.state);
+      this.gridData=nextProps.gridData;
+      this.setState({isFetched: true})
+    }
     this.reportLinkage=nextProps.report_linkage;
     this.changeHistory=nextProps.change_history;
     //this.flagDataDrillDown = false;
@@ -139,15 +162,16 @@ class ViewDataComponentV2 extends Component {
 
   handleDataFileClick(item) {
     console.log("selected item",item);
-    this.currentPage = 0;
+    this.useDataGridPageHandler = true;
     this.selectedViewColumns=[];
     this.gridData=undefined;
     this.setState({
         display: "showDataGrid",
         sourceId: item.source_id,
-        businessDate: item.business_date
+        businessDate: item.business_date,
+        rowIndex: []
      },
-      this.props.fetchReportFromDate(item.source_id,item.business_date,this.currentPage)
+      this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage)
     );
   }
 
@@ -189,6 +213,7 @@ class ViewDataComponentV2 extends Component {
 
   displaySelectedColumns(columns) {
     var selectedColumns = [];
+    this.useDataGridPageHandler=false;
     for (let i = 0; i < columns.length; i++)
       if (columns[i].checked)
         selectedColumns.push(columns[i].name);
@@ -197,6 +222,70 @@ class ViewDataComponentV2 extends Component {
     //console.log(selectedColumns);
     //console.log(this.selectedViewColumns);
     this.setState({ display: "showDataGrid" });
+  }
+
+  reactTableColumns(){
+    let columns = this.selectedViewColumns.length ? this.selectedViewColumns : this.gridData.cols;
+    let reactTableViewColumns=[];
+    if (columns){
+      columns.map(item =>{
+        reactTableViewColumns.push({Header: item.toString().replace(/_/,' '), accessor: item})
+      })
+    }
+    return reactTableViewColumns;
+  }
+
+  recatTablePages(state){
+    console.log("Inside reactTablePages ....", state,state.page,this.state.pageSize,this.state.pages,this.state.currentPage);
+    let pageSize = state.pageSize;
+    let offsetPageFactor = 100 / pageSize;
+    let offsetPage = (pageSize < 100) ? (state.page%offsetPageFactor): 0;
+    let fetchedFirstRow = (this.state.currentPage) * 100 + 1;
+    let fetchedLastRow = (this.state.currentPage + 1) * 100;
+    let pageStartRow = state.page * pageSize + 1;
+    // let isFetched = (fetchedFirstRow <= pageStartRow <= fetchedLastRow);
+    // let manual = false;
+    let currentPage = this.state.currentPage;
+    if ((fetchedFirstRow > pageStartRow) || (fetchedLastRow < pageStartRow) ){
+      currentPage = Math.ceil(pageStartRow / 100) - 1;
+    }
+    let isFetched = (this.state.currentPage==currentPage);
+    // Chnage the page handler back to RecatTable default page handler through manual = true
+    this.useDataGridPageHandler = true;
+
+    let pages = Math.ceil(this.props.gridData.count / pageSize);
+    this.setState({currentPage: currentPage,
+                    pages: pages, pageSize: pageSize, page: state.page,
+                    offsetPage: offsetPage, isFetched: isFetched,
+                    sorted: state.sorted, filtered: state.filtered,
+                  },
+                  ()=>{
+                    console.log("Inside setState reactTablePages ....", this.state.page,this.state.pageSize,this.state.pages,this.state.currentPage, fetchedFirstRow, fetchedLastRow, pageStartRow, isFetched,offsetPage);
+                    if (!isFetched){
+                      console.log("Inside isFetched reactTablePages ....", this.gridData);
+                      this.fetchDataToGrid();
+                    }
+
+                  });
+  }
+
+  reactTableData(){
+      let sliceStart=0;
+      let sliceEnd=19;
+      if (this.state.page==this.state.pages){
+        sliceStart = this.state.offsetPage*this.state.pageSize;
+        sliceEnd = this.props.gridData.count - 100*this.state.currentPage;
+      } else {
+        sliceStart = this.state.offsetPage*this.state.pageSize;
+        sliceEnd = (this.state.offsetPage+1)*this.state.pageSize;
+      }
+
+
+
+      const {filtered, sorted} = {...this.state};
+      let pageData = this.gridData.rows.slice(sliceStart,sliceEnd);
+
+      return pageData
   }
 
   actionButtonClicked(event,itemClicked){
@@ -224,49 +313,15 @@ class ViewDataComponentV2 extends Component {
         this.handleHistoryClick(event);
         break;
       case "Deselect":
-        this.selectedItems = this.flatGrid.deSelectAll();
+        // this.selectedItems = this.flatGrid.deSelectAll();
+        this.setState({itemEditable:true, rowIndex: []});
+        this.selectedItems=[]
         break;
       case "Columns":
         this.handleToggle(event);
         break;
       case "Export":
         this.handleExportCSV(event);
-        break;
-      case "FirstPage":
-        if( this.currentPage !=0 ){
-          this.handlePageNavigation(event,0);
-        }
-        break;
-      case "NextPage":
-        if ( this.currentPage < this.pages - 1 ){
-          this.currentPage++;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "PrevPage":
-        if ( this.currentPage > 0 ){
-          this.currentPage--;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "LastPage":
-        if( this.currentPage != this.pages -1 ){
-          this.currentPage=this.pages -1;
-          this.handlePageNavigation(event,this.currentPage);
-        }
-        break;
-      case "Page":
-        break;
-      case "PageOkay":
-        if(event.key == "Enter"){
-            if(event.target.value > this.pages){
-              this.modalAlert.isDiscardToBeShown = false;
-              this.modalAlert.open("Page does not exists");
-            } else {
-              this.currentPage = event.target.value;
-              this.fetchDataToGrid(event,this.currentPage);
-            }
-        }
         break;
       default:
         console.log("No specific action has been defined for ",itemClicked);
@@ -275,24 +330,23 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleRefreshGrid(event){
-    this.selectedItems = this.flatGrid.deSelectAll();
-    //this.currentPage = 0;
-    this.setState({itemEditable:true});
+    this.setState({itemEditable:true, rowIndex: [], isFetched: false});
+    this.selectedItems=[]
     this.fetchDataToGrid(event);
   }
 
   handlePageNavigation(event, pageNo) {
-    this.currentPage = pageNo;
-    console.log("Inside handlePageNavigation",this.currentPage,pageNo);
+    console.log("Inside handlePageNavigation",this.state.currentPage,pageNo);
     this.fetchDataToGrid(event);
   }
 
   fetchDataToGrid(event){
     if(this.flagDataDrillDown){
-      this.dataFilterParam.params.drill_kwargs.page = this.currentPage;
+      this.dataFilterParam.params.drill_kwargs.page = this.state.currentPage;
       this.props.fetchDrillDownReport(this.dataFilterParam);
     } else {
-      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.currentPage);
+      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.state.currentPage);
+      console.log("this.props.fetchReportFromDate gridData ...", this.props.gridData);
     }
   }
 
@@ -300,10 +354,12 @@ class ViewDataComponentV2 extends Component {
 
     let isOpen = this.state.display === "showAddForm";
     if(isOpen) {
-      this.setState({ display: "showDataGrid" },
+      this.useDataGridPageHandler=false;
+      this.setState({ display: "showDataGrid", rowIndex: [] },
         ()=>{
               if(this.selectedItems){
-                this.selectedItems = this.flatGrid.deSelectAll();
+                // this.selectedItems = this.flatGrid.deSelectAll();
+                this.selectedItems=[]
                 this.handleRefreshGrid();
               }
             }
@@ -315,7 +371,8 @@ class ViewDataComponentV2 extends Component {
         } else {
           let itemEditable = true;
           if ( requestType == "add") {
-            this.selectedItems = this.flatGrid.deSelectAll();
+            // this.selectedItems = this.flatGrid.deSelectAll();
+            this.selectedItems=[]
           } else {
             if(this.selectedItems.length==0){
                 this.modalAlert.isDiscardToBeShown = false;
@@ -343,11 +400,11 @@ class ViewDataComponentV2 extends Component {
 
   handleSelectRow(indexOfGrid){
     console.log("Inside Single select....",this.selectedItems.length);
-    if(this.selectedItems.length == 1){
-      this.selectedIndexOfGrid = indexOfGrid;
-      this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
-      console.log("Inside Single select ", indexOfGrid);
-    }
+    // if(this.selectedItems.length == 1){
+    //   this.selectedIndexOfGrid = indexOfGrid;
+    //   this.setState({itemEditable : (this.selectedItems[0].dml_allowed == "Y")});
+    //   console.log("Inside Single select ", indexOfGrid);
+    // }
 
   }
 
@@ -362,7 +419,9 @@ class ViewDataComponentV2 extends Component {
     let isOpen = this.state.display === "showReportLinkage";
     this.reportLinkage=undefined;
     if(isOpen) {
-      this.setState({ display: "showDataGrid" });
+      this.selectedItems = [];
+      this.useDataGridPageHandler=false;
+      this.setState({ display: "showDataGrid", rowIndex: [] });
     } else {
       if(this.selectedItems.length < 1){
         this.modalAlert.isDiscardToBeShown = false;
@@ -381,7 +440,7 @@ class ViewDataComponentV2 extends Component {
           selectedKeys += (selectedKeys!='' ? ',(' + source_id + ',' + item.id + ',' + item.business_date + ')' : '(' + source_id + ',' + item.id + ',' + item.business_date + ')')
         })
         //console.log("Repot Linkage",this.props.report_linkage);
-        this.selectedItems = this.flatGrid.deSelectAll();
+        // this.selectedItems = this.flatGrid.deSelectAll();
         this.setState({ display: "showReportLinkage" },
               this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.state.businessDate)
           );
@@ -393,15 +452,17 @@ class ViewDataComponentV2 extends Component {
     let isOpen = this.state.display === "showHistory";
     this.changeHistory=undefined;
     if(isOpen) {
-      this.setState({ display: "showDataGrid" });
+      this.selectedItems = [];
+      this.useDataGridPageHandler=false;
+      this.setState({ display: "showDataGrid", rowIndex: [] });
     } else {
       let selectedKeys='';
       this.selectedItems.map((item,index)=>{
         selectedKeys += (selectedKeys!='' ? ',(' + item.id + ',' + item.business_date + ')': '(' + item.id + ',' + item.business_date + ')')
       })
       console.log("Repot Linkage",this.props.change_history);
-      this.selectedItems = this.flatGrid.deSelectAll();
-      this.setState({ display: "showHistory" },
+      // this.selectedItems = this.flatGrid.deSelectAll();
+      this.setState({ display: "showHistory"},
             ()=>{
               if (selectedKeys){
                 this.props.fetchDataChangeHistory(this.props.gridData.table_name,selectedKeys);
@@ -532,7 +593,9 @@ class ViewDataComponentV2 extends Component {
   renderDynamic(displayOption) {
       switch (displayOption) {
           case "showDataGrid":
+              console.log("showDataGrid outside gridData check ...", this.gridData);
               if (this.gridData) {
+                  console.log("Inside gridData check ...", typeof this.gridData);
                   return(
                       <div>
                           <RegOpzFlatGridActionButtons
@@ -540,24 +603,73 @@ class ViewDataComponentV2 extends Component {
                             buttonClicked={this.actionButtonClicked}
                             checkDisabled={this.checkDisabled}
                             buttons={this.buttons}
-                            dataNavigation={true}
-                            pageNo={this.currentPage}
+                            dataNavigation={false}
+                            pageNo={this.state.currentPage}
                             buttonClassOverride={this.buttonClassOverride}
                             />
-                            <RegOpzFlatGrid
-                             columns={this.selectedViewColumns.length ? this.selectedViewColumns : this.gridData.cols}
-                             dataSource={this.gridData.rows}
-                             onSelectRow={this.handleSelectRow.bind(this)}
-                             onUpdateRow = {this.handleUpdateRow.bind(this)}
-                             onSort = {()=>{}}
-                             onFilter = {()=>{}}
-                             onFullSelect = {this.handleFullSelect.bind(this)}
-                             isMultiSelectAllowed = { true }
-                             ref={
-                                   (flatGrid) => {
-                                     this.flatGrid = flatGrid;
-                                   }
-                                 }
+                            <ReactTable
+                              data={this.reactTableData()}
+                              filterable={false}
+                              sortable={false}
+                              className="-highlight -striped"
+                              columns={this.reactTableColumns()}
+                              page={this.useDataGridPageHandler ? undefined : this.state.page}
+                              pageSize={this.useDataGridPageHandler ? undefined : this.state.pageSize }
+                              pages={this.state.pages}
+                              loading={!this.state.isFetched}
+                              manual={true}
+                              onFetchData={(state, instance) => {
+                                // show the loading overlay
+                                this.recatTablePages(state);
+                                // fetch your data
+                                // pageSizeOptions= {[100,]}
+                                // defaultPageSize= {100}
+
+                              }}
+                              onPageChange={(pageIndex)=>{console.log("onPageChange...",pageIndex)}}
+                              getTrProps={(state, rowInfo, column) => {
+                                            let isSelected = rowInfo && this.state.rowIndex.length != 0 && this.state.rowIndex.includes(rowInfo.original.id);
+                                            return {
+                                                style : {
+                                                    background: isSelected  ? '#2A3F54' : '',
+                                                    color: isSelected  ? '#ECF0F1' : '',
+                                                  }
+                                            }
+                                          }}
+                              getTdProps={(state, rowInfo, column, instance) => {
+                                            return {
+                                              onClick: (e, handleOriginal) => {
+                                                // console.log('A Td Element was clicked!')
+                                                // console.log('it produced this event:', e, e.ctrlKey)
+                                                // console.log('It was in this column:', column)
+                                                // console.log('It was in this row:', rowInfo, this.selectedItems.length,this.state.rowIndex)
+                                                // console.log('It was in this table instance:', instance)
+                                                if (e.ctrlKey){
+                                                  let {rowIndex} = {...this.state}
+                                                  rowIndex.push(rowInfo.original.id)
+                                                  this.selectedItems.push(rowInfo.original);
+                                                  this.setState({rowIndex: rowIndex})
+                                                }
+                                                else{
+                                                  this.selectedItems = [rowInfo.original];
+                                                  this.setState({rowIndex:[rowInfo.original.id],
+                                                                itemEditable : (this.selectedItems[0].dml_allowed == "Y")})
+                                                }
+                                                // console.log('No of selectedItems row:', this.selectedItems)
+
+
+                                                // IMPORTANT! React-Table uses onClick internally to trigger
+                                                // events like expanding SubComponents and pivots.
+                                                // By default a custom 'onClick' handler will override this functionality.
+                                                // If you want to fire the original onClick handler, call the
+                                                // 'handleOriginal' function.
+                                                if (handleOriginal) {
+                                                  handleOriginal()
+                                                }
+                                              }
+                                            }
+                                          }}
+
                             />
                       </div>
                   );
@@ -585,7 +697,7 @@ class ViewDataComponentV2 extends Component {
                       <AddData
                         requestType={this.requestType}
                         form_data={this.form_data}
-                        form_cols={this.selectedViewColumns}
+                        form_cols={this.requestType=="update"? this.selectedViewColumns : this.props.gridData.cols }
                         all_cols={this.props.gridData.cols}
                         businessDate={this.state.businessDate}
                         table_name={this.props.gridData.table_name}
@@ -632,9 +744,6 @@ class ViewDataComponentV2 extends Component {
   render() {
     console.log("Display:", this.state.display);
     if (typeof this.props.dataCatalog != 'undefined' || this.flagDataDrillDown) {
-        if (typeof this.props.gridData != 'undefined' ){
-          this.pages = Math.ceil(this.props.gridData.count / 100);
-        }
         return(
           <div>
             <div className="row form-container">
