@@ -46,6 +46,8 @@ class ViewDataComponentV2 extends Component {
       display: (this.props.showDataGrid ? "showDataGrid" : false),
       itemEditable: true,
       sourceId: null,
+      sourceFileName: null,
+      sourceDescription: null,
       businessDate: null,
       showAuditModal: false,
       // state variables for react-table
@@ -169,6 +171,8 @@ class ViewDataComponentV2 extends Component {
         display: "showDataGrid",
         sourceId: item.source_id,
         businessDate: item.business_date,
+        sourceFileName: item.data_file_name,
+        sourceDescription: item.source_description,
         rowIndex: []
      },
       this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage)
@@ -204,6 +208,7 @@ class ViewDataComponentV2 extends Component {
   handleToggle(event) {
     let toggleValue = this.state.display === "showToggleColumns";
     if (!toggleValue) {
+      this.useDataGridPageHandler=false;
       this.setState({ display: "showToggleColumns" });
     }
     else {
@@ -229,7 +234,7 @@ class ViewDataComponentV2 extends Component {
     let reactTableViewColumns=[];
     if (columns){
       columns.map(item =>{
-        reactTableViewColumns.push({Header: item.toString().replace(/_/,' '), accessor: item})
+        reactTableViewColumns.push({Header: item.toString().replace(/_/g,' '), accessor: item})
       })
     }
     return reactTableViewColumns;
@@ -618,6 +623,9 @@ class ViewDataComponentV2 extends Component {
                               pages={this.state.pages}
                               loading={!this.state.isFetched}
                               manual={true}
+                              style={{
+                                height: ( this.state.pageSize >= 20 ? "74vh" : "100%")
+                              }}
                               onFetchData={(state, instance) => {
                                 // show the loading overlay
                                 this.recatTablePages(state);
@@ -645,9 +653,16 @@ class ViewDataComponentV2 extends Component {
                                                 // console.log('It was in this row:', rowInfo, this.selectedItems.length,this.state.rowIndex)
                                                 // console.log('It was in this table instance:', instance)
                                                 if (e.ctrlKey){
-                                                  let {rowIndex} = {...this.state}
-                                                  rowIndex.push(rowInfo.original.id)
-                                                  this.selectedItems.push(rowInfo.original);
+                                                  let {rowIndex} = {...this.state};
+                                                  let rowId = rowInfo.original.id;
+                                                  const idIndex = rowIndex.indexOf(rowId);
+                                                  if(idIndex==-1){
+                                                    rowIndex.push(rowId)
+                                                    this.selectedItems.push(rowInfo.original);
+                                                  } else {
+                                                    rowIndex.splice(idIndex,1);
+                                                    this.selectedItems = _.filter(this.selectedItems,function(item){return item.id!=rowId});
+                                                  }
                                                   this.setState({rowIndex: rowIndex})
                                                 }
                                                 else{
@@ -655,7 +670,7 @@ class ViewDataComponentV2 extends Component {
                                                   this.setState({rowIndex:[rowInfo.original.id],
                                                                 itemEditable : (this.selectedItems[0].dml_allowed == "Y")})
                                                 }
-                                                // console.log('No of selectedItems row:', this.selectedItems)
+                                                console.log('No of selectedItems row:', this.selectedItems)
 
 
                                                 // IMPORTANT! React-Table uses onClick internally to trigger
@@ -758,8 +773,9 @@ class ViewDataComponentV2 extends Component {
                       { this.state.display &&
                         !this.flagDataDrillDown &&
                         <h2>View Data <small>{' Data for Source '}</small>
-                          <small><i className="fa fa-file-text"></i></small>
-                          <small>{this.state.sourceId }</small>
+                          <small><i className="fa fa-database"></i></small>
+                          <small title={this.state.sourceDescription}>{'['+this.state.sourceId + '] ' + this.state.sourceFileName.substring(0,30) }</small>
+                          <small>{' '}<i className="fa blue fa-tags" title={this.state.sourceFileName + '\n' + this.state.sourceDescription}></i></small>
                           <small>{' Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }

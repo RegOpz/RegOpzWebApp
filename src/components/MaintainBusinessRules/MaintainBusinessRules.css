@@ -46,3 +46,6 @@
 .table-content-wrap {
   word-break: break-all;
 }
+.rt-thead {
+    text-transform: capitalize;
+}

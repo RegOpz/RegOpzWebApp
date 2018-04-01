@@ -186,7 +186,7 @@ class DataCatalogList extends Component {
                           }
                         }
                         >
-                        <small>
+                        <small className="truncate-text">
                           <i className="fa fa-file-text"></i>
                           {' '}{item.data_file_name}
                         </small>

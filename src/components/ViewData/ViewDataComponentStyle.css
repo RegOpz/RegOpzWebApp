@@ -135,3 +135,7 @@
 
 .CustomTriggerCSS--open {
   background-color: darkslateblue; }
+
+.rt-thead {
+    text-transform: capitalize;
+}

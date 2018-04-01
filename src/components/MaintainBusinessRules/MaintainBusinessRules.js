@@ -49,6 +49,7 @@ class MaintainBusinessRules extends Component {
       sourceId: (this.props.sourceId ? this.props.sourceId : null),
       showAuditModal: false,
       sourceFileName: null,
+      sourceDescription: null,
       tableName: null,
       // ReactTable variables
       page: 0,
@@ -163,6 +164,7 @@ class MaintainBusinessRules extends Component {
         display: "showBusinessRuleGrid",
         sourceId: item.source_id,
         sourceFileName: item.source_file_name,
+        sourceDescription: item.source_description,
         tableName: item.source_table_name,
         rowIndex: []
      },
@@ -189,6 +191,7 @@ class MaintainBusinessRules extends Component {
   handleToggle(event) {
     let toggleValue = this.state.display == "showToggleColumns";
     if (!toggleValue) {
+      this.currentPage = this.state.page;
       this.setState({ display: "showToggleColumns" });
     }
     else {
@@ -213,7 +216,7 @@ class MaintainBusinessRules extends Component {
     let reactTableViewColumns=[];
     if (columns){
       columns.map(item =>{
-        reactTableViewColumns.push({Header: item.toString().replace(/_\$#/,' '), accessor: item})
+        reactTableViewColumns.push({Header: item.toString().replace(/_/g,' '), accessor: item})
       })
     }
     return reactTableViewColumns;
@@ -531,7 +534,8 @@ class MaintainBusinessRules extends Component {
                   <h2>View Business Rules <small>{' Rules for Source '}</small>
                     <small>{this.state.sourceId + ' '}</small>
                     <small><i className="fa fa-file-text"></i></small>
-                    <small>{' Source File: ' + this.state.sourceFileName}</small>
+                    <small title={this.state.sourceDescription}>{' Source File: ' + this.state.sourceFileName}</small>
+                    <small>{' '}<i className="fa blue fa-tags" title={this.state.sourceDescription}></i></small>
                   </h2>
               );
           } else {
@@ -593,7 +597,15 @@ class MaintainBusinessRules extends Component {
                           columns={this.reactTableColumns()}
                           loading={this.state.loading}
                           page={this.currentPage}
-                          pageSize={this.currentPage ? this.state.pageSize : undefined}
+                          pageSize={this.currentPage || this.currentPage ==0 ? this.state.pageSize : undefined}
+                          style={{
+                              height: ( this.state.pageSize >= 20 ? "74vh" : "100%")
+                          }}
+                          defaultFilterMethod = {(filter, row, column) => {
+                            const id = filter.pivotId || filter.id
+                            let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+                            return row[id] !== undefined ? String(row[id]).match(matchText) : true
+                          }}
                           onFetchData={(state,instance)=>{
                                           console.log("Inside onFetchData ...",state.page, state.pageSize, this.currentPage);
                                           this.currentPage = undefined;
@@ -622,9 +634,16 @@ class MaintainBusinessRules extends Component {
                                             // console.log('It was in this row:', rowInfo, this.selectedItems.length,this.state.rowIndex)
                                             // console.log('It was in this table instance:', instance)
                                             if (e.ctrlKey){
-                                              let {rowIndex} = {...this.state}
-                                              rowIndex.push(rowInfo.original.id)
-                                              this.selectedItems.push(rowInfo.original);
+                                              let {rowIndex} = {...this.state};
+                                              let rowId = rowInfo.original.id;
+                                              const idIndex = rowIndex.indexOf(rowId);
+                                              if(idIndex==-1){
+                                                rowIndex.push(rowId)
+                                                this.selectedItems.push(rowInfo.original);
+                                              } else {
+                                                rowIndex.splice(idIndex,1);
+                                                this.selectedItems = _.filter(this.selectedItems,function(item){return item.id!=rowId});
+                                              }
                                               this.setState({rowIndex: rowIndex})
                                             }
                                             else{

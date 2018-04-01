@@ -2,7 +2,8 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { Label } from 'react-bootstrap';
 import moment from 'moment';
-
+import ReactTable from 'react-table';
+require('react-table/react-table.css');
 
 class DataReportLinkage extends Component {
   constructor(props){
@@ -11,7 +12,8 @@ class DataReportLinkage extends Component {
       startDate: null,
       endDate: null,
       filterText: null,
-      ruleReference: this.props.ruleReference
+      ruleReference: this.props.ruleReference,
+      pageSize : 20
     };
     this.linkageData = this.props.data;
     //this.renderChangeHistory = this.renderChangeHistory.bind(this);
@@ -56,47 +58,100 @@ class DataReportLinkage extends Component {
         </div>
       )
     else {
+      let columns = ['report_id','sheet_id','cell_id','qualifying_key'];
+      console.log("Columns of the object.keys() ",columns)
+      let reactTableViewColumns=[];
+      if (columns){
+        columns.map(item =>{
+          reactTableViewColumns.push({Header: item.toString().replace(/_/g,' '), accessor: item})
+        })
+      }
+
       return (
-        <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
-          <div className="row">
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>Record #</th>
-                  <th>Report</th>
-                  <th>Sheet</th>
-                  <th>Cell</th>
-                  <th>Cell Rule</th>
-                  <th>Rule Condition</th>
-                  <th>Record Rules</th>
-                  <th>Period</th>
-                </tr>
-              </thead>
-              <tbody>
-                {
-                  linkageData.map(function (item, index) {
-                    return (
-                      <tr>
-                        <th scope="row">{item.qualifying_key}</th>
-                        <td>{item.report_id}</td>
-                        <td>{item.sheet_id}</td>
-                        <td>{item.cell_id}</td>
-                        <td>{item.cell_calc_ref}</td>
-                        <td><p>{item.cell_business_rules.toString().replace(/,/g,' ')}</p></td>
-                        <td><p>{item.data_qualifying_rules.toString().replace(/,/g,' ')}</p></td>
-                        <th scope="row">
-                          {moment(item.reporting_date.toString().substring(0,8)).format("DDMMMYYYY")}
-                          <br/>
-                          {moment(item.reporting_date.toString().substring(8,16)).format("DDMMMYYYY")}
-                          </th>
-                      </tr>
-                    )
-                  })
-                }
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ReactTable
+          data={linkageData}
+          filterable={true}
+          className="-highlight -striped"
+          columns={reactTableViewColumns}
+          pivotBy={['qualifying_key','report_id','sheet_id']}
+          defaultFilterMethod = {(filter, row, column) => {
+            const id = filter.pivotId || filter.id
+            let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+            return row[id] !== undefined ? String(row[id]).match(matchText) : true
+          }}
+          SubComponent={(row)=>{
+            // console.log("Subcomponent row...", row)
+                  let cell_business_rules = row.original.data_qualifying_rules.toString().split(",");
+                  const selectedRules = row.original.cell_business_rules.toString().split(",");
+                  return(
+                    <div className="x_panel">
+                      <div className="x_content">
+                        <div className="col-sm-12 col-xs-12">
+                          <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                            <div className="row">
+                              <table className="table table-hover">
+                                <thead>
+                                  <tr>
+                                    <th>Key #</th>
+                                    <th>Report</th>
+                                    <th>Sheet</th>
+                                    <th>Cell</th>
+                                    <th>Rule Ref</th>
+                                    <th>Record Rules</th>
+                                    <th>Period</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <th scope="row">{row.original.qualifying_key}</th>
+                                    <td>{row.original.report_id}</td>
+                                    <td>{row.original.sheet_id}</td>
+                                    <td>{row.original.cell_id}</td>
+                                    <td>{row.original.cell_calc_ref}</td>
+                                    <td>
+                                      <p>
+                                        <p>
+                                          {
+                                            ((rules, selectedRules) => {
+                                                let rule_list = [];
+                                                rules.map(function (rule, index) {
+                                                  if (selectedRules.indexOf(rule) == -1) {
+                                                    rule_list.push(rule);
+                                                    rule_list.push(" ");
+                                                  } else {
+                                                    rule_list.push(<Label bsStyle="primary">{rule}</Label>);
+                                                    rule_list.push(" ");
+                                                  }
+                                                })
+                                                return rule_list;
+                                            })(cell_business_rules, selectedRules)
+                                          }
+                                        </p>
+                                      </p>
+                                    </td>
+                                    <th scope="row">
+                                      {moment(row.original.reporting_date.toString().substring(0,8)).format("DDMMMYYYY")}
+                                      <br/>
+                                      {moment(row.original.reporting_date.toString().substring(8,16)).format("DDMMMYYYY")}
+                                      </th>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+              }
+            }
+          onPageSizeChange={(pageSize)=>{
+              // console.log("Inside link style2...",pageSize);
+              this.setState({pageSize : pageSize});
+            }
+          }
+          style={{height: this.state.pageSize >= 20 ? "74vh" : "100%"}}
+          />
       )
     }
   }
