@@ -27,7 +27,7 @@ export default class RegOpzDataGridBody extends Component {
     cellSpan(title,value, stylex,item){
       if (item.origin =='TEMPLATEIMAGE')
       {
-        console.log("Image style values...",stylex.height,stylex.width,(stylex.height/stylex.width)*100,Object.keys(stylex))
+        // console.log("Image style values...",stylex.height,stylex.width,(stylex.height/stylex.width)*100,Object.keys(stylex))
         let imgStyle={
           height: stylex.height < stylex.width?  stylex.height : "auto",
           width: stylex.width < stylex.height ? stylex.width : "auto",
@@ -65,7 +65,7 @@ export default class RegOpzDataGridBody extends Component {
                             left += (parseInt(this.colAttr[this.alphaSequence(i)].width) * 9 + 1);
                           }
                           for(var i = parseInt(this.numberFromWord(marged_coord.col)); i >= parseInt(this.numberFromWord(coord.col)); i--){
-                            console.log('Column ', this.alphaSequence(i))
+                            // console.log('Column ', this.alphaSequence(i))
                             width += (parseInt(this.colAttr[this.alphaSequence(i)].width) * 9 + 1);
                           }
                           let currentRow = parseInt(coord.row) + 1;
@@ -150,7 +150,7 @@ export default class RegOpzDataGridBody extends Component {
                                   onCopy={
                                     (event)=>{
                                       $(event.target).select()
-                                      console.log("onCopy....",$(event.target).text())
+                                      // console.log("onCopy....",$(event.target).text())
                                     }
                                   }
                                   onPaste={
@@ -161,7 +161,7 @@ export default class RegOpzDataGridBody extends Component {
                                   onKeyUp={
                                     (event)=>{
                                       let newText=$(event.target).text()
-                                      console.log("OnPaste....",newText,event.ctrlKey,event.key)
+                                      // console.log("OnPaste....",newText,event.ctrlKey,event.key)
                                     }
                                   }
                                   onKeyDown={
@@ -176,7 +176,7 @@ export default class RegOpzDataGridBody extends Component {
                                     (event) => {
                                       //Make content of span element editable
                                       // event.target.contentEditable = true;
-                                      console.log("OnClick....",$(event.target).text())
+                                      // console.log("OnClick....",$(event.target).text())
                                       this.handleCellClick(event,value,item);
                                     }
                                   }

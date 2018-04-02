@@ -16,6 +16,7 @@ class DrillDownRules extends Component {
     this.renderAggRules = this.renderAggRules.bind(this);
     this.renderCalcRules = this.renderCalcRules.bind(this);
     this.renderCalcRulesBtn = this.renderCalcRulesBtn.bind(this);
+    this.getCellCalcRef = this.getCellCalcRef.bind(this);
 
     this.handleCollapse = this.handleCollapse.bind(this);
   }
@@ -247,6 +248,7 @@ class DrillDownRules extends Component {
                   <td>{item.source_id}</td>
                   <td>
                     <small>{item.cell_calc_ref}</small>
+                    <div>
                     <button
                       type="button"
                       className="btn btn-link btn-xs"
@@ -273,8 +275,78 @@ class DrillDownRules extends Component {
                           this.handleCollapse(event);
                         }
                       }>
-                      <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
+                      <i className="fa fa-cube" data-toggle="tooltip" title="Rule Details"></i>
                     </button>
+                    {
+                      this.props.addRulesBtn &&
+                      <button
+                        type="button"
+                        className="btn btn-link green btn-xs"
+                        onClick={
+                          (event)=>{
+                            let cellCalcRef=this.getCellCalcRef();
+                            let copyItem = item;
+                            copyItem.cell_calc_ref = cellCalcRef;
+                            let calcRuleFilter = {
+                                    form: copyItem,
+                                    params:{
+                                      drill_kwargs: {
+                                          index: -2, // index value -2 indicates copy, -1 is for a new rule to created fresh
+                                          report_id: this.selectedCell.reportId,
+                                          sheet: this.selectedCell.sheetName,
+                                          cell: this.selectedCell.cell,
+                                          cell_calc_ref:cellCalcRef,
+                                          reporting_date: this.reportingDate,
+                                          in_use: 'N',
+                                          dml_allowed: 'Y',
+                                          page: 0
+                                      }
+                                    }
+                                  }
+                            this.props.handleCalcRuleClicked(event, calcRuleFilter);
+                            //this.showRulesPanel=!this.showRulesPanel;
+                            this.handleCollapse(event);
+                          }
+                        }>
+                        <i className="fa fa-copy" data-toggle="tooltip" title="Copy Rule"></i>
+                      </button>
+                    }
+                    {
+                      this.props.addRulesBtn && item.in_use == 'Y' &&
+                      <button
+                        type="button"
+                        className="btn btn-link amber btn-xs"
+                        onClick={
+                          (event)=>{
+                            let cellCalcRef=this.getCellCalcRef();
+                            let copyItem = item;
+                            copyItem.cell_calc_ref = cellCalcRef;
+                            let calcRuleFilter = {
+                                    form: copyItem,
+                                    params:{
+                                      drill_kwargs: {
+                                          index: -2, // index value -2 indicates copy, -1 is for a new rule to created fresh
+                                          report_id: this.selectedCell.reportId,
+                                          sheet: this.selectedCell.sheetName,
+                                          cell: this.selectedCell.cell,
+                                          cell_calc_ref:cellCalcRef,
+                                          reporting_date: this.reportingDate,
+                                          in_use: 'N',
+                                          dml_allowed: 'Y',
+                                          page: 0
+                                      }
+                                    }
+                                  }
+                            // this.props.handleCalcRuleClicked(event, calcRuleFilter);
+                            //this.showRulesPanel=!this.showRulesPanel;
+                            // TODO handledelete to be implemented later
+                            this.handleCollapse(event);
+                          }
+                        }>
+                        <i className="fa fa-remove" data-toggle="tooltip" title="Delete Rule"></i>
+                      </button>
+                    }
+                  </div>
                   </td>
                   <td><Label>{item.aggregation_func}</Label> <b>of</b> <small>{item.aggregation_ref.replace(/,/g,', ')}</small></td>
                   <td>
@@ -330,8 +402,7 @@ class DrillDownRules extends Component {
     }
   }
 
-  renderCalcRulesBtn(){
-    console.log("Inside renderCalcRulesBtn",this.props.addRulesBtn);
+  getCellCalcRef(){
     let cellCalcRef='';
     if (this.cellRules.cell_rules.length ==0){
         cellCalcRef=this.cellRules.comp_agg_ref.replace('AGG','CALC')+'.000';
@@ -356,6 +427,13 @@ class DrillDownRules extends Component {
                                 })(maxCellRef,3);
 
     }
+
+    return cellCalcRef;
+  }
+
+  renderCalcRulesBtn(){
+    console.log("Inside renderCalcRulesBtn",this.props.addRulesBtn);
+    let cellCalcRef=this.getCellCalcRef();
 
     if (this.props.addRulesBtn) {
         return(

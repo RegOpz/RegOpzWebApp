@@ -639,7 +639,7 @@ class ViewDataComponentV2 extends Component {
                                             let isSelected = rowInfo && this.state.rowIndex.length != 0 && this.state.rowIndex.includes(rowInfo.original.id);
                                             return {
                                                 style : {
-                                                    background: isSelected  ? '#2A3F54' : '',
+                                                    background: isSelected  ? '#009688' : '',
                                                     color: isSelected  ? '#ECF0F1' : '',
                                                   }
                                             }

@@ -16,6 +16,7 @@ export default class RegOpzDataGridHeader extends Component {
         this.width=0;
         this.elementHS=0;
         this.elementHE=0;
+        this.isResizing = false;
 
         this.handleResizeColumn = this.handleResizeColumn.bind(this);
 
@@ -31,17 +32,16 @@ export default class RegOpzDataGridHeader extends Component {
     }
 
     handleResizeColumn(event,item){
-      if(event.nativeEvent.which===0){
+      if(!this.isResizing){
         this.elementHS=$(event.target).offset().left;
         this.elementHE= this.elementHS + $(event.target).width();
       }
-      if( this.elementHE - event.pageX < 15 && event.nativeEvent.which!=1){
+      if( this.elementHE - event.pageX < 15 && !this.isResizing){
         $(event.target).css("cursor","col-resize");
         // console.log("cursor resize .... element ....",item, this.item)
-        this.item=item;
       }
       else {
-        if(event.nativeEvent.which!=1){
+        if(!this.isResizing){
           $(event.target).css("cursor","default");
           this.item="";
         }
@@ -77,7 +77,27 @@ export default class RegOpzDataGridHeader extends Component {
                             <div id={item} key={index} className="reg_col">
                                 <span  style={colStyleForHeader}
                                   onMouseMove={
-                                    (event)=>{this.handleResizeColumn(event,item)}
+                                    (event)=>{
+                                      // this.handleResizeColumn(event,item);
+                                      // if(event.type=="mousedown")
+                                      this.handleResizeColumn(event,item);
+                                      // console.log("onMouseMove evenet for ", event.nativeEvent.which,event.pageX,this.elementHE,event.type)
+                                    }
+                                  }
+                                  onMouseDown={
+                                    (event)=>{
+                                      this.isResizing = true;
+                                      // this.elementHS=$(event.target).offset().left;
+                                      // this.elementHE= this.elementHS + $(event.target).width();
+                                      this.item=item;
+                                    }
+                                  }
+                                  onMouseUp={
+                                    (event)=>{
+                                      this.isResizing = false;
+                                      this.item="";
+                                      // console.log("onMouseUp evenet for ", event.pageX,this.elementHE,event.type)
+                                    }
                                   }
                                   >{item}
                                 </span>
@@ -110,7 +130,7 @@ export default class RegOpzDataGridHeader extends Component {
     }
     getRealCoords(cell){
         let cell_split = this.sliptNumbersAndChars(cell);
-        console.log(cell_split);
+        // console.log(cell_split);
         let x = this.numberFromWord(cell_split[0]);
         let y = cell_split[1] - 1;
         return {x,y};

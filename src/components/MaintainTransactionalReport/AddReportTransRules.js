@@ -387,7 +387,7 @@ class AddReportTransRules extends Component {
         <div className="row form-container">
           <div className="x_panel">
             <div className="x_title">
-              <h2>Maintain report rule <small>{ this.ruleIndex === -1 ? 'Add' : 'Edit' } a report rule</small></h2>
+              <h2>Maintain report rule <small>{ [-1,-2].includes(this.ruleIndex) ? 'Add' : 'Edit' } a report rule</small></h2>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
@@ -653,7 +653,7 @@ class AddReportTransRules extends Component {
               dml_allowed: "Y",
               id:this.state.form.id,
             }
-    if (this.ruleIndex === -1){
+    if ([-1,-2].includes(this.ruleIndex)){
       // INSERT
       this.props.insertRuleData(this.state.form.cell_calc_ref,data);
     } else {

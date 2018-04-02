@@ -296,7 +296,7 @@ class AddReportRules extends Component {
         <div className="row form-container">
           <div className="x_panel">
             <div className="x_title">
-              <h2>Maintain report rule <small>{ this.ruleIndex === -1 ? 'Add' : 'Edit' } a report rule</small></h2>
+              <h2>Maintain report rule <small>{ this.ruleIndex === -1 || this.ruleIndex === -2 ? 'Add' : 'Edit' } a report rule</small></h2>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
@@ -539,7 +539,7 @@ class AddReportRules extends Component {
       table_name:"report_calc_def",
       update_info:this.state.form
     };
-    data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
+    data['change_type'] = this.ruleIndex === -1 || this.ruleIndex === -2 ? "INSERT" : "UPDATE";
 
     let audit_info={
       id:this.state.form.id,

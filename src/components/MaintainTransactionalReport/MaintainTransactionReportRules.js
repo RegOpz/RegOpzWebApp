@@ -296,12 +296,12 @@ class MaintainTransactionReportRules extends Component {
 
   handleCalcRuleClicked(event,rule,sectionColumns, addEdit){
     console.log("Clicked calcRuleFilter",rule,sectionColumns, addEdit);
-    let index = (addEdit == "add") ? -1 : rule.cell_calc_ref;
+    let index = (addEdit == "add") ? -1 : ((addEdit == "copy") ? -2 : rule.cell_calc_ref);
     this.calcRuleFilter = {
                           rule,
                           sectionColumns,
                           index: index,
-                          dml_allowed: addEdit=="add" ? "Y" :  rule.dml_allowed,
+                          dml_allowed: ["add","copy"].includes(addEdit) ? "Y" :  rule.dml_allowed,
                           writeOnly: this.writeOnly
                           };
     console.log("Clicked calcRuleFilter",this.calcRuleFilter);
