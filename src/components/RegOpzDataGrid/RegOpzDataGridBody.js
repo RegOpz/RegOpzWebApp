@@ -239,7 +239,7 @@ export default class RegOpzDataGridBody extends Component {
     getCellStyle(cellStyle){
         let stylex = {};
         // console.log("cellStyle.....",cellStyle)
-        if (cellStyle){
+        if (cellStyle && this.props.renderStyle){
             let _font=(cellStyle.font.italic ? "italic " : " ") +
                   (cellStyle.font.bold ? "bold " : " ") +
                   cellStyle.font.size + "px " +

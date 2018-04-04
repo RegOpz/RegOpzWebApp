@@ -65,7 +65,8 @@ class MaintainTransactionReportRules extends Component {
       showCellChangeHistory: false,
 
       display: false,
-      selectedReport: {}
+      selectedReport: {},
+      renderStyle: false,
     }
 
     this.pages=0;
@@ -152,6 +153,7 @@ class MaintainTransactionReportRules extends Component {
         showAggRuleDetails: false,
         showDrillDownCalcBusinessRules: false,
         showCellChangeHistory: false,
+        renderStyle: false,
         },
         ()=>{
           // Not required as this is fired by maintain report rule left click
@@ -462,6 +464,7 @@ class MaintainTransactionReportRules extends Component {
                             gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
                             multiSelectAllowed={true}
+                            renderStyle={this.state.renderStyle}
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;
@@ -665,7 +668,7 @@ class MaintainTransactionReportRules extends Component {
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li style={{ "padding": "5px" }}>
                                 <Link to="/dashboard/maintain-report-rules"
-                                  onClick={()=>{ this.setState({ display: false },
+                                  onClick={()=>{ this.setState({ display: false, renderStyle: false, },
                                                                 ()=>{this.props.fetchReportTemplateList();})
                                                 }
                                           }
@@ -684,6 +687,15 @@ class MaintainTransactionReportRules extends Component {
                             </ul>
                           </li>
                         </ul>
+                        {
+                          this.state.display &&
+                          <ul className="nav navbar-right panel_toolbox">
+                            <label className="switch">
+                            <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
+                              <span className="slider round" title={this.state.renderStyle ? "Deactivate Style": "Activate Style"}></span>
+                            </label>
+                          </ul>
+                        }
                       </div>
                     <div className="clearfix"></div>
                 </div>

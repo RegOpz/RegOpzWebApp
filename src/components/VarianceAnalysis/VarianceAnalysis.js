@@ -60,6 +60,7 @@ class VarianceAnalysis extends Component {
       refreshedData: true,
 
       display: false,
+      renderStyle: false,
       selectedCell: {},
       chartData : {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
       sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
@@ -130,6 +131,7 @@ class VarianceAnalysis extends Component {
         showDrillDownCalcBusinessRules: false,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
+        renderStyle: false,
       });
     }
   }
@@ -151,6 +153,7 @@ class VarianceAnalysis extends Component {
         sheetChartData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0,value2:0}]},
         sheetChartDataKeys: [],
         sheetVarianceData: {title: "Variance",rate: "inc",value:"varaince %", data:[{name: "Variance", value1:0}]},
+        renderStyle: false,
      },
       ()=>{
         this.fetchDataToGrid();
@@ -455,6 +458,7 @@ class VarianceAnalysis extends Component {
                             gridData={this.gridData}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
                             handleSelectedSheet={ this.handleSelectedSheet.bind(this) }
+                            renderStyle={this.state.renderStyle}
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;
@@ -625,6 +629,15 @@ class VarianceAnalysis extends Component {
                             </ul>
                           </li>
                         </ul>
+                        {
+                          this.state.display &&
+                          <ul className="nav navbar-right panel_toolbox">
+                            <label className="switch">
+                            <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
+                              <span className="slider round" title={this.state.renderStyle ? "Deactivate Style": "Activate Style"}></span>
+                            </label>
+                          </ul>
+                        }
                       </div>
                     <div className="clearfix"></div>
                 </div>

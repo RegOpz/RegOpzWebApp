@@ -189,6 +189,7 @@ class RegOpzReportGrid extends Component {
               colAttr={this.gridData[index].col_attr}
               rowAttr={this.gridData[index].row_attr}
               cellStyle={this.gridData[index].cell_style}
+              renderStyle={this.props.renderStyle}
               onSelect = {
                 (item) => {
                   //console.log("item",item);

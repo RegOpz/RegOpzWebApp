@@ -65,6 +65,7 @@ class ViewReport extends Component {
 
       display: false,
       selectedRecord: null,
+      renderStyle: false,
     }
 
     this.pages=0;
@@ -138,6 +139,7 @@ class ViewReport extends Component {
         showDrillDownCalcBusinessRules: false,
         showAggRuleDetails: false,
         showCellChangeHistory: false,
+        renderStyle: false,
       });
     }
   }
@@ -396,6 +398,7 @@ class ViewReport extends Component {
                             gridData={this.gridDataViewReport}
                             handleSelectCell={ this.handleSelectCell.bind(this) }
                             multiSelectAllowed={false}
+                            renderStyle={this.state.renderStyle}
                             ref={
                                (flatGrid) => {
                                  this.flatGrid = flatGrid;
@@ -570,7 +573,7 @@ class ViewReport extends Component {
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li>
                                 <Link to="/dashboard/view-report"
-                                  onClick={()=>{ this.setState({ display: false }) }}
+                                  onClick={()=>{ this.setState({ display: false, renderStyle: false, }) }}
                                 >
                                     <i className="fa fa-bars"></i>{' All Report List'}
                                 </Link>
@@ -605,6 +608,15 @@ class ViewReport extends Component {
                                 <i className="fa fa-refresh"></i><small>{' Refresh '}</small>
                               </a>
                             </li>
+                          </ul>
+                        }
+                        {
+                          this.state.display &&
+                          <ul className="nav navbar-right panel_toolbox">
+                            <label className="switch">
+                            <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
+                              <span className="slider round" title={this.state.renderStyle ? "Deactivate Style": "Activate Style"}></span>
+                            </label>
                           </ul>
                         }
                       </div>

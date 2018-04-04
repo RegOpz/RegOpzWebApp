@@ -13,10 +13,25 @@ export default class RegOpzDataGridSideMarker extends Component {
         this.elementVE=0;
 
         this.handleResizeRow = this.handleResizeRow.bind(this);
+        this.handleMouseUp = this.handleMouseUp.bind(this);
     }
     componentWillReceiveProps(nextProps){
       this.rowAttr = nextProps.rowAttr;
       this.numberofRows = nextProps.numberofRows;
+    }
+
+    componentDidMount() {
+      window.addEventListener('mouseup', this.handleMouseUp); //notice .bind
+    }
+
+    componentWillUnmount() {
+      window.removeEventListener('mouseup', this.handleMouseUp);
+    }
+
+    handleMouseUp(){
+      this.isResizing = false;
+      this.item=0;
+      console.log("Mouseup for row .....")
     }
 
     handleResizeRow(event,index){
@@ -70,13 +85,6 @@ export default class RegOpzDataGridSideMarker extends Component {
                                 // this.elementVS=$(event.target).offset().top;
                                 // this.elementVE= this.elementVS + $(event.target).height();
                                 this.item=index+1;
-                              }
-                            }
-                            onMouseUp={
-                              (event)=>{
-                                this.isResizing = false;
-                                this.item=0;
-                                // console.log("onMouseUp evenet for ", event.pageY,this.elementVE,event.type)
                               }
                             }
                             >

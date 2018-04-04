@@ -19,6 +19,7 @@ export default class RegOpzDataGridHeader extends Component {
         this.isResizing = false;
 
         this.handleResizeColumn = this.handleResizeColumn.bind(this);
+        this.handleMouseUp = this.handleMouseUp.bind(this);
 
     }
 
@@ -29,6 +30,20 @@ export default class RegOpzDataGridHeader extends Component {
       for(let i = 0; i < this.numberofCols; i++){
           this.columns[i] = this.alphaSequence(i);
       }
+    }
+
+    componentDidMount() {
+      window.addEventListener('mouseup', this.handleMouseUp); //notice .bind
+    }
+
+    componentWillUnmount() {
+      window.removeEventListener('mouseup', this.handleMouseUp);
+    }
+
+    handleMouseUp(){
+      this.isResizing = false;
+      this.item="";
+      console.log("Mouseup for header .....")
     }
 
     handleResizeColumn(event,item){
@@ -90,13 +105,6 @@ export default class RegOpzDataGridHeader extends Component {
                                       // this.elementHS=$(event.target).offset().left;
                                       // this.elementHE= this.elementHS + $(event.target).width();
                                       this.item=item;
-                                    }
-                                  }
-                                  onMouseUp={
-                                    (event)=>{
-                                      this.isResizing = false;
-                                      this.item="";
-                                      // console.log("onMouseUp evenet for ", event.pageX,this.elementHE,event.type)
                                     }
                                   }
                                   >{item}
