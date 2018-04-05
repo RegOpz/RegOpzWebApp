@@ -311,6 +311,7 @@ class AddTransReportSection extends Component {
                             gridData={_.filter(this.props.gridData,{sheet:this.state.form.sheet_id})}
                             report_id={this.state.form.report_id}
                             handleSelectCell={this.handleSelectCell.bind(this)}
+                            renderStyle={this.props.renderStyle}
                           />
                       </Panel>
                       </div>

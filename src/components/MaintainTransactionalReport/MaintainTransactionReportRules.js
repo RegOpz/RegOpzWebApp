@@ -610,6 +610,7 @@ class MaintainTransactionReportRules extends Component {
                         sectionData={this.sectionData}
                         dml_allowed = { "Y" }
                         gridData={this.props.gridDataViewReport}
+                        renderStyle={this.state.renderStyle}
                         />
                   );
               break;
