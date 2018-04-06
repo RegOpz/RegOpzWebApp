@@ -22,6 +22,7 @@ class ReportCatalogList extends Component {
 
   componentWillReceiveProps(nextProps) {
       this.dataCatalog = nextProps.dataCatalog;
+      this.constantFilter = nextProps.constantFilter ? nextProps.constantFilter : null;
   }
 
   handleStartDateChange(date) {
@@ -78,15 +79,19 @@ class ReportCatalogList extends Component {
           }
 
           if (filterText !== null || this.constantFilter !== null) {
-              let newFilterText = (filterText ? filterText : "") + (this.constantFilter ? this.constantFilter : "")
+              let newFilterText = (filterText ? filterText : "")
+              console.log("Filtertext.....", newFilterText)
               let matchText = RegExp(`(${newFilterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
               dataCatalog.forEach(item => {
                   let report_list = item.report.filter(item =>
-                      item.report_id.toString().match(matchText) ||
-                      item.report_type.toString().match(matchText) ||
-                      moment(item.date_of_change).format("DD-MMM-YYYY").match(matchText) ||
-                      (item.last_updated_by ? item.last_updated_by.toString().match(matchText) : null) //||
-                     // item.last_updated_by.match(matchText)
+                      item.report_type.toString().match(this.constantFilter) &&
+                      (
+                        item.report_id.toString().match(matchText) ||
+                        moment(item.date_of_change).format("DD-MMM-YYYY").match(matchText) ||
+                        (item.last_updated_by ? item.last_updated_by.toString().match(matchText) : null) ||
+                        (item.report_description ? item.report_description.match(matchText) : null) ||
+                        (item.report_parameters ? item.report_parameters.match(matchText) : null)
+                      )
                   );
                   if (report_list.length > 0) {
                       linkageData.push({
