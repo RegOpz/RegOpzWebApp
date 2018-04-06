@@ -21,7 +21,7 @@ class LoginForm extends Component {
 
   onSubmit(event){
     event.preventDefault();
-    this.props.onSubmit(this.state.urename,this.state.password);
+    this.props.onSubmit(this.state.username,this.state.password);
     this.setState({username:null,password:null});
   }
 
@@ -39,6 +39,7 @@ class LoginForm extends Component {
 
                       <form>
                           <h1>RegOpz Login</h1>
+                          <h6> You are logging into domain of <b>{this.props.tenant} </b></h6>
                           <div>
                               <input type="text"
                               className="form-control"
@@ -64,14 +65,14 @@ class LoginForm extends Component {
 
                           <div className="clearfix"></div>
 
-                          { error ? <div className="alert alert-danger">{error}</div> : '' }
+                          { error ? <div className="alert alert-danger">"Invalid credential!"</div> : '' }
 
                           <div className="separator">
                               <div className="clearfix"></div>
                               <br/>
                               <div className="copyright">
                                   <h1><img src="../images/logo.png" className="img-circle "></img> RegOpz</h1>
-                                  <p>©2017 All Rights Reserved. RegOpz Pvt. Ltd.</p>
+                                  <p>©2017-18 All Rights Reserved. RegOpz Pvt. Ltd.</p>
                               </div>
                           </div>
                       </form>

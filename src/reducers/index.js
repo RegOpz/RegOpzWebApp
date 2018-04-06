@@ -1,4 +1,4 @@
-import { combineReducers } from 'redux';
+import { combineReducers,createStore} from 'redux';
 import { reducer as formReducer } from 'redux-form';
 import businessRulesReducer from './BusinessRulesReducer';
 import ReportLinkageReducer from './ReportLinkageReducer';
@@ -50,4 +50,5 @@ const rootReducer = combineReducers({
   transreport: TransactionReportReducer,
 });
 
+export const store=createStore(rootReducer);
 export default rootReducer;

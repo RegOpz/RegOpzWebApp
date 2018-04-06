@@ -1,4 +1,4 @@
-import { LOGIN_REQUEST, LOGIN_SUCCESS, LOGIN_CHECK, LOGOUT } from '../actions/LoginAction';
+import { LOGIN_REQUEST, LOGIN_SUCCESS, LOGIN_CHECK, LOGOUT,DOMAIN_REQUEST } from '../actions/LoginAction';
 import setAuthorization from '../utils/setAuthorization';
 var jwtDecode = require('jwt-decode');
 
@@ -35,6 +35,14 @@ export default function(state = {}, action) {
       localStorage.removeItem('RegOpzToken');
       setAuthorization(false);
       return {};
+
+    case DOMAIN_REQUEST:
+      if(!action.error){
+            return {domainInfo:action.payload.data,error:null};
+        } else {
+            return { error: action.payload.response.data.msg };
+        }
+
     default:
       return state;
   }
