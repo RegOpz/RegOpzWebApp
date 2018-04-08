@@ -20,9 +20,12 @@ export default function(state = {}, action) {
       try {
         const { userId, name, role, permission } = helperLogin(action.payload.data);
         localStorage.setItem('RegOpzToken', action.payload.data);
-        return { user: userId, name: name, role: role, permission: permission, error: null };
+        return Object.assign({}, state, {
+          user: userId, name: name, role: role, permission: permission, error: null
+        });
+        // return { user: userId, name: name, role: role, permission: permission, error: null };
       } catch (err) {
-        return { error: err.message };
+        return Object.assign({}, state, { error: err.message });
       }
     case LOGIN_CHECK:
       try {

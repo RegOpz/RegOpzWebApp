@@ -22,7 +22,8 @@ class LoginForm extends Component {
   onSubmit(event){
     event.preventDefault();
     this.props.onSubmit(this.state.username,this.state.password);
-    this.setState({username:null,password:null});
+    this.setState({username: null, password:null});
+    document.getElementsByName('username')[0].focus();
   }
 
   render(){
@@ -39,37 +40,52 @@ class LoginForm extends Component {
 
                       <form>
                           <h1>RegOpz Login</h1>
-                          <h6> You are logging into domain of <b>{this.props.tenant} </b></h6>
-                          <div>
+                          <div className="form-group has-feedback">
+                              <input type="text"
+                              className="x_title form-control"
+                              readOnly={true}
+                              disabled={true}
+                              name="tenantname"
+                              value={ this.props.tenant }
+                              required="required"/>
+                              <span className="fa fa-bank form-control-feedback right"></span>
+                          </div>
+                          <div className="form-group has-feedback">
                               <input type="text"
                               className="form-control"
                               placeholder="Username"
                               name="username"
                               value={ this.state.username }
                               onChange={ this.onChange }
+                              title={this.state.username ? "" : "Please enter username"}
                               required="required"/>
+                              <span className="fa fa-user form-control-feedback right"></span>
                           </div>
-                          <div>
+                          <div className="form-group has-feedback">
                               <input type="password"
                               className="form-control"
                               placeholder="Password"
                               name="password"
                               value={ this.state.password }
                               onChange={ this.onChange }
+                              title={this.state.password ? "" : "Please enter password"}
                               required="required"/>
+                              <span className="fa fa-eye-slash form-control-feedback right"></span>
+                              { error ? <div className="red">Couldn't match your account details, please check!</div> : '' }
                           </div>
                           <div>
-                              <button className="btn btn-primary submit" onClick={ this.onSubmit } disabled={!(username && password) || this.props.isLoading}>Log in</button>
-                              <button className="btn btn-default" onClick={ this.props.onSignup }>Sign up</button>
+
+                              <button className="btn btn-primary btn-sm submit" onClick={ this.onSubmit } disabled={!(username && password) || this.props.isLoading}>Log in</button>
+                              <button type="button" className="reset_pass btn btn-link btn-xs" onClick={ this.props.onResetPassword }>Lost your password?</button>
                           </div>
 
                           <div className="clearfix"></div>
 
-                          { error ? <div className="alert alert-danger">"Invalid credential!"</div> : '' }
-
                           <div className="separator">
                               <div className="clearfix"></div>
-                              <br/>
+                              <p className="change_link">{"   New user?"}
+                                <button className="btn btn-link btn-xs" onClick={ this.props.onSignup }>Sign up</button>
+                              </p>
                               <div className="copyright">
                                   <h1><img src="../images/logo.png" className="img-circle "></img> RegOpz</h1>
                                   <p>©2017-18 All Rights Reserved. RegOpz Pvt. Ltd.</p>

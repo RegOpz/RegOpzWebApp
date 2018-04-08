@@ -6,11 +6,13 @@ import { Modal } from 'react-bootstrap';
 import { bindActionCreators, dispatch } from 'redux';
 import {
   actionLoginRequest,
-  actionDomainRequest
+  actionDomainRequest,
+  actionSetDomain,
 } from '../../actions/LoginAction';
 import Signup from './Signup';
 import LoginForm from './LoginForm';
 import DomainForm from './DomainForm';
+import Subscribe from './Subscribe';
 
 class LoginComponent extends Component {
     constructor(props) {
@@ -21,8 +23,10 @@ class LoginComponent extends Component {
         };
         this.modalAlert = null;
         this.isModalOpen = false;
+        this.whichModal = "None";
         this.onSubmit = this.onSubmit.bind(this);
         this.onSignup = this.onSignup.bind(this);
+        this.onSubscribe = this.onSubscribe.bind(this);
         this.onNext =this.onNext.bind(this);
     }
 
@@ -34,6 +38,7 @@ class LoginComponent extends Component {
                    <DomainForm
                      onNext={this.onNext}
                      error={this.props.error}
+                     onSubscribe={this.onSubscribe}
                      />
                    }
 
@@ -55,11 +60,18 @@ class LoginComponent extends Component {
                     }}
                 >
                   <Modal.Header closeButton >
-                    <h2>Signup <small>Add your signin detail</small></h2>
+                    <h2>{this.whichModal}  <small>Add your {this.whichModal == "Signup" ? "signin": "subscription"} details</small></h2>
                   </Modal.Header>
 
                   <Modal.Body>
-                    <Signup/>
+                    {
+                      this.whichModal == "Signup" &&
+                      <Signup/>
+                    }
+                    {
+                      this.whichModal == "Subscribe" &&
+                      <Subscribe/>
+                    }
                   </Modal.Body>
                 </Modal>
             </div>
@@ -73,8 +85,13 @@ class LoginComponent extends Component {
 
     componentWillReceiveProps(nextProps){
 
+      if (nextProps.domainInfo && this.props.domainInfo != nextProps.domainInfo){
+        this.props.setDomain(nextProps.domainInfo);
+      }
+
       if (!this.error && this.props.domainInfo != nextProps.domainInfo){
-          this.setState({isLoading:false,isDomainValid:true});
+          this.setState({isLoading:false,
+                        isDomainValid:(this.whichModal == "Subscribe" && this.state.isModalOpen) ? false : true});
       } else if(this.error){
           this.setState({ isLoading:false});
       }
@@ -96,6 +113,17 @@ class LoginComponent extends Component {
     onSignup(event) {
       event.preventDefault();
       //this.modalAlert.open(<Signup/>);
+      this.whichModal = "Signup";
+      this.setState({isModalOpen:true})
+      //hashHistory.push('/signup');
+    }
+
+    onSubscribe(event) {
+      event.preventDefault();
+      //this.modalAlert.open(<Signup/>);
+      console.log("whichModal",this.whichModal);
+      this.whichModal = "Subscribe";
+      console.log("whichModal",this.whichModal);
       this.setState({isModalOpen:true})
       //hashHistory.push('/signup');
     }
@@ -122,6 +150,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     domainRequest:(domainName)=>{
       dispatch(actionDomainRequest(domainName));
+    },
+    setDomain:(domainInfo)=>{
+      dispatch(actionSetDomain(domainInfo));
     }
   };
 };

@@ -15,7 +15,10 @@ export default function(state = {}, action) {
     case CHECK_USER_ACTION:
       return { ...state, error: action.payload.data };
     case FETCH_USER_ACTION:
-      return { ...state, data: action.payload.data };
+      return Object.assign({}, state, {
+        data: action.payload.data
+      });
+      // return { ...state, data: action.payload.data };
     default:
       return state;
   }

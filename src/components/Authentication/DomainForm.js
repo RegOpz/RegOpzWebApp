@@ -17,7 +17,8 @@ class DomainForm extends Component{
   onNext(event){
     event.preventDefault();
     this.props.onNext(this.state.domainName);
-    console.log("Inside onNext DomainForm");
+    document.getElementsByName('domainName')[0].focus();
+    // console.log("Inside onNext DomainForm");
 
   }
 
@@ -30,33 +31,39 @@ class DomainForm extends Component{
           <a className="hiddenanchor" id="signin"></a>
 
           <div className="login_wrapper">
-              <div className="animate form login_form">
+              <div id="signin" className="animate form login_form">
                   <section className="login_content">
 
                       <form>
                           <h1>RegOpz Login</h1>
-                          <h6> Please enter your domain name </h6>
-                          <div>
+                          <h6> Please enter your Subscription ID to proceed </h6>
+                          <div className="form-group has-feedback">
                               <input type="text"
                               className="form-control"
-                              placeholder="Domain Name"
+                              placeholder="Subscription ID"
                               name="domainName"
                               value={ this.state.domainName }
                               onChange={ this.onChange }
+                              title={this.state.domainName ? "" : "Please enter subscription id"}
                               required="required"/>
+                              <span className="fa fa-bank form-control-feedback right"></span>
+                              { error ? <div className="red">{error}</div> : '' }
                           </div>
-
                           <div>
-                              <button className="btn btn-primary submit" onClick={ this.onNext } disabled={!(domainName)}>Next</button>
+                              <button className="btn btn-primary btn-sm submit" onClick={ this.onNext } disabled={!(domainName)}>Next</button>
+
                           </div>
 
                           <div className="clearfix"></div>
 
-                          { error ? <div className="alert alert-danger">{error}</div> : '' }
-
                           <div className="separator">
                               <div className="clearfix"></div>
-                              <br/>
+                              <p className="change_link">   New to RegOpz?
+                                <button
+                                  type="button"
+                                  className="to_register btn btn-xs btn-link"
+                                  onClick={ this.props.onSubscribe }> Subscribe </button>
+                              </p>
                               <div className="copyright">
                                   <h1><img src="../images/logo.png" className="img-circle "></img> RegOpz</h1>
                                   <p>©2017-18 All Rights Reserved. RegOpz Pvt. Ltd.</p>

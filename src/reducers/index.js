@@ -11,6 +11,7 @@ import MaintainSourcesReducer from './MaintainSourcesReducer';
 import VarianceAnalysisReducer from './VarianceAnalysisReducer';
 import CreateReportReducer from './CreateReportReducer';
 import UsersReducer from './UsersReducer';
+import TenantsReducer from './TenantsReducer';
 import LoginReducer from './LoginReducer';
 import DefChangeReducer from './DefChangeReducer';
 import DataChangeReducer from './DataChangeReducer';
@@ -25,6 +26,7 @@ import TransactionReportReducer from './TransactionReportReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
+  tenant_details: TenantsReducer,
   business_rules: businessRulesReducer,
   report_linkage: ReportLinkageReducer,
   view_data_store: ViewDataReducer,

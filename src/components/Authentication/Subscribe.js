@@ -3,6 +3,9 @@ import { Field, reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { actionAddUser, actionFetchUsers } from '../../actions/UsersAction';
+import {
+  actionFetchTenant
+} from '../../actions/TenantsAction';
 
 const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) => (
     <div className="form-group">
@@ -10,11 +13,20 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
         { label }
       </label>
       <div className="col-md-9 col-sm-9 col-xs-12">
-        <input {...input}
-         placeholder={label}
-         type={type}
-         readOnly={readOnly}
-         className="form-control col-md-4 col-xs-12"/>
+        { type=="textarea" &&
+          <textarea {...input}
+           placeholder={label}
+           readOnly={readOnly}
+           className="form-control col-md-4 col-xs-12"/>
+        }
+        {
+          type != "textarea" &&
+          <input {...input}
+           placeholder={label}
+           type={type}
+           readOnly={readOnly}
+           className="form-control col-md-4 col-xs-12"/>
+        }
         {
             touched &&
             ((error &&
@@ -27,13 +39,13 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
 );
 
 const asyncValidate = (values, dispatch) => {
-  return dispatch(actionFetchUsers(values.name))
+  return dispatch(actionFetchTenant(values.tenant_id))
     .then((action) => {
         console.log("Inside asyncValidate, promise resolved");
         let error = action.payload.data;
         if (Object.getOwnPropertyNames(error).length > 0) {
             console.log("Inside asyncValidate", error);
-            throw { name: error.msg , donotUseMiddleWare: true };
+            throw { tenant_id: "Subscriber ID exists, please try a different ID!" , donotUseMiddleWare: true };
         }
      });
 }
@@ -43,46 +55,42 @@ const normaliseContactNumber = value => value && value.replace(/[^\d]/g, '')
 const validate = (values) => {
     const errors = {};
 
-    if (!values.name) {
-        errors.name = "User name is required";
-    } else if (values.name.length < 5 || values.name.length > 20 ) {
-        errors.name = "User name must be greater than 4 characters and less than 20 characters";
+    if (!values.tenant_id) {
+        errors.tenant_id = "Subscription ID is required";
+    } else if (values.tenant_id.length < 5 || values.tenant_id.length > 20 ) {
+        errors.tenant_id = "Subscription ID must be greater than 4 characters and less than 20 characters";
     }
 
-    if (!values.email) {
-        errors.email = 'Email address is required'
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.email)) {
-        errors.email = 'Invalid email address'
+    if (!values.tenant_email) {
+        errors.tenant_email = 'Email address is required'
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(values.tenant_email)) {
+        errors.tenant_email = 'Invalid email address'
     }
 
-    if (!values.first_name) {
-        errors.first_name = "First name is required"
+    if (!values.tenant_description) {
+        errors.tenant_description = "Oraganisation Name is required"
     }
 
-    if (!values.last_name) {
-        errors.last_name = "Last name is required"
+    if (!values.tenant_phone) {
+        errors.tenant_phone = "Contact Number is required"
     }
 
-    if (!values.password) {
-        errors.password = "Password should not be empty"
-    }
-
-    if (!values.passwordConfirm || values.password !== values.passwordConfirm) {
-        errors.passwordConfirm = "Password must match"
+    if (!values.tenant_address) {
+        errors.tenant_address = "Address should not be empty"
     }
 
     return errors;
 }
 
-class Signup extends Component {
+class Subscribe extends Component {
     constructor(props) {
         super(props);
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
     }
 
     componentDidMount() {
-        document.body.classList.add('signup');
-        document.title = "RegOpz Signup";
+        document.body.classList.add('subscribe');
+        document.title = "RegOpz Subscription";
     }
 
     render() {
@@ -98,28 +106,21 @@ class Signup extends Component {
               <div className="x_content">
                 <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit) } >
                     <Field
-                      name="name"
+                      name="tenant_id"
                       type="text"
                       component={renderField}
-                      label="Username"
+                      label="Subscription ID"
                       readOnly={asyncValidating}
                     />
                     <Field
-                        name="first_name"
+                        name="tenant_description"
                         type="text"
                         component={renderField}
-                        label="First name"
+                        label="Organisation Name"
                       />
 
                       <Field
-                        name="last_name"
-                        type="text"
-                        component={renderField}
-                        label="Last name"
-                      />
-
-                      <Field
-                        name="contact_number"
+                        name="tenant_phone"
                         type="text"
                         component={renderField}
                         label="Contact number"
@@ -127,7 +128,7 @@ class Signup extends Component {
                       />
 
                       <Field
-                        name="email"
+                        name="tenant_email"
                         type="email"
                         component={renderField}
                         label="Email"
@@ -135,17 +136,10 @@ class Signup extends Component {
 
 
                       <Field
-                        name="password"
-                        type="password"
+                        name="tenant_address"
+                        type="textarea"
                         component={renderField}
-                        label="Password"
-                      />
-
-                      <Field
-                        name="passwordConfirm"
-                        type="password"
-                        component={renderField}
-                        label="Password Confirmation"
+                        label="Address"
                       />
 
                       <div className="form-group">
@@ -178,18 +172,18 @@ const mapDispatchToProps = (dispatch) => {
     return {
         signup: (data) => {
             dispatch(actionAddUser(data));
-        }
+        },
     };
 }
 
-const VisibleSignUp = connect(
+const VisibleSubscribe = connect(
     mapStateToProps,
     mapDispatchToProps
-)(Signup);
+)(Subscribe);
 
 export default reduxForm({
-    form: 'signup',
+    form: 'subscribe',
     validate,
     asyncValidate,
-    asyncBlurFields: ['name']
-})(VisibleSignUp);
+    asyncBlurFields: ['tenant_id']
+})(VisibleSubscribe);
