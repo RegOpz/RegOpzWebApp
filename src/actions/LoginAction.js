@@ -9,14 +9,14 @@ export let LOGIN_FAILURE = 'LOGIN_FAILURE';
 export let LOGIN_CHECK   = 'LOGIN_CHECK';
 export let LOGOUT        = 'LOGOUT';
 export let DOMAIN_REQUEST='DOMAIN_REQUEST';
-export let SET_DOMAIN = 'SET_DOMAIN';
 
 // TODO: Send Username and Password for login
 export function actionLoginRequest(data) {
   var url = BASE_URL + "users";
   console.log("Data recieved for login: ", data);
   // setTenantDetail(JSON.stringify(data.domainInfo));
-  const request = axios.post(url, null, { headers: { Authorization: 'Basic ' + btoa(`${data.username}:${data.password}`) }});
+  let token = sessionStorage.getItem('RegOpzToken');
+  const request = axios.post(url, null, { headers: { Subscriber: token, Authorization: 'Basic ' + btoa(`${data.username}:${data.password}`) }});
   console.log("Login request response: ", request);
   return {
     type: LOGIN_REQUEST,
@@ -45,13 +45,5 @@ export function actionDomainRequest(domainName){
   return{
     type:DOMAIN_REQUEST,
     payload:request
-  };
-}
-
-export function actionSetDomain(domainInfo) {
-  console.log("Data recieved for login: ", domainInfo);
-  setTenantDetail(JSON.stringify(domainInfo));
-  return {
-    type: SET_DOMAIN
   };
 }

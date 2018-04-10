@@ -18,8 +18,8 @@ export default function(state = {}, action) {
   switch (action.type) {
     case LOGIN_REQUEST:
       try {
-        const { userId, name, role, permission } = helperLogin(action.payload.data);
-        localStorage.setItem('RegOpzToken', action.payload.data);
+        const { userId, name, role, permission, domainInfo } = helperLogin(action.payload.data);
+        sessionStorage.setItem('RegOpzToken', action.payload.data);
         return Object.assign({}, state, {
           user: userId, name: name, role: role, permission: permission, error: null
         });
@@ -29,19 +29,22 @@ export default function(state = {}, action) {
       }
     case LOGIN_CHECK:
       try {
-        const { userId, name, role, permission } = helperLogin(action.payload);
-        return { user: userId, name: name, role: role, permission: permission, error: null };
+        const { userId, name, role, permission, domainInfo } = helperLogin(action.payload);
+        // setTenantDetail(domainInfo);
+        return { user: userId, name: name, role: role, permission: permission, error: null, domainInfo: JSON.parse(domainInfo) };
       } catch (err) {
         return { error: err.message };
       }
     case LOGOUT:
-      localStorage.removeItem('RegOpzToken');
+      sessionStorage.removeItem('RegOpzToken');
       setAuthorization(false);
       return {};
 
     case DOMAIN_REQUEST:
       if(!action.error){
-            return {domainInfo:action.payload.data,error:null};
+            const { domainInfo } = helperLogin(action.payload.data);
+            sessionStorage.setItem('RegOpzToken', action.payload.data);
+            return {domainInfo: JSON.parse(domainInfo), error:null};
         } else {
             return { error: action.payload.response.data.msg };
         }

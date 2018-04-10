@@ -6,8 +6,7 @@ import { Modal } from 'react-bootstrap';
 import { bindActionCreators, dispatch } from 'redux';
 import {
   actionLoginRequest,
-  actionDomainRequest,
-  actionSetDomain,
+  actionDomainRequest
 } from '../../actions/LoginAction';
 import Signup from './Signup';
 import LoginForm from './LoginForm';
@@ -85,10 +84,6 @@ class LoginComponent extends Component {
 
     componentWillReceiveProps(nextProps){
 
-      if (nextProps.domainInfo && this.props.domainInfo != nextProps.domainInfo){
-        this.props.setDomain(nextProps.domainInfo);
-      }
-
       if (!this.error && this.props.domainInfo != nextProps.domainInfo){
           this.setState({isLoading:false,
                         isDomainValid:(this.whichModal == "Subscribe" && this.state.isModalOpen) ? false : true});
@@ -101,8 +96,7 @@ class LoginComponent extends Component {
         this.setState({ isLoading: true });
         var data = {
           username: username,
-          password: password,
-          domainInfo:this.props.domainInfo
+          password: password
         };
         console.log("Inside onSubmit Login", data);
         this.props.loginRequest(data);
@@ -150,9 +144,6 @@ const mapDispatchToProps = (dispatch) => {
     },
     domainRequest:(domainName)=>{
       dispatch(actionDomainRequest(domainName));
-    },
-    setDomain:(domainInfo)=>{
-      dispatch(actionSetDomain(domainInfo));
     }
   };
 };

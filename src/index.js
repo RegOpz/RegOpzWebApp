@@ -44,8 +44,8 @@ import NotificationSystem from 'react-notification-system';
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware, promiseRejectMiddleWare)(createStore);
 const store = createStoreWithMiddleware(reducers);
 
-if (localStorage.RegOpzToken) {
-    let webToken = localStorage.RegOpzToken;
+if (sessionStorage.RegOpzToken) {
+    let webToken = sessionStorage.RegOpzToken;
     store.dispatch(actionRelogin(webToken));
 }
 

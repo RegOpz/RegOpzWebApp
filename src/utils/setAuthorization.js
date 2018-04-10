@@ -8,13 +8,3 @@ export default function(token) {
     delete axios.defaults.headers.common['Authorization'];
   }
 }
-
-export function setTenantDetail(domainInfo){
-  console.log("Inside setTenantDetail",domainInfo);
-  if(domainInfo){
-    axios.defaults.headers.common['Tenant'] = domainInfo;
-  } else {
-    delete axios.defaults.headers.common['Tenant'];
-  }
-
-}
