@@ -488,8 +488,8 @@ body .container.body .right_col {
 }
 body {
     color: #73879C;
-    /*background: #2A3F54;*/
-    background: url(../images/cityline.jpg) no-repeat center center fixed;
+    background: #2A3F54;
+    /*background: url(../images/cityline.jpg) no-repeat center center fixed;*/
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -3407,6 +3407,11 @@ ul.project_files li a i {
 .login .fa-paw {
     font-size: 26px
 }
+
+.login .logo {
+  width: 30px;
+  height: auto;
+}
 a.hiddenanchor {
     display: none
 }
@@ -3422,6 +3427,21 @@ a.hiddenanchor {
     position: absolute;
     top: 0px;
     width: 100%
+}
+.login_form > .x_panel {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px 17px;
+    display: inline-block;
+    background: #ffffffa0;
+    border: 1px solid #E6E9ED;
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside: avoid;
+    column-break-inside: avoid;
+    opacity: 1;
+    transition: all .2s ease;
+    box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.30), 0 6px 3px 0 rgba(0, 0, 0, 0.23);
 }
 .registration_form {
     z-index: 21;
