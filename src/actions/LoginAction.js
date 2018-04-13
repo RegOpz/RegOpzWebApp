@@ -40,7 +40,7 @@ export function actionLogout() {
 }
 
 export function actionDomainRequest(domainName){
-  const url=BASE_URL+`subscription?domain=${domainName}`;
+  const url=BASE_URL+`subscription/${domainName}`;
   const request=axios.get(url);
   return{
     type:DOMAIN_REQUEST,

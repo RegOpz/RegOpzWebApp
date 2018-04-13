@@ -34,7 +34,7 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
          {
             touched &&
             ((error &&
-            <div className="alert alert-danger">
+            <div className="red">
               { error }
             </div>))
          }
@@ -70,7 +70,7 @@ const renderSelect = ({ input, label, options, defaultOption, meta: { touched, e
           {
               touched &&
               ((error &&
-               <div className="alert alert-danger">
+               <div className="red">
                  { error }
                </div>))
            }

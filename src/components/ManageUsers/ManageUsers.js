@@ -133,7 +133,7 @@ class ManageUsersComponent extends Component {
                     </h4>
                     <div className="left col-xs-7">
                       <h2>
-                        { item.name }
+                        <span className="small dark"><strong>{ item.name }</strong></span>
                       </h2>
                       <ul className="list-unstyled">
                       {

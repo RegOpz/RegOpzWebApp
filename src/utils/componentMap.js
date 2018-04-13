@@ -18,6 +18,7 @@ export const componentMaptoName={
     ManageDataChange:"Manage Data Change",
     ManageRolesComponent:"Manage Roles",
     ManageUsers:"Manage Users",
-    LoadData: "Load Data"
+    LoadData: "Load Data",
+    ManageSubscribers: "Subscriber Management"
 
 }

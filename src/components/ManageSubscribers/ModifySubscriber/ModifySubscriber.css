@@ -1,0 +1,16 @@
+/*
+ * Stylesheet for Modify Users Component
+ */
+
+ .perm-container {
+    min-height: 60vh;
+    overflow-y: visible;
+ }
+
+.role_label {
+    text-align: center;
+}
+
+.perm_label {
+    padding-left: 5px !important;
+}

@@ -23,11 +23,11 @@ export function actionAddUser(data) {
 }
 
 // TODO: Fetch User Details from API
-export function actionFetchUsers(user) {
+export function actionFetchUsers(user,userCheck) {
     let curl = url;
     let actionType = FETCH_USER_ACTION;
     if (typeof user !== 'undefined') {
-        curl += `/${user}`;
+        curl += `/${user}` + (userCheck ? '?userCheck=Y' : '');
         actionType = CHECK_USER_ACTION;
     }
     console.log("Fetching users from API.");

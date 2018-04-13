@@ -27,7 +27,7 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
 );
 
 const asyncValidate = (values, dispatch) => {
-  return dispatch(actionFetchUsers(values.name+"?userCheck=Y"))
+  return dispatch(actionFetchUsers(values.name,'Y'))
     .then((action) => {
         console.log("Inside asyncValidate, promise resolved");
         let error = action.payload.data;

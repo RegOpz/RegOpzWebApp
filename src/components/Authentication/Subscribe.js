@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { actionAddUser, actionFetchUsers } from '../../actions/UsersAction';
 import {
-  actionFetchTenant
+  actionFetchTenant,
+  actionAddTenant,
 } from '../../actions/TenantsAction';
 
 const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) => (
@@ -39,7 +40,7 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
 );
 
 const asyncValidate = (values, dispatch) => {
-  return dispatch(actionFetchTenant(values.tenant_id))
+  return dispatch(actionFetchTenant(values.tenant_id,'Y'))
     .then((action) => {
         console.log("Inside asyncValidate, promise resolved");
         let error = action.payload.data;
@@ -164,14 +165,14 @@ class Subscribe extends Component {
 
 function mapStateToProps(state) {
     return {
-        message: state.user_details.message
+        message: state.tenant_details.message
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         signup: (data) => {
-            dispatch(actionAddUser(data));
+            dispatch(actionAddTenant(data));
         },
     };
 }
