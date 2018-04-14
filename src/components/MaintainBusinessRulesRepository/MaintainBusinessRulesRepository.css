@@ -1,0 +1,51 @@
+.dataGridHolder {
+  min-width: 100px;
+  overflow: auto;
+  float: left;
+  height: 85vh;
+}
+.datagrid_op_container {
+  position: relative;
+}
+.right_col {
+  overflow: auto !important;
+}
+.nav_menu {
+  margin-bottom: 0px !important;
+}
+.ops_icons {
+    margin-bottom: 10px;
+}
+.business_rules_ops_buttons {
+  float: left;
+}
+.btn-group .btn {
+  margin-right: 10px;
+}
+.RightSlidePanel {
+  position: absolute;
+  background-color: #ffffff;
+  border-left: 1px solid #ebebeb;
+  border-right: 1px solid #ebebeb;
+  border-top: 1px solid #ebebeb;
+  overflow: hidden;
+  width: 300px;
+  height: 75vh;
+  z-index: 99;
+  top: 72px;
+  right: 10px;
+  transition: width 0.5s ease;
+}
+.reg_flat_grid_page_input > input {
+  height: 25px;
+  width: 100px;
+  text-align: center;
+  margin-right: 10px;
+}
+
+.table-content-wrap {
+  word-break: break-all;
+}
+.rt-thead {
+    text-transform: capitalize;
+}

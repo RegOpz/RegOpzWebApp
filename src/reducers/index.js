@@ -23,6 +23,8 @@ import LoadDataReducer from './LoadDataReducer';
 import DisplayMessageReducer from './MiddleWareReducer';
 import CaptureTemplateReducer from './CaptureReportTemplateReducer';
 import TransactionReportReducer from './TransactionReportReducer';
+import BusinessRulesRepositoryReducer from './BusinessRulesRepositoryReducer';
+import ShredDataReducer from './SharedDataReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -50,6 +52,8 @@ const rootReducer = combineReducers({
   displayMessage: DisplayMessageReducer,
   capture_template:CaptureTemplateReducer,
   transreport: TransactionReportReducer,
+  business_rules_repo: BusinessRulesRepositoryReducer,
+  sharedData: ShredDataReducer,
 });
 
 export const store=createStore(rootReducer);

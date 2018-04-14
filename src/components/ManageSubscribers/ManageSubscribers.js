@@ -26,6 +26,9 @@ class ManageSubscribersComponent extends Component {
         this.handleFilter = this.handleFilter.bind(this);
         this.renderDynamic = this.renderDynamic.bind(this);
         this.handleCloseViewDetails = this.handleCloseViewDetails.bind(this);
+
+        this.viewOnly = _.find(this.props.privileges, { permission: "View Subscribers" }) ? true : false;
+        this.writeOnly = _.find(this.props.privileges, { permission: "Edit Subscribers" }) ? true : false;
     }
 
     componentWillMount() {

@@ -129,6 +129,10 @@ class ModifySubscriber extends Component {
     componentDidMount(){
           //console.log("Inside componentDidMount", this.initialValues, this.shouldUpdate)
           document.title = "RegOpz Dashboard | Edit Subscriber";
+          if (this.toInitialise) {
+              this.props.initialize(this.dataSource);
+              this.toInitialise = false;
+          }
     }
 
     render() {
@@ -153,6 +157,11 @@ class ModifySubscriber extends Component {
               <div className="x_panel">
                 <div className="x_title">
                   <h2><span className="truncate-text">{dataSource.tenant_description}</span> Details <small>Edit Subscriber Details</small></h2>
+                    <ul className="nav navbar-right panel_toolbox">
+                      <li>
+                        <a className="close-link" onClick={handleCancel}><i className="fa fa-close"></i></a>
+                      </li>
+                    </ul>
                   <div className="clearfix"></div>
                 </div>
                 <div className="x_content">

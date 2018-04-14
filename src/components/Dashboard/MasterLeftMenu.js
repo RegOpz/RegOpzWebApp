@@ -24,12 +24,6 @@ class MasterLeftMenu extends Component {
                               <a href="#/dashboard/capture-report-template"> Capture Report Template</a>
                           </li>
                           <li>
-                              <a href="#/dashboard/maintain-business-rules" onClick={this.handleLeftMenuClick}>Maintain Business Rules</a>
-                          </li>
-                          <li>
-                              <a href="#/dashboard/maintain-report-rules" onClick={this.handleLeftMenuClick}>Maintain Report Rules</a>
-                          </li>
-                          <li>
                               <a href="#">Data Reteintion</a>
                           </li>
                       </ul>
@@ -39,6 +33,12 @@ class MasterLeftMenu extends Component {
                           <i className="fa fa-pencil-square-o"></i> Content Management<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
+                        <li>
+                            <a href="#/dashboard/maintain-business-rules-repo" onClick={this.handleLeftMenuClick}>Maintain Business Rules Repository</a>
+                        </li>
+                        <li>
+                            <a href="#/dashboard/maintain-report-rules-repo" onClick={this.handleLeftMenuClick}>Maintain Report Rules Repository</a>
+                        </li>
                       </ul>
                   </li>
                   <li>
@@ -55,9 +55,6 @@ class MasterLeftMenu extends Component {
                       <ul className="nav child_menu">
                           <li>
                               <Link to="/dashboard/workflow/manage-def-change"> Manage Definition Change</Link>
-                          </li>
-                          <li>
-                             <Link to="/dashboard/workflow/manage-data-change"> Manage Data Change</Link>
                           </li>
                       </ul>
                   </li>

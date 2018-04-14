@@ -163,7 +163,7 @@ class DefAuditHistory extends Component{
                           </Media.Left>
                           <Media.Body>
                             <Media.Heading>Buisness Rule Change for id: {item.id}
-                              <small>{item.change_reference}</small>
+                              <small>{" " + item.change_reference}</small>
                             </Media.Heading>
                             <h6>
                               <Badge>{item.change_type}</Badge> by {item.maker} on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}

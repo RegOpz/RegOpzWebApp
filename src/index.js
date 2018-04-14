@@ -41,6 +41,7 @@ import ManageDataChange from './components/ManageDataChange/ManageDataChange';
 import LoadData from './components/MaintainSources/LoadData';
 import NotificationSystem from 'react-notification-system';
 import ManageSubscribers from './components/ManageSubscribers/ManageSubscribers';
+import MaintainBusinessRulesRepository from './components/MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware, promiseRejectMiddleWare)(createStore);
 const store = createStoreWithMiddleware(reducers);
@@ -149,7 +150,8 @@ ReactDOM.render(
                     <Route path="manage-roles" name="Role Management" component={authenticate(ManageRoles)} />
                     <Route path="manage-users" name="User Management" component={ManageUsers} />
                     <Route path="manage-users/edit-user" name="Edit User" component={EditUsers} />
-                    <Route path="manage-subscribers" name="Subscriber Management" component={ManageSubscribers} />
+                    <Route path="manage-subscribers" name="Subscriber Management" component={authenticate(ManageSubscribers)} />
+                    <Route path="maintain-business-rules-repo" name="Maintain Business Rules Repository" component={authenticate(MaintainBusinessRulesRepository)} />
                 </Route>
             </Route>
         </Router>
