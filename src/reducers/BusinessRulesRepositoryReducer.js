@@ -10,7 +10,8 @@ import {
   FETCH_REPOSITORY_RULES,
   INSERT_REPOSITORY_RULES,
   UPDATE_REPOSITORY_RULES,
-  DELETE_REPOSITORY_RULES
+  DELETE_REPOSITORY_RULES,
+  COPY_REPOSITORY_RULES_TO_TENANT
 } from '../actions/BusinessRulesRepositoryAction';
 
 // TODO:
@@ -25,6 +26,7 @@ export default function(state=[], action) {
         gridBusinessRulesData: action.payload.data
       });
     case INSERT_REPOSITORY_RULES: case UPDATE_REPOSITORY_RULES: case DELETE_REPOSITORY_RULES:
+    case COPY_REPOSITORY_RULES_TO_TENANT:
     	return { ...state, message: action.payload.data };
     case DELETE_RULES:
     	// state[0].rows.splice(action.meta.at, 1);

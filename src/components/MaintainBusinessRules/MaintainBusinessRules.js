@@ -35,6 +35,7 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
 import RuleReportLinkage from './RuleReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import MaintainBusinessRulesRepository from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 require('react-datepicker/dist/react-datepicker.css');
 require('./MaintainBusinessRules.css');
 require('react-table/react-table.css');
@@ -59,6 +60,7 @@ class MaintainBusinessRules extends Component {
       filtered: []
     }
 
+    this.subscriptionDetails = JSON.parse(this.props.login_details.domainInfo.subscription_details);
     this.ruleFilterParam=this.props.ruleFilterParam;
     this.flagRuleDrillDown=this.props.flagRuleDrillDown ? this.props.flagRuleDrillDown : false;
     this.pages=0;
@@ -80,6 +82,7 @@ class MaintainBusinessRules extends Component {
       {title: 'Delete', iconClass: 'fa-minus', checkDisabled: 'Yes', className: "btn-warning"},
       {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
       {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
+      {title: 'Rule Repository', iconClass: 'fa-cloud-download', checkDisabled: 'No', className: "btn-primary"},
       {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
       {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-default"},
       {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
@@ -101,6 +104,7 @@ class MaintainBusinessRules extends Component {
     this.handleReportLinkClick = this.handleReportLinkClick.bind(this);
     this.handleHistoryClick = this.handleHistoryClick.bind(this);
     this.handleExportCSV = this.handleExportCSV.bind(this);
+    this.handleRuleRepositoryClick = this.handleRuleRepositoryClick.bind(this);
 
     this.handleSelectRow = this.handleSelectRow.bind(this);
     this.handleFullSelect = this.handleFullSelect.bind(this);
@@ -117,7 +121,11 @@ class MaintainBusinessRules extends Component {
   }
 
   componentWillMount(){
-    if(this.flagRuleDrillDown){
+    if(!this.viewOnly && !this.writeOnly){
+      // TODO
+      // Do nothing, just throw 403 error
+    }
+    else if(this.flagRuleDrillDown){
       console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
     } else {
@@ -245,6 +253,9 @@ class MaintainBusinessRules extends Component {
         break;
       case "History":
         this.handleHistoryClick(event);
+        break;
+      case "Rule Repository":
+        this.handleRuleRepositoryClick(event);
         break;
       case "Deselect":
         // this.selectedItems = this.flatGrid.deSelectAll();
@@ -408,6 +419,16 @@ class MaintainBusinessRules extends Component {
       this.setState({ display: "showHistory" });
     }
     // this.selectedItems = this.flatGrid.deSelectAll();
+  }
+
+  handleRuleRepositoryClick(event){
+    let isOpen = this.state.display === "showRuleRepository";
+    if(isOpen) {
+      this.currentPage = this.state.page;
+      this.setState({ display: "showBusinessRuleGrid" });
+    } else {
+      this.setState({ display: "showRuleRepository" });
+    }
   }
 
   handleExportCSV(event) {
@@ -676,6 +697,23 @@ class MaintainBusinessRules extends Component {
                     <h4>Loading ....</h4>
                   </div>
               );
+          case "showRuleRepository":
+              const component=_.find(this.props.login_details.permission,{component:"Maintain Business Rules Repository"});
+              const tenantSource={
+                            sourceId: this.state.sourceId,
+                            sourceFileName: this.state.sourceFileName,
+                            sourceDescription: this.state.sourceDescription,
+                            tableName: this.state.tableName};
+              return(
+                <MaintainBusinessRulesRepository
+                privileges={ component ? component.permissions : null }
+                tenantSource={ tenantSource }
+                sourceId={ this.subscriptionDetails ? this.subscriptionDetails.country: "" }
+                tenantRenderType={"copyRule"}
+                showBusinessRuleGrid={"showBusinessRuleGrid"}
+                handleCancel={this.handleRuleRepositoryClick}/>
+              );
+              break;
           case "showToggleColumns":
               if (this.props.gridBusinessRulesData) {
                   return(
@@ -731,6 +769,26 @@ class MaintainBusinessRules extends Component {
 
   render(){
     console.log("Displaying:", this.state.display);
+    if(!this.viewOnly && !this.writeOnly){
+      return(
+        <div>
+          <div className="row form-container">
+            <div className="x_panel">
+              <div className="x_title">
+                {
+                  this.renderTitle(this.state.display, this.flagRuleDrillDown)
+                }
+                <div className="clearfix"></div>
+              </div>
+              <div className="x_content">
+                <AccessDenied
+                        component={"Maintain Business Rules"}/>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
     if (typeof this.props.dataCatalog != 'undefined' || this.flagRuleDrillDown) {
         if (typeof this.props.gridBusinessRulesData != 'undefined' ){
           this.pages = Math.ceil(this.props.gridBusinessRulesData.count / 100);

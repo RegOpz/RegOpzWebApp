@@ -13,6 +13,7 @@ import {
 import {
   actionFetchBusinessRules,
   actionDeleteBusinessRule,
+  actionCopyBusinessRuleToTenant,
 } from '../../actions/BusinessRulesRepositoryAction';
 import {
   actionFetchCountries
@@ -32,6 +33,8 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
 import RuleReportLinkage from './RuleReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import AccessDenied from '../Authentication/AccessDenied';
+import RuleCopyIntoTenantReport from './RuleCopyIntoTenantReport';
 require('./MaintainBusinessRulesRepository.css');
 require('react-table/react-table.css');
 
@@ -57,29 +60,46 @@ class MaintainBusinessRulesRepository extends Component {
 
     this.ruleFilterParam=this.props.ruleFilterParam;
     this.flagRuleDrillDown=this.props.flagRuleDrillDown ? this.props.flagRuleDrillDown : false;
+    this.tenantRenderType = this.props.tenantRenderType ? this.props.tenantRenderType : false;
+    this.tenantSource = this.props.tenantSource;
     this.pages=0;
     this.currentPage=undefined;
     this.dataSource = null;
     this.gridData=undefined;
     this.changeHistory=undefined;
     this.reportLinkage=undefined;
+    this.tenantCopyResult=undefined;
     this.selectedItems = [];
     this.selectedIndexOfGrid = 0;
     this.form_data={};
     this.selectedViewColumns=[];
     this.operationName=null;
-    this.buttons=[
-      {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
-      {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes', className: "btn-success"},
-      {title: 'Copy', iconClass: 'fa-copy', checkDisabled: 'Yes', className: "btn-success"},
-      {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
-      {title: 'Delete', iconClass: 'fa-minus', checkDisabled: 'Yes', className: "btn-warning"},
-      {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
-      {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
-      {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
-      {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-default"},
-      {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
-    ]
+    if (this.tenantRenderType=="copyRule"){
+      this.buttons=[
+        {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
+        {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
+        {title: 'Copy Rule', iconClass: 'fa-rocket', checkDisabled: 'No', className: "btn-success"},
+        {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
+        {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
+        {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
+        {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-default"},
+        {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
+      ]
+    } else {
+      this.buttons=[
+        {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
+        {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes', className: "btn-success"},
+        {title: 'Copy', iconClass: 'fa-copy', checkDisabled: 'Yes', className: "btn-success"},
+        {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
+        {title: 'Delete', iconClass: 'fa-minus', checkDisabled: 'Yes', className: "btn-warning"},
+        {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
+        {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
+        {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
+        {title: 'Columns', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-default"},
+        {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
+      ]
+    }
+
     this.buttonClassOverride = "None";
     this.selectedKeys = '';
 
@@ -96,10 +116,12 @@ class MaintainBusinessRulesRepository extends Component {
     this.handleReportLinkClick = this.handleReportLinkClick.bind(this);
     this.handleHistoryClick = this.handleHistoryClick.bind(this);
     this.handleExportCSV = this.handleExportCSV.bind(this);
+    this.handleTenantCopyResultClick = this.handleTenantCopyResultClick.bind(this);
 
     this.handleSelectRow = this.handleSelectRow.bind(this);
     this.handleFullSelect = this.handleFullSelect.bind(this);
     this.handleDuplicateClick=this.handleDuplicateClick.bind(this);
+    this.handleCopyIntoTenantClick = this.handleCopyIntoTenantClick.bind(this);
     this.handleUpdateRow = this.handleUpdateRow.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
@@ -112,9 +134,18 @@ class MaintainBusinessRulesRepository extends Component {
   }
 
   componentWillMount(){
-    if(this.flagRuleDrillDown){
+    if(!this.viewOnly && !this.writeOnly){
+      // TODO
+      // Do nothing, just throw 403 error
+      // console.log("privileges.......",this.props.privileges)
+    }
+    else if(this.flagRuleDrillDown){
       console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+    } else if(this.tenantRenderType) {
+      // TODO
+      // Render only the grid of the subscribe country for tenant.
+      this.props.fetchBusinesRules(this.state.sourceId)
     } else {
       this.props.fetchCountries();
     }
@@ -129,6 +160,7 @@ class MaintainBusinessRulesRepository extends Component {
 
     this.changeHistory=nextProps.change_history;
     this.reportLinkage=nextProps.report_linkage;
+    this.tenantCopyResult=nextProps.tenantCopyResult;
     //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
     //this.flagDataDrillDown = false;
     if(nextProps.flagRuleDrillDown && this.ruleFilterParam.cell_calc_ref != nextProps.ruleFilterParam.cell_calc_ref ){
@@ -163,7 +195,7 @@ class MaintainBusinessRulesRepository extends Component {
         tableName: 'business_rules_master',
         rowIndex: []
      },
-      this.props.fetchBusinesRules(item.country)
+      this.props.fetchBusinesRules(this.state.sourceId)
     );
   }
 
@@ -229,6 +261,9 @@ class MaintainBusinessRulesRepository extends Component {
       case "Copy":
         this.handleDuplicateClick(event);
         break;
+      case "Copy Rule":
+        this.handleCopyIntoTenantClick(event);
+        break;
       case "Details":
         this.handleAdd(event,"update");
         break;
@@ -276,6 +311,10 @@ class MaintainBusinessRulesRepository extends Component {
     let fetchPage=0;
     if(this.flagRuleDrillDown){
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,fetchPage);
+    } else if(this.tenantRenderType) {
+      // TODO
+      // Render only the grid of the subscribe country for tenant.
+      this.props.fetchBusinesRules(this.state.sourceId)
     } else {
       this.props.fetchBusinesRules(this.state.sourceId);
     }
@@ -387,6 +426,18 @@ class MaintainBusinessRulesRepository extends Component {
 
   }
 
+  handleTenantCopyResultClick(event) {
+    let isOpen = this.state.display === "showTenantCopyResult";
+    this.tenantCopyResult=undefined;
+    if(isOpen) {
+      this.currentPage = this.state.page;
+      this.setState({ display: "showBusinessRuleGrid" });
+    } else {
+        this.setState({ display: "showTenantCopyResult" });
+    }
+
+  }
+
   handleHistoryClick(event) {
     let isOpen = this.state.display === "showHistory";
     this.changeHistory=undefined;
@@ -433,6 +484,48 @@ class MaintainBusinessRulesRepository extends Component {
     }
   }
 
+  handleCopyIntoTenantClick(event){
+    // if(!this.tenantSource){
+    //   this.modalAlert.isDiscardToBeShown = false;
+    //   this.modalAlert.open("Unable to copy rules. Invalid or no destination table provided!");
+    // }
+    // else
+    if(this.selectedItems.length == 0){
+      this.modalAlert.isDiscardToBeShown = true;
+      this.operationName = "INSERTTENANT";
+      this.modalAlert.open(
+            <div>
+              Do you really want to copy <strong className="red">All Rules</strong> into source : {this.tenantSource ? this.tenantSource.sourceFileName : ''}?
+            </div>)
+    } else {
+      this.modalAlert.isDiscardToBeShown = true;
+      this.operationName = "INSERTTENANT";
+      this.modalAlert.open(
+            <div>
+              Do you want to copy following rules into source : {this.tenantSource ? this.tenantSource.sourceFileName : ''}?
+              <table className="table table-hover">
+                <thead>
+                  <th>In Use</th>
+                  <th>Rule Tag</th>
+                  <th>Rule Description</th>
+                </thead>
+                <tbody>
+                  {
+                    this.selectedItems.map((item,index)=>{
+                      return(
+                        <tr>
+                          <td><i className={"fa fa-circle "+ (item.in_use=="Y" ? " green" : " amber")}></i></td>
+                          <td>{item.business_rule}</td>
+                          <td><span className="truncate-text">{item.rule_description}</span></td>
+                        </tr>)
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>)
+    }
+  }
+
   handleDeleteClick(event){
       if(this.selectedItems.length != 1){
         this.modalAlert.isDiscardToBeShown = false;
@@ -448,7 +541,9 @@ class MaintainBusinessRulesRepository extends Component {
   handleModalOkayClick(event){
     //console.log("showAuditModal",this.state.showAuditModal);
     this.modalAlert.isDiscardToBeShown = false;
-    if(this.selectedItems.length==1 && (this.operationName=='DELETE'||this.operationName=='INSERT')){
+    if( this.operationName=="INSERTTENANT" ||
+        (this.selectedItems.length==1 && (this.operationName=='DELETE'||this.operationName=='INSERT'))
+      ){
       this.setState({showAuditModal:true},
           ()=>{console.log("showAuditModal",this.state.showAuditModal);});
     }
@@ -456,10 +551,10 @@ class MaintainBusinessRulesRepository extends Component {
 
   handleAuditOkayClick(auditInfo){
     let data={};
-    data["change_type"]=this.operationName;
-    data["table_name"]="business_rules_master";
 
     if (this.operationName=='DELETE'){
+      data["change_type"]=this.operationName;
+      data["table_name"]="business_rules_master";
       this.auditInfo={
         table_name:data["table_name"],
         change_type:this.operationName,
@@ -474,9 +569,21 @@ class MaintainBusinessRulesRepository extends Component {
       // this.setState({showAuditModal:false});
     }
 
+    if(this.operationName=="INSERTTENANT"){
+      if (this.selectedItems.length==0){
+        data["rules"]=this.gridData.rows;
+      } else {
+        data["rules"]=this.selectedItems;
+      }
+
+      data["audit_comment"]=auditInfo.comment;
+      // console.log("INSERTTENANT data...", data);
+      this.props.copyBusinessRuleToTenant(data,this.tenantSource.sourceId)
+    }
+
    this.setState({showAuditModal:false},
-     ()=>{this.handleRefreshGrid(event);}
-     );
+                  this.handleTenantCopyResultClick()
+                );
 
   }
 
@@ -507,34 +614,48 @@ class MaintainBusinessRulesRepository extends Component {
                   <h2>View Business Rules Repository <small>Available Sources</small></h2>
               );
           }
-          content.push(
-              <div className="row">
-                <ul className="nav navbar-right panel_toolbox">
-                  <li>
-                    <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                      <i className="fa fa-rss"></i><small>{' Rule Reporsitory '}</small>
-                      <i className="fa fa-caret-down"></i>
-                    </a>
-                    <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+          // Only show dropdown menu to select different sources if its not a tenant environment
+          if (this.tenantRenderType){
+              content.push(
+                  <div className="row">
+                    <ul className="nav navbar-right panel_toolbox">
                       <li>
-                        <Link to="/dashboard/maintain-business-rules-repo"
-                          onClick={()=>{ this.setState({ display: false }) }}>
-                            <i className="fa fa-bars"></i>{' All Sources'}
-                        </Link>
-                      </li>
-                      <li>
-                        <a href="#"></a>
-                        <CountryList
-                          dataCatalog={this.props.dataCatalog}
-                          navMenu={true}
-                          handleCountryClick={this.handleCountryClick}
-                          />
+                        <a className="close-link" onClick={this.props.handleCancel}><i className="fa fa-close"></i></a>
                       </li>
                     </ul>
-                  </li>
-                </ul>
-              </div>
-          );
+                  </div>
+                );
+          } else {
+              content.push(
+                  <div className="row">
+                    <ul className="nav navbar-right panel_toolbox">
+                      <li>
+                        <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                          <i className="fa fa-rss"></i><small>{' Rule Reporsitory '}</small>
+                          <i className="fa fa-caret-down"></i>
+                        </a>
+                        <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                          <li>
+                            <Link to="/dashboard/maintain-business-rules-repo"
+                              onClick={()=>{ this.setState({ display: false }) }}>
+                                <i className="fa fa-bars"></i>{' All Sources'}
+                            </Link>
+                          </li>
+                          <li>
+                            <a href="#"></a>
+                            <CountryList
+                              dataCatalog={this.props.dataCatalog}
+                              navMenu={true}
+                              handleCountryClick={this.handleCountryClick}
+                              />
+                          </li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </div>
+              );
+          }
+
       }
       return content;
   }
@@ -682,6 +803,14 @@ class MaintainBusinessRulesRepository extends Component {
                     />
               );
               break;
+          case "showTenantCopyResult":
+              return(
+                <RuleCopyIntoTenantReport
+                  data={ this.tenantCopyResult }
+                  handleClose={this.handleTenantCopyResultClick}
+                  />
+              );
+              break;
           default:
             return(
                 <CountryList
@@ -695,7 +824,27 @@ class MaintainBusinessRulesRepository extends Component {
 
   render(){
     console.log("Displaying:", this.state.display);
-    if (typeof this.props.dataCatalog != 'undefined' || this.flagRuleDrillDown) {
+    if(!this.viewOnly && !this.writeOnly){
+      return(
+        <div>
+          <div className="row form-container">
+            <div className="x_panel">
+              <div className="x_title">
+                {
+                  this.renderTitle(this.state.display, this.flagRuleDrillDown)
+                }
+                <div className="clearfix"></div>
+              </div>
+              <div className="x_content">
+                <AccessDenied
+                        component={"Maintain Business Rules Repository"}/>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    if (typeof this.props.dataCatalog != 'undefined' || this.flagRuleDrillDown || this.tenantRenderType) {
         if (typeof this.props.gridBusinessRulesData != 'undefined' ){
           this.pages = Math.ceil(this.props.gridBusinessRulesData.count / 100);
         }
@@ -743,6 +892,9 @@ const mapDispatchToProps = (dispatch) => {
     fetchBusinesRules: (country) => {
       dispatch(actionFetchBusinessRules(country))
     },
+    copyBusinessRuleToTenant: (data,tenantSourceId) => {
+      dispatch(actionCopyBusinessRuleToTenant(data,tenantSourceId))
+    },
     fetchDrillDownRulesReport:(rules,source_id,page)=>{
       dispatch(actionFetchDrillDownRulesReport(rules,source_id,page))
     },
@@ -770,6 +922,7 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.sharedData.countries,
     gridBusinessRulesData: state.business_rules_repo.gridBusinessRulesData,
+    tenantCopyResult: state.business_rules_repo.message,
     report_linkage:state.report_linkage,
     change_history:state.def_change_store.audit_list,
     login_details:state.login_store,

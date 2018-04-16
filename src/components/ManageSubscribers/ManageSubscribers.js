@@ -85,7 +85,9 @@ class ManageSubscribersComponent extends Component {
         let isOpen = (this.state.display == "subscriberDetails");
         if (isOpen) {
             this.setState({display: false,
-                          selectedSubscriber: null});
+                          selectedSubscriber: null},
+                          this.props.fetchTenants()
+                        );
         }
     }
 

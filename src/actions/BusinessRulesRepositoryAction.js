@@ -6,6 +6,7 @@ export let FETCH_REPOSITORY_RULES = 'FETCH_REPOSITORY_RULES';
 export let INSERT_REPOSITORY_RULES = 'INSERT_REPOSITORY_RULES';
 export let UPDATE_REPOSITORY_RULES = 'UPDATE_REPOSITORY_RULES';
 export let DELETE_REPOSITORY_RULES = 'DELETE_REPOSITORY_RULES';
+export let COPY_REPOSITORY_RULES_TO_TENANT = 'COPY_REPOSITORY_RULES_TO_TENANT';
 
 const url = BASE_URL + "business-rules-repo" ;
 // TODO:
@@ -33,6 +34,16 @@ export function actionUpdateBusinessRule(item) {
 	const request = axios.put(url, item);
 	return {
 		type: UPDATE_REPOSITORY_RULES,
+		payload: request
+	}
+}
+
+// TODO:
+export function actionCopyBusinessRuleToTenant(data,tenantSourceId) {
+  let curl = url + "/copy-to-tenant/" + tenantSourceId;
+	const request = axios.post(curl, data);
+	return {
+		type: COPY_REPOSITORY_RULES_TO_TENANT,
 		payload: request
 	}
 }
