@@ -13,7 +13,7 @@ export default function authenticate(ComposedComponent){
 
       render(){
         const name=componentMaptoName[getDisplayName(ComposedComponent).replace("Connect(",'').replace(")",'')];
-        console.log("Render function,Authentication.....",name,getDisplayName(ComposedComponent));
+        console.log("Render function,Authentication.....",name,ComposedComponent,getDisplayName(ComposedComponent));
         console.log("Render function called, Authentication.....",this.props.login_details);
         const component=_.find(this.props.login_details.permission,{component:name});
         if(! component) {

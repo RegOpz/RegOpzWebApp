@@ -110,6 +110,8 @@ class ModifySubscriber extends Component {
         this.handleDelete = this.handleDelete.bind(this);
         this.saveConnChanges = this.saveConnChanges.bind(this);
         this.saveComponentChanges = this.saveComponentChanges.bind(this);
+        this.renderExistingComponents = this.renderExistingComponents.bind(this);
+        this.renderExistingConnection = this.renderExistingConnection.bind(this);
     }
 
     componentWillMount() {
@@ -183,18 +185,18 @@ class ModifySubscriber extends Component {
                         eventKey={0}
                         title={"General Information"}
                       >
-                      <div className="">
-                        <div className="x_panel">
-                          <div className="x_title">
-                            <h5>{ "Subscriber Details"}<small> Edit Details</small></h5>
-                            <div className="clearfix"></div>
-                          </div>
-                          <div className="x_content">
-                            { renderFields(dataSource) }
-                            <div className="clearfix"></div>
+                        <div className="">
+                          <div className="x_panel">
+                            <div className="x_title">
+                              <h5>{ "Subscriber Details"}<small> Edit Details</small></h5>
+                              <div className="clearfix"></div>
+                            </div>
+                            <div className="x_content">
+                              { renderFields(dataSource) }
+                              <div className="clearfix"></div>
+                            </div>
                           </div>
                         </div>
-                      </div>
                       </Tab>
                       <Tab
                         key={1}
@@ -207,57 +209,81 @@ class ModifySubscriber extends Component {
                             <div className="clearfix"></div>
                           </div>
                           <div className="x_content">
-                          <button type="button" className="btn btn-sm btn-link"
-                            onClick={()=>{
-                                      this.setState({editConnection: true,
-                                        connType: "tenant",
-                                        connDetails: JSON.parse(dataSource.tenant_conn_details)})
+                            <button type="button" className="btn btn-sm btn-link"
+                              onClick={()=>{
+                                        this.setState({editConnection: true,
+                                          connType: "tenant",
+                                          connDetails: JSON.parse(dataSource.tenant_conn_details)})
+                                        }
                                       }
-                                    }
-                            disabled={ submitting }>
-                            <i className="fa fa-leaf"></i>
-                            { " Edit Tenant Space Connection" }
-                          </button>
-                          <button type="button" className="btn btn-sm btn-link"
-                            onClick={()=>{
-                                      this.setState({editConnection: true,
-                                        connType: "master",
-                                        connDetails: JSON.parse(dataSource.master_conn_details)})
+                              disabled={ submitting }>
+                              <i className="fa fa-leaf"></i>
+                              { " Edit Tenant Space Connection" }
+                            </button>
+                            <button type="button" className="btn btn-sm btn-link"
+                              onClick={()=>{
+                                        this.setState({editConnection: true,
+                                          connType: "master",
+                                          connDetails: JSON.parse(dataSource.master_conn_details)})
+                                        }
                                       }
-                                    }
-                            disabled={ submitting }>
-                            <i className="fa fa-sitemap"></i>
-                            { " Edit Master Space Connection" }
-                          </button>
-                          {
-                            this.state.editConnection ?
-                            <ModifyConnection
-                              connType = { this.state.connType }
-                              connDetails={ this.state.connDetails }
-                              saveConnChanges={ this.saveConnChanges }/>
-                            :
-                            <div className="separator">
-                              <table className="table table-hover">
-                                <thead>
-                                  <tr>
-                                    <th>Connection Type</th>
-                                    <th>Settings</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  <tr>
-                                    <td>Tenant</td>
-                                    <td>{dataSource.tenant_conn_details}</td>
-                                  </tr>
-                                  <tr>
-                                    <td>Master</td>
-                                    <td>{dataSource.master_conn_details}</td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                          }
-                        </div>
+                              disabled={ submitting }>
+                              <i className="fa fa-sitemap"></i>
+                              { " Edit Master Space Connection" }
+                            </button>
+                            {
+                              this.state.editConnection ?
+                              <ModifyConnection
+                                connType = { this.state.connType }
+                                connDetails={ this.state.connDetails }
+                                saveConnChanges={ this.saveConnChanges }/>
+                              :
+                              <Tabs>
+                                <Tab
+                                  key={0}
+                                  eventKey={0}
+                                  title={"Tenant Connection Details"}
+                                >
+                                  <div className="separator">
+                                    <table className="table table-hover">
+                                      <thead>
+                                        <tr>
+                                          <th>Attribute</th>
+                                          <th>Values</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {
+                                          this.renderExistingConnection(JSON.parse(dataSource.tenant_conn_details))
+                                        }
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </Tab>
+                                <Tab
+                                  key={1}
+                                  eventKey={1}
+                                  title={"Master Connection Details"}
+                                >
+                                  <div className="separator">
+                                    <table className="table table-hover">
+                                      <thead>
+                                        <tr>
+                                          <th>Attribute</th>
+                                          <th>Values</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                      {
+                                        this.renderExistingConnection(JSON.parse(dataSource.master_conn_details))
+                                      }
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </Tab>
+                              </Tabs>
+                            }
+                          </div>
                         </div>
                       </Tab>
                       <Tab
@@ -265,52 +291,52 @@ class ModifySubscriber extends Component {
                         eventKey={2}
                         title={"Subscribed Component"}
                       >
-                      <div className="x_panel">
-                        <div className="x_title">
-                          <h5>Components<small> Edit Subscribed Components</small></h5>
-                          <div className="clearfix"></div>
-                        </div>
-                        <div className="x_content">
-                        {
-                          !this.state.editComponent &&
-                          <button type="button" className="btn btn-sm btn-link"
-                            onClick={()=>{
-                                      this.setState({editComponent: true})
-                                      }
-                                    }
-                            disabled={ submitting }>
-                            <i className="fa fa-puzzle-piece"></i>
-                            { " Edit Subscribed Components" }
-                          </button>
-                        }
-                        {
-                          !this.state.editComponent &&
-                          <div className="separator">
-                            <table className="table table-hover">
-                              <thead>
-                                <tr>
-                                  <th>Subscribed Components</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td>{dataSource.subscription_details}</td>
-                                </tr>
-                              </tbody>
-                            </table>
+                        <div className="x_panel">
+                          <div className="x_title">
+                            <h5>Components<small> Edit Subscribed Components</small></h5>
+                            <div className="clearfix"></div>
                           </div>
-                        }
-                        {
-                          this.state.editComponent &&
-                          <ModifyComponents
-                            componentDetails= { JSON.parse(dataSource.subscription_details) }
-                            saveComponentChanges={this.saveComponentChanges}/>
-                        }
-                      </div>
-                      </div>
+                          <div className="x_content">
+                          {
+                            !this.state.editComponent &&
+                            <button type="button" className="btn btn-sm btn-link"
+                              onClick={()=>{
+                                        this.setState({editComponent: true})
+                                        }
+                                      }
+                              disabled={ submitting }>
+                              <i className="fa fa-puzzle-piece"></i>
+                              { " Edit Subscribed Components" }
+                            </button>
+                          }
+                          {
+                            !this.state.editComponent &&
+                            <div className="separator">
+                              <table className="table table-hover">
+                                <thead>
+                                  <tr>
+                                    <th>Subscribed Components</th>
+                                    <th>Values</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {
+                                      this.renderExistingComponents(JSON.parse(dataSource.subscription_details))
+                                  }
+                                </tbody>
+                              </table>
+                            </div>
+                          }
+                          {
+                            this.state.editComponent &&
+                            <ModifyComponents
+                              componentDetails= { JSON.parse(dataSource.subscription_details) }
+                              saveComponentChanges={this.saveComponentChanges}/>
+                          }
+                          </div>
+                        </div>
                       </Tab>
                     </Tabs>
-
                     <div className="form-group">
                       <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
                         <button type="button" className="btn btn-primary" onClick={handleCancel} disabled={ submitting }>
@@ -333,7 +359,7 @@ class ModifySubscriber extends Component {
     }
 
     renderFields(data) {
-        console.log("inputList....", data);
+        // console.log("inputList....", data);
         let fieldArray = [];
         let localValues = {};
         const inputList = Object.keys(data);
@@ -355,6 +381,37 @@ class ModifySubscriber extends Component {
         return fieldArray;
     }
 
+    renderExistingComponents(components){
+
+      let tableComponentArr=[];
+      // console.log("renderExistingComponents...",components);
+      components && Object.keys(components).map(item=>{
+        tableComponentArr.push(
+          <tr>
+            <td>{item}</td>
+            <td>{components[item]==true ? <i className="fa fa-circle green"></i> : components[item]}</td>
+          </tr>
+        )
+      })
+      // console.log("renderExistingComponents...",tableComponentArr);
+      return tableComponentArr;
+    }
+
+    renderExistingConnection(connection){
+
+      let tableConnArr=[];
+      connection && Object.keys(connection).map(item=>{
+        tableConnArr.push(
+          <tr>
+            <td>{item}</td>
+            <td>{connection[item]}</td>
+          </tr>
+        )
+      })
+      // console.log("renderExistingConnection...",tableConnArr);
+      return tableConnArr;
+    }
+
 
     handleFormSubmit(data) {
         // console.log('User Details Submitted!', data);
@@ -362,7 +419,7 @@ class ModifySubscriber extends Component {
         newData.tenant_conn_details = this.dataSource.tenant_conn_details;
         newData.master_conn_details = this.dataSource.master_conn_details;
         newData.subscription_details = this.dataSource.subscription_details;
-        console.log('User Details Submitted! and new data is: ', newData);
+        // console.log('User Details Submitted! and new data is: ', newData);
         this.props.updateTenant(newData);
         this.handleCancel();
     }
@@ -376,13 +433,18 @@ class ModifySubscriber extends Component {
             this.dataSource.master_conn_details = JSON.stringify(data);
           }
         this.disableSubmit = false;
+        this.setState({editConnection: false,
+          connType: null,
+          connDetails: null
+        })
         // console.log("Inside end of saveConnChanges....", this.dataSource);
     }
 
     saveComponentChanges(data){
-        // console.log("Inside saveConnChanges....", data, connType);
+        // console.log("Inside saveComponentChanges....", data);
         this.dataSource.subscription_details = JSON.stringify(data);
         this.disableSubmit = false;
+        this.setState({editComponent: false})
     }
 
     handleCancel(event) {

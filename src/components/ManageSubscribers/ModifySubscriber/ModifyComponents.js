@@ -6,7 +6,8 @@ import { dispatch } from 'redux';
 import { Field, reduxForm, formValueSelector } from 'redux-form';
 import _ from 'lodash';
 import {
-  actionFetchCountries
+  actionFetchCountries,
+  actionFetchComponents
 } from '../../../actions/SharedDataAction';
 require('./ModifySubscriber.css');
 
@@ -17,13 +18,28 @@ const renderField = ({ input, label, type, initialValue, readOnly, meta: { touch
         <span className="required">*</span>
       </label>
       <div className="col-md-9 col-sm-9 col-xs-12">
-        <input {...input}
-         placeholder={label}
-         type={type}
-         id={label}
-         readOnly={ readOnly }
-         defaultValue={initialValue}
-         className="form-control col-md-4 col-xs-12"/>
+        {
+          type == "text" &&
+          <input {...input}
+           placeholder={label}
+           type={type}
+           id={label}
+           readOnly={ readOnly }
+           defaultValue={initialValue}
+           className="form-control col-md-4 col-xs-12"/>
+        }
+        {
+          type == "checkbox" &&
+          <label className="switch">
+            <input
+             type={type}
+             id={label}
+             onChange={()=>{}}
+             />
+            <span className="slider round"></span>
+          </label>
+        }
+
          {
             touched &&
             ((error &&
@@ -55,13 +71,13 @@ const validate = (values) => {
     const errors = {};
     console.log("Inside validate", values);
 
-    Object.keys(values).forEach((item) => {
-        if (! values[item]) {
-            errors[item] = `${item} cannot be empty.`;
-        }
-    });
+    // Object.keys(values).forEach((item) => {
+    //     if (! values[item] && item=="country") {
+    //         errors[item] = `${item} cannot be empty.`;
+    //     }
+    // });
 
-    if (values.country && values.country.length != 2 ) {
+    if (!values.country || values.country.length != 2 ) {
         errors.country = "Must be a 2 character ISO country code.";
     }
 
@@ -72,15 +88,17 @@ const validate = (values) => {
 class ModifyComponents extends Component {
     constructor(props) {
         super(props);
-        this.defaultComponents={"country": null,"components": null};
+        this.defaultComponents={"country": null};
         this.toInitialise = true;
         this.dataSource = this.props.componentDetails ? this.props.componentDetails : this.defaultComponents;
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+        this.renderComponents = this.renderComponents.bind(this);
     }
 
     componentWillMount() {
         // TODO
+        this.props.fetchComponents()
     }
     componentWillReceiveProps(nextProps) {
         console.log('Next Props ModifyComponents: ', nextProps);
@@ -116,6 +134,13 @@ class ModifyComponents extends Component {
 
     render() {
         console.log("Inside Modify Subscriber Render:", this.dataSource);
+        if ( !this.props.components){
+          return(
+            <div className="x_panel">
+              <h5>Loading....</h5>
+            </div>
+          )
+        }
         return(
             <div>
               { this.renderForm() }
@@ -134,50 +159,77 @@ class ModifyComponents extends Component {
         return(
                 <div className="x_content">
                   <form className="form-horizontal form-label-left" >
-                    { renderFields(dataSource) }
-                    <div className="form-group">
-                      <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                        <button type="button" className="btn btn-xs btn-default" onClick={reset} disabled={ submitting }>
-                          <i className="fa fa-undo"></i>{ " Undo"}
-                        </button>
-                        <button type="button" className="btn btn-xs btn-success" onClick={handleSubmit(handleFormSubmit)} disabled={ pristine || submitting }>
-                          <i className="fa fa-check"></i>{ " Ok"}
-                        </button>
+                    <Field
+                      key={"country"}
+                      name={ "country" }
+                      type= { "text" }
+                      initialValue = { this.dataSource.country}
+                      component={renderField}
+                      label={ "Country" }
+                      normalize={ null}
+                      readOnly={ false }
+                    />
+                    <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                      <div className="x_panel">
+                        <div className="x_title">
+                          <h5>Available Components <small> Add or Remove Components</small></h5>
+                          <div className="clearfix"></div>
+                        </div>
+                        <div className="x_content">
+                        <table className="table table-hover">
+                          <tbody>
+                            {
+                              this.renderComponents(this.props.components)
+                            }
+                          </tbody>
+                        </table>
                       </div>
-                   </div>
-                  </form>
-                  <div className="clearfix"></div>
-                </div>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                      <button type="button" className="btn btn-xs btn-default" onClick={reset} disabled={ submitting }>
+                        <i className="fa fa-undo"></i>{ " Undo"}
+                      </button>
+                      <button type="button" className="btn btn-xs btn-success" onClick={handleSubmit(handleFormSubmit)} disabled={ pristine || submitting }>
+                        <i className="fa fa-check"></i>{ " Ok"}
+                      </button>
+                    </div>
+                 </div>
+                </form>
+                <div className="clearfix"></div>
+              </div>
         );
     }
 
-    renderFields(data) {
-        console.log("inputList....", data);
-        let fieldArray = [];
-        let localValues = {};
-        const inputList = Object.keys(data);
-        inputList.map((item, index) => {
-            ['master_conn_details','tenant_conn_details','id'].includes(item) ?
-            '':
-            fieldArray.push(
-                <Field
-                  key={index}
-                  name={ item }
-                  type= { "text" }
-                  initialValue = { data[item]}
-                  component={renderField}
-                  label={ _.capitalize(item.replace(/\_/g,' ')) }
-                  normalize={ null}
-                  readOnly={ false }
-                />
+    renderComponents(components) {
+        // console.log("inputList.... components.....", components);
+        let componentsArray = [];
+        components.map((item, index) => {
+            componentsArray.push(
+              <tr>
+                <td>
+                  <label className="switch">
+                    <Field
+                      name={ item.component }
+                      type= { "checkbox" }
+                      component={"input"}
+                    />
+                    <span className="slider round"></span>
+                  </label>
+                </td>
+                <td>
+                  {item.component}
+                </td>
+            </tr>
             );
         });
-        return fieldArray;
+        return componentsArray;
     }
 
 
     handleFormSubmit(data) {
-        console.log('Connection Details Submitted!', data);
+        // console.log('Connection Details Submitted!', data);
         this.props.saveComponentChanges(data);
     }
 
@@ -187,12 +239,16 @@ function mapStateToProps(state) {
     //console.log("On map state of Manage Users:", state);
     return {
         login_details:state.login_store,
+        components: state.sharedData.components
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         // TODO
+        fetchComponents:(component) =>{
+          dispatch(actionFetchComponents(component));
+        }
     };
 };
 

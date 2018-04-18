@@ -5,7 +5,12 @@ import { connect } from 'react-redux';
 import { dispatch } from 'redux';
 import { Field, reduxForm, formValueSelector } from 'redux-form';
 import _ from 'lodash';
+import {
+  actionTestConnection
+} from '../../../actions/SharedDataAction';
 require('./ModifySubscriber.css');
+
+const selector = formValueSelector('selectingFormValues');
 
 const renderField = ({ input, label, type, initialValue, readOnly, meta: { touched, error }}) => (
     <div className="form-group">
@@ -62,6 +67,7 @@ class ModifyConnection extends Component {
         this.dataSource = this.props.connDetails ? this.props.connDetails : this.defaultConn;
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
+        this.handleTestConnection = this.handleTestConnection.bind(this);
     }
 
     componentWillMount() {
@@ -110,7 +116,7 @@ class ModifyConnection extends Component {
     }
 
     renderForm() {
-        const { dataSource, renderFields, handleFormSubmit } = this;
+        const { dataSource, renderFields, handleFormSubmit, handleTestConnection } = this;
         const { handleSubmit, reset, pristine, dirty, submitting } = this.props;
         if (dataSource == null) {
             return(<h1>Loading...</h1>);
@@ -134,6 +140,9 @@ class ModifyConnection extends Component {
                         </button>
                         <button type="button" className="btn btn-xs btn-success" onClick={handleSubmit(handleFormSubmit)} disabled={ pristine || submitting }>
                           <i className="fa fa-check"></i>{ " Ok"}
+                        </button>
+                        <button type="button" className="btn btn-xs btn-primary" onClick={handleSubmit(handleTestConnection)} disabled={ submitting }>
+                          <i className="fa fa-chain"></i>{ " Test Connection"}
                         </button>
                       </div>
                    </div>
@@ -175,18 +184,27 @@ class ModifyConnection extends Component {
         this.props.saveConnChanges(data, this.connType);
     }
 
+    handleTestConnection(data){
+      console.log('Connection Details testing Submitted!', data);
+      this.props.testConnection(data);
+    }
+
 }
 
 function mapStateToProps(state) {
     //console.log("On map state of Manage Users:", state);
     return {
         login_details:state.login_store,
+        testConnection: state.sharedData.testConnection,
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
         // TODO
+        testConnection: (connection) => {
+          dispatch(actionTestConnection(connection));
+        },
     };
 };
 
