@@ -1,5 +1,5 @@
 export const componentMaptoName={
-    CaptureReportTemplate:"Capture Report Template",
+    CaptureTemplate:"Capture Report Template",
     RegOpzDataGrid:"Data Grid",
     MaintainBusinessRules:"Maintain Business Rules",
     AddBusinessRule:"Add Business Rule",
@@ -17,7 +17,7 @@ export const componentMaptoName={
     ManageDefChange:"Manage Definition Change",
     ManageDataChange:"Manage Data Change",
     ManageRolesComponent:"Manage Roles",
-    ManageUsers:"Manage Users",
+    ManageUsersComponent:"Manage Users",
     LoadData: "Load Data",
     ManageSubscribersComponent: "Subscriber Management",
     MaintainBusinessRulesRepository: "Maintain Business Rules Repository"

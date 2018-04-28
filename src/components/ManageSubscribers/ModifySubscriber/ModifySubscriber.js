@@ -12,11 +12,14 @@ import Breadcrumbs from 'react-breadcrumbs';
 import {
   actionUpdateTenant
 } from '../../../actions/TenantsAction';
+import {
+  actionFetchCountries
+} from '../../../actions/SharedDataAction';
 import ModifyConnection from './ModifyConnection';
 import ModifyComponents from './ModifyComponents';
 require('./ModifySubscriber.css');
 
-const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) => (
+const renderField = ({ input, label, type, readOnly, selectList, meta: { touched, error }}) => (
     <div className="form-group">
       <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor={label}>
         { label }
@@ -44,12 +47,36 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
           <DatePicker {...input}
            placeholderText={label}
            id={label}
-           dateFormat="DD-MMM-YYYY"
-           selected={input.value ? moment(input.value, 'DD-MMM-YYYY') : null}
+           dateFormat="DD MMM YYYY"
+           selected={moment.utc(input.value)}
            showMonthDropdown
            showYearDropdown
            monthsShown={2}
            className="view_data_date_picker_input form-control"/>
+        }
+        {
+          type=="select" &&
+          <select {...input}
+           placeholder={label}
+           type={type}
+           id={label}
+           readOnly={ readOnly }
+           className="form-control col-md-3 col-sm-3 col-xs-12">
+            <option value=""></option>
+            {
+               ((options) => {
+                   let optionList = [];
+                   options.map((item, index) => {
+                       optionList.push(
+                           <option key={index} value={item.country}>
+                               { item.country + " - " + item.country_name }
+                           </option>
+                       );
+                   });
+                   return optionList;
+               })(selectList)
+             }
+          </select>
         }
          {
             touched &&
@@ -78,7 +105,7 @@ const validate = (values) => {
         errors.tenant_email = "Invalid email address.";
     }
 
-    if (moment(values.subscription_end_date,'DD-MMM-YYYY') < moment(values.subscription_start_date,'DD-MMM-YYYY')) {
+    if (moment.utc(values.subscription_end_date) < moment.utc(values.subscription_start_date)) {
         errors.subscription_end_date = "Subscription end date can not be earlier than start date.";
     }
 
@@ -116,6 +143,7 @@ class ModifySubscriber extends Component {
 
     componentWillMount() {
         // TODO
+        this.props.fetchCountries();
     }
 
     componentWillUpdate() {
@@ -126,6 +154,8 @@ class ModifySubscriber extends Component {
         // TODO
         // console.log("Inside componentDidUpdate.......",this.dataSource)
         if (this.toInitialise) {
+            this.dataSource.subscription_start_date=this.dataSource.subscription_start_date ? moment.utc(this.dataSource.subscription_start_date) : moment.utc();
+            this.dataSource.subscription_end_date=this.dataSource.subscription_end_date ? moment.utc(this.dataSource.subscription_end_date) : moment.utc();
             this.props.initialize(this.dataSource);
             this.toInitialise = false;
         }
@@ -136,6 +166,8 @@ class ModifySubscriber extends Component {
           //console.log("Inside componentDidMount", this.initialValues, this.shouldUpdate)
           document.title = "RegOpz Dashboard | Edit Subscriber";
           if (this.toInitialise) {
+              this.dataSource.subscription_start_date=this.dataSource.subscription_start_date ? moment.utc(this.dataSource.subscription_start_date) : moment.utc();
+              this.dataSource.subscription_end_date=this.dataSource.subscription_end_date ? moment.utc(this.dataSource.subscription_end_date) : moment.utc();
               this.props.initialize(this.dataSource);
               this.toInitialise = false;
           }
@@ -152,11 +184,11 @@ class ModifySubscriber extends Component {
 
     renderForm() {
         const { dataSource, renderFields, handleFormSubmit, handleCancel, handleDelete, disableSubmit } = this;
-        const { handleSubmit, pristine, dirty, submitting } = this.props;
-        if (dataSource == null) {
-            return(<h1>Loading...</h1>);
+        const { countries, handleSubmit, pristine, dirty, submitting } = this.props;
+        if (dataSource == null || countries == null) {
+            return(<h4>Loading...</h4>);
         } else if (typeof dataSource == 'undefined') {
-            return (<h1>Data not found...</h1>);
+            return (<h4>Data not found...</h4>);
         }
         return(
             <div className="form-container">
@@ -192,7 +224,7 @@ class ModifySubscriber extends Component {
                               <div className="clearfix"></div>
                             </div>
                             <div className="x_content">
-                              { renderFields(dataSource) }
+                              { renderFields(dataSource, countries) }
                               <div className="clearfix"></div>
                             </div>
                           </div>
@@ -345,7 +377,7 @@ class ModifySubscriber extends Component {
                         <button type="submit" className="btn btn-success" disabled={ (disableSubmit && pristine) || submitting }>
                           Submit
                         </button>
-                        <button type="button" className={"btn btn-warning"} onClick={handleDelete} disabled={ dirty || submitting }>
+                        <button type="button" className={"btn btn-warning"} onClick={handleSubmit(handleDelete)} disabled={ dirty || submitting }>
                           Deactivate
                         </button>
                       </div>
@@ -358,7 +390,7 @@ class ModifySubscriber extends Component {
         );
     }
 
-    renderFields(data) {
+    renderFields(data, countries) {
         // console.log("inputList....", data);
         let fieldArray = [];
         let localValues = {};
@@ -366,6 +398,20 @@ class ModifySubscriber extends Component {
         inputList.sort().map((item, index) => {
             ['master_conn_details','tenant_conn_details','id','subscription_details'].includes(item) ?
             '':
+            item == 'country' ?
+            fieldArray.push(
+                <Field
+                  key={index}
+                  name={ item }
+                  type= { "select" }
+                  selectList={ countries }
+                  component={renderField}
+                  label={ _.capitalize(item.replace(/\_/g,' ')) }
+                  normalize={ null}
+                  readOnly={ false }
+                />
+            )
+            :
             fieldArray.push(
                 <Field
                   key={index}
@@ -419,6 +465,8 @@ class ModifySubscriber extends Component {
         newData.tenant_conn_details = this.dataSource.tenant_conn_details;
         newData.master_conn_details = this.dataSource.master_conn_details;
         newData.subscription_details = this.dataSource.subscription_details;
+        newData.subscription_start_date = moment.utc(newData.subscription_start_date);
+        newData.subscription_end_date = moment.utc(newData.subscription_end_date);
         // console.log('User Details Submitted! and new data is: ', newData);
         this.props.updateTenant(newData);
         this.handleCancel();
@@ -451,7 +499,12 @@ class ModifySubscriber extends Component {
         this.props.onCancel();
     }
 
-    handleDelete(event) {
+    handleDelete(data) {
+        let newData = data;
+        newData.subscription_start_date = moment.utc('1900-01-01T00:00:00');
+        newData.subscription_end_date = moment.utc('1900-01-01T00:00:00');
+        // console.log('User Details Submitted! and new data is: ', newData);
+        this.props.updateTenant(newData);
         this.handleCancel();
     }
 }
@@ -461,6 +514,7 @@ function mapStateToProps(state) {
     return {
         login_details:state.login_store,
         tenantDetails: state.tenant_details,
+        countries: state.sharedData.countries,
     };
 }
 
@@ -468,6 +522,9 @@ const mapDispatchToProps = (dispatch) => {
     return {
         updateTenant: (data) => {
             dispatch(actionUpdateTenant(data));
+        },
+        fetchCountries: (country) => {
+            dispatch(actionFetchCountries(country));
         },
     };
 };

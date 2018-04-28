@@ -195,7 +195,7 @@ class MaintainBusinessRulesRepository extends Component {
         tableName: 'business_rules_master',
         rowIndex: []
      },
-      this.props.fetchBusinesRules(this.state.sourceId)
+      this.props.fetchBusinesRules(item.country)
     );
   }
 

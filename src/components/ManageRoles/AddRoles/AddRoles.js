@@ -27,6 +27,8 @@ class AddRolesComponent extends Component {
             showAuditModal: false
         };
         this.dataSource = null;
+        this.domainInfo = this.props.login_details.domainInfo;
+        this.subscribedComponents = JSON.parse(this.domainInfo.subscription_details);
         this.formData = [];
         this.componentList = null;
         this.permissionList = null;
@@ -59,9 +61,12 @@ class AddRolesComponent extends Component {
         }
         if (typeof this.props.permissions !== 'undefined' && this.props.permissions !== null){
           this.permissionList = this.props.permissions;
-          this.componentList = this.permissionList.map(
+          this.componentList = [];
+          // Only subscribed components will be available for role assignment
+          this.permissionList.map(
             (item) => {
-              return { 'component': item.component };
+              let isSubscribed = this.domainInfo.tenant_id=="regopz" ? true : this.subscribedComponents ? this.subscribedComponents[item.component] : false;
+              if (isSubscribed) this.componentList.push({ 'component': item.component });
           });
         }
 
@@ -452,7 +457,8 @@ function mapStateToProps(state) {
         form: state.role_management.form,
         components: state.role_management.components,
         permissions: state.role_management.permissions,
-        message: state.role_management.message
+        message: state.role_management.message,
+        login_details:state.login_store,
     };
 }
 

@@ -84,10 +84,10 @@ class LoginComponent extends Component {
 
     componentWillReceiveProps(nextProps){
 
-      if (!this.error && this.props.domainInfo != nextProps.domainInfo){
+      if (!nextProps.error && this.props.domainInfo != nextProps.domainInfo){
           this.setState({isLoading:false,
                         isDomainValid:(this.whichModal == "Subscribe" && this.state.isModalOpen) ? false : true});
-      } else if(this.error){
+      } else if(nextProps.error){
           this.setState({ isLoading:false});
       }
     }

@@ -60,7 +60,7 @@ class MaintainBusinessRules extends Component {
       filtered: []
     }
 
-    this.subscriptionDetails = JSON.parse(this.props.login_details.domainInfo.subscription_details);
+    this.domainInfo = this.props.login_details.domainInfo;
     this.ruleFilterParam=this.props.ruleFilterParam;
     this.flagRuleDrillDown=this.props.flagRuleDrillDown ? this.props.flagRuleDrillDown : false;
     this.pages=0;
@@ -708,7 +708,7 @@ class MaintainBusinessRules extends Component {
                 <MaintainBusinessRulesRepository
                 privileges={ component ? component.permissions : null }
                 tenantSource={ tenantSource }
-                sourceId={ this.subscriptionDetails ? this.subscriptionDetails.country: "" }
+                sourceId={ this.domainInfo ? this.domainInfo.country: "" }
                 tenantRenderType={"copyRule"}
                 showBusinessRuleGrid={"showBusinessRuleGrid"}
                 handleCancel={this.handleRuleRepositoryClick}/>

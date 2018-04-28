@@ -78,9 +78,7 @@ module.exports = {
                 drop_console: true,
                 warnings: false
             },
-            mangle: {
-                except: ['$super', '$', 'exports', 'require']
-            },
+            mangle: false, // To avoid production server issue with minified function names!!!!
             output: {
                 comments: false
             }

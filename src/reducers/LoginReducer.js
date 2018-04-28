@@ -42,9 +42,12 @@ export default function(state = {}, action) {
 
     case DOMAIN_REQUEST:
       if(!action.error){
-            const { domainInfo } = helperLogin(action.payload.data);
-            sessionStorage.setItem('RegOpzToken', action.payload.data);
-            return {domainInfo: JSON.parse(domainInfo), error:null};
+            // Lets keep token and login_details store data separate. Also ensure that
+            // tenant and master connection details are always encrypted and not available in store.
+            const { token, subscriptionInfo } = action.payload.data;
+            // const { domainInfo } = helperLogin(token);
+            sessionStorage.setItem('RegOpzToken', token);
+            return {domainInfo: subscriptionInfo, error:null};
         } else {
             return { error: action.payload.response.data.msg };
         }

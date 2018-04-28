@@ -71,7 +71,10 @@ class DataChangeList extends Component{
   render(){
     let {audit_list}=this.props;
     if(!audit_list){
-      return(<div> </div>);
+      return(<div><h4>Loading....</h4> </div>);
+    }
+    else if(audit_list && audit_list.length ==0){
+      return(<div><h5>No pending change found.</h5> </div>);
     }
 
     let userOnlyAuditList=audit_list.filter((element)=>{

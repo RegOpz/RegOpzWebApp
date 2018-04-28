@@ -13,9 +13,15 @@ export default function authenticate(ComposedComponent){
 
       render(){
         const name=componentMaptoName[getDisplayName(ComposedComponent).replace("Connect(",'').replace(")",'')];
+        const subscribedComponents=JSON.parse(this.props.login_details.domainInfo.subscription_details);
         console.log("Render function,Authentication.....",name,ComposedComponent,getDisplayName(ComposedComponent));
         console.log("Render function called, Authentication.....",this.props.login_details);
-        const component=_.find(this.props.login_details.permission,{component:name});
+        let component = null;
+        // Do not check subscriptiondetails for team regopz, else check subscription details to determine access
+        if ((this.props.login_details.domainInfo.tenant_id=='regopz')
+            || (subscribedComponents && subscribedComponents[name])) {
+          component = _.find(this.props.login_details.permission,{component:name});
+        }
         if(! component) {
           return <AccessDenied
                   component={name}/>

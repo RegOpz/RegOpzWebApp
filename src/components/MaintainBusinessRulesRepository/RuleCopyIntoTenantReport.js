@@ -123,8 +123,8 @@ class RuleCopyIntoTenantReport extends Component {
                                 <th>Rule</th>
                                 <th>Rule Description</th>
                                 <th>Tenant Rule Logic</th>
-                                <th>Ref</th>
                                 <th>In use</th>
+                                <th>Reference</th>
                               </tr>
                             </thead>
                             <tbody>

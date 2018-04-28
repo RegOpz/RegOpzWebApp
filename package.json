@@ -64,6 +64,7 @@
     "redux": "^3.0.4",
     "redux-form": "^7.0.1",
     "redux-promise": "^0.5.3",
-    "sorty": "^1.2.2"
+    "sorty": "^1.2.2",
+    "react-favicon":"^0.0.14"
   }
 }

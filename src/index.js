@@ -12,6 +12,7 @@ import {
 import { Provider, connect } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
 import promiseMiddleware from 'redux-promise';
+import Favicon from 'react-favicon';
 import promiseRejectMiddleWare from './middlewares/promiseRejectMiddleWare';
 import reducers from './reducers';
 import { actionRelogin } from './actions/LoginAction';
@@ -99,6 +100,7 @@ class Index extends Component {
 
         return (
             <div>
+                <Favicon url="./images/favicon/favicon.ico" />
                 <NotificationSystem ref="notificationSystem" />
                 {
                     ComponentToRender !== null ?
@@ -135,11 +137,11 @@ ReactDOM.render(
                 <Route path="dashboard" name="Dashboard" component={Dashboard} >
                     <IndexRoute component={DashboardIndex} />
                     <Route path="profile" component={Profile} name="Profile" />
-                    <Route path="capture-report-template" name="Capture Report Template" component={CaptureReportTemplate} />
+                    <Route path="capture-report-template" name="Capture Report Template" component={authenticate(CaptureReportTemplate)} />
                     <Route path="data-grid" name="Data Grid" component={RegOpzDataGrid} />
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
                     <Route path="view-data" name="View Data" component={authenticate(ViewDataComponentV2)} />
-                    <Route path="load-data" name="Load Data" component={LoadData} />
+                    <Route path="load-data" name="Load Data" component={authenticate(LoadData)} />
                     <Route path="view-report" name="View Report" component={authenticate(ViewReport)} />
                     <Route path="create-report" name="Create Report" component={authenticate(CreateReport)} />
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
@@ -148,7 +150,7 @@ ReactDOM.render(
                     <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(ManageDefChange)} />
                     <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(ManageDataChange)} />
                     <Route path="manage-roles" name="Role Management" component={authenticate(ManageRoles)} />
-                    <Route path="manage-users" name="User Management" component={ManageUsers} />
+                    <Route path="manage-users" name="User Management" component={authenticate(ManageUsers)} />
                     <Route path="manage-users/edit-user" name="Edit User" component={EditUsers} />
                     <Route path="manage-subscribers" name="Subscriber Management" component={authenticate(ManageSubscribers)} />
                     <Route path="maintain-business-rules-repo" name="Maintain Business Rules Repository" component={authenticate(MaintainBusinessRulesRepository)} />
