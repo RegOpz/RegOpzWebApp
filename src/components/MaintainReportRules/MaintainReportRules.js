@@ -81,8 +81,10 @@ class MaintainReportRules extends Component {
               eventKey={2}
               title={"Dynamic Aggregation"}
             >
-              <div>
-                <h4><i className="fa fa-cogs"></i> <i className="fa fa-wrench"></i>  Build in progress ....</h4>
+              <div className="x_panel">
+                <div className="x_content">
+                  <h4><i className="fa fa-cogs"></i> <i className="fa fa-wrench"></i>  Build in progress ....</h4>
+                </div>
               </div>
             </Tab>
           </Tabs>

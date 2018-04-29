@@ -17,7 +17,7 @@ class CaptureTemplate extends Component {
     this.state = {
       report_type: "",
       report_id:"",
-      country:"",
+      country:this.props.login_details.domainInfo.country,
       report_description:"",
     };
   }
@@ -71,6 +71,7 @@ class CaptureTemplate extends Component {
                             name="country"
                             maxLength="2"
                             required="required"
+                            readOnly="readOnly"
                             onChange={
                               (event) => {
                                 this.setState( {
@@ -216,7 +217,8 @@ class CaptureTemplate extends Component {
 
 function mapStateToProps(state){
   return {
-      captureTemplateMsg: state.capture_template
+      captureTemplateMsg: state.capture_template,
+      login_details: state.login_details
   };
 }
 

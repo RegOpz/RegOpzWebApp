@@ -78,7 +78,7 @@ module.exports = {
                 drop_console: true,
                 warnings: false
             },
-            mangle: false, // To avoid production server issue with minified function names!!!!
+            mangle: true,
             output: {
                 comments: false
             }

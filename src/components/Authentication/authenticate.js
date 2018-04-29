@@ -12,7 +12,9 @@ export default function authenticate(ComposedComponent){
      }
 
       render(){
-        const name=componentMaptoName[getDisplayName(ComposedComponent).replace("Connect(",'').replace(")",'')];
+        // const name=componentMaptoName[getDisplayName(ComposedComponent).replace("Connect(",'').replace(")",'')];
+        console.log("ComposedComponent......", this.props.route.name);
+        const name=this.props.route.name;
         const subscribedComponents=JSON.parse(this.props.login_details.domainInfo.subscription_details);
         console.log("Render function,Authentication.....",name,ComposedComponent,getDisplayName(ComposedComponent));
         console.log("Render function called, Authentication.....",this.props.login_details);

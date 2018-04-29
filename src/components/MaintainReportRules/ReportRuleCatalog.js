@@ -13,7 +13,7 @@ class ReportCatalogList extends Component {
       endDate: null,
       filterText: null,
       navMenu: this.props.navMenu,
-      open: {}
+      open: false
     }
     this.dataCatalog = this.props.dataCatalog;
     this.constantFilter = this.props.constantFilter ? this.props.constantFilter : null;
@@ -176,7 +176,7 @@ class ReportCatalogList extends Component {
                     key={index}
                     header={<h3>{item.country}</h3>}
                     collapsible
-                    expanded={ this.state.open === item.country }
+                    expanded={ linkageData.length ==1 ? true : this.state.open === item.country }
                     onClick={ () => {
                         let flag = this.state.open === item.country ? false : item.country;
                         this.setState({ open: flag })

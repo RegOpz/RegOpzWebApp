@@ -35,6 +35,7 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
 import RuleReportLinkage from './RuleReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import AccessDenied from '../Authentication/AccessDenied';
 import MaintainBusinessRulesRepository from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 require('react-datepicker/dist/react-datepicker.css');
 require('./MaintainBusinessRules.css');

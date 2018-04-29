@@ -451,8 +451,10 @@ class MaintainFixedFormatReportRules extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
+                      const component=_.find(this.props.login_details.permission,{component:"Maintain Business Rules"});
                       content.push(
                           <ViewBusinessRules
+                            privileges={ component ? component.permissions : null }
                             showBusinessRuleGrid={true}
                             flagRuleDrillDown={true}
                             sourceId={this.businessRuleFilterParam.source_id}
