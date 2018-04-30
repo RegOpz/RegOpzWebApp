@@ -18,12 +18,18 @@ export default function(state = {}, action) {
   switch (action.type) {
     case LOGIN_REQUEST:
       try {
-        const { userId, name, role, permission, domainInfo } = helperLogin(action.payload.data);
-        sessionStorage.setItem('RegOpzToken', action.payload.data);
-        return Object.assign({}, state, {
-          user: userId, name: name, role: role, permission: permission, error: null
-        });
-        // return { user: userId, name: name, role: role, permission: permission, error: null };
+        if (action.error){
+          let loginTime = new Date()
+          return Object.assign({}, state, {
+            user: null, name: null, role: null, permission: null,error: loginTime.toLocaleString()+" " +action.payload.response.data.msg
+          });
+        } else {
+          const { userId, name, role, permission, domainInfo } = helperLogin(action.payload.data);
+          sessionStorage.setItem('RegOpzToken', action.payload.data);
+          return Object.assign({}, state, {
+            user: userId, name: name, role: role, permission: permission, error: null
+          });
+        }
       } catch (err) {
         return Object.assign({}, state, { error: err.message });
       }
@@ -49,7 +55,8 @@ export default function(state = {}, action) {
             sessionStorage.setItem('RegOpzToken', token);
             return {domainInfo: subscriptionInfo, error:null};
         } else {
-            return { error: action.payload.response.data.msg };
+            let loginTime = new Date()
+            return { error: loginTime.toLocaleString() + " : " + action.payload.response.data.msg };
         }
 
     default:

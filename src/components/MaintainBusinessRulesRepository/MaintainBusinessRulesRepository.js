@@ -78,7 +78,7 @@ class MaintainBusinessRulesRepository extends Component {
       this.buttons=[
         {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
         {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
-        {title: 'Copy Rule', iconClass: 'fa-rocket', checkDisabled: 'No', className: "btn-success"},
+        {title: 'Copy Rule', iconClass: 'fa-rocket', checkDisabled: 'Yes', className: "btn-success"},
         {title: 'Report Link', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-info"},
         {title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary"},
         {title: 'Deselect', iconClass: 'fa-window-maximize', checkDisabled: 'No', className: "btn-default"},
@@ -209,6 +209,8 @@ class MaintainBusinessRulesRepository extends Component {
         return !this.writeOnly;
       case "Delete":
         return (!this.writeOnly || !this.state.itemEditable);
+      case "Copy Rule":
+        return !this.writeOnly;
       default:
         console.log("No specific checkDisabled has been defined for ",item);
     }

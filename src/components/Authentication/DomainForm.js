@@ -6,11 +6,13 @@ class DomainForm extends Component{
       this.state = {
           domainName:null
       };
+      this.error = this.props.error;
       this.onChange = this.onChange.bind(this);
       this.onNext = this.onNext.bind(this);
   }
 
   onChange(event){
+      this.error="";
       this.setState({ [event.target.name]: event.target.value });
   }
 
@@ -24,7 +26,6 @@ class DomainForm extends Component{
 
   render(){
     const {domainName}=this.state;
-    const {error}=this.props;
     return(
       <div>
           <a className="hiddenanchor" id="signup"></a>
@@ -49,7 +50,7 @@ class DomainForm extends Component{
                                 title={this.state.domainName ? "" : "Please enter subscription id"}
                                 required="required"/>
                                 <span className="fa fa-bank form-control-feedback right"></span>
-                                { error ? <div className="red">{error}</div> : '' }
+                                { this.error ? <div className="red">{this.error}</div> : '' }
                             </div>
                             <div>
                                 <button className="btn btn-primary btn-sm submit" onClick={ this.onNext } disabled={!(domainName)}>Next</button>

@@ -448,8 +448,10 @@ class ViewReport extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
+                      const permissions=[{"permission": "View Business Rules"}];
                       content.push(
                           <ViewBusinessRules
+                            privileges={ permissions }
                             showBusinessRuleGrid={true}
                             flagRuleDrillDown={true}
                             sourceId={this.businessRuleFilterParam.source_id}

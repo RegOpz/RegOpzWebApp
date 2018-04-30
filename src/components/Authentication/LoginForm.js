@@ -11,11 +11,13 @@ class LoginForm extends Component {
           username: null,
           password: null
       };
+      this.error=this.props.error;
       this.onChange = this.onChange.bind(this);
       this.onSubmit = this.onSubmit.bind(this);
   }
 
   onChange(event) {
+    this.error="";
     this.setState({ [event.target.name]: event.target.value });
   }
 
@@ -28,7 +30,6 @@ class LoginForm extends Component {
 
   render(){
     const { username, password} = this.state;
-    const {error}=this.props;
     return(
       <div>
           <a className="hiddenanchor" id="signup"></a>
@@ -71,7 +72,7 @@ class LoginForm extends Component {
                                 title={this.state.password ? "" : "Please enter password"}
                                 required="required"/>
                                 <span className="fa fa-eye-slash form-control-feedback right"></span>
-                                { error ? <div className="red">Couldn't match your account details, please check!</div> : '' }
+                                { this.error ? <div className="red">Couldn't match your account details, please check!</div> : '' }
                             </div>
                             <div>
 

@@ -34,6 +34,7 @@ class LoginComponent extends Component {
         return (
             <div>
                  { !this.state.isDomainValid &&
+                   !this.state.isLoading &&
                    <DomainForm
                      onNext={this.onNext}
                      error={this.props.error}
@@ -42,6 +43,7 @@ class LoginComponent extends Component {
                    }
 
                    { this.state.isDomainValid &&
+                     !this.state.isLoading &&
                      <LoginForm
                        onSubmit={this.onSubmit}
                        onSignup={this.onSignup}
@@ -50,7 +52,34 @@ class LoginComponent extends Component {
                        isLoading={this.state.isLoading}
                       />
                    }
-
+                   {
+                     this.state.isLoading &&
+                     <div className="login_wrapper">
+                       <div className="animate form login_form">
+                         <div className="x_panel">
+                           <div className="x_content">
+                             <section className="login_content">
+                              <form>
+                               <h1>RegOpz Login</h1>
+                               <div>
+                                 <div><img type="image/gif" src="./images/regopz_30pcnt.gif"></img></div>
+                                 <br/>
+                                 <div><span>Validating credentials, please wait....</span></div>
+                               </div>
+                               <div className="separator">
+                                 <div className="clearfix"></div>
+                                 <div className="copyright">
+                                     <h2></h2>
+                                     <p>©2017-18 All Rights Reserved. RegOpz Pvt. Ltd.</p>
+                                 </div>
+                               </div>
+                              </form>
+                             </section>
+                           </div>
+                         </div>
+                       </div>
+                     </div>
+                   }
                 <Modal
                   show={this.state.isModalOpen}
                   container={this}
@@ -87,44 +116,43 @@ class LoginComponent extends Component {
       if (!nextProps.error && this.props.domainInfo != nextProps.domainInfo){
           this.setState({isLoading:false,
                         isDomainValid:(this.whichModal == "Subscribe" && this.state.isModalOpen) ? false : true});
-      } else if(nextProps.error){
+      } else if(nextProps.error && this.state.isLoading && this.props !== nextProps){
           this.setState({ isLoading:false});
+      } else if (nextProps.permissions){
+        this.setState({ isLoading:false},
+                      hashHistory.push(encodeURI('/'))
+                      );
       }
     }
 
     onSubmit(username,password) {
-        this.setState({ isLoading: true });
         var data = {
           username: username,
           password: password
         };
-        console.log("Inside onSubmit Login", data);
-        this.props.loginRequest(data);
-        this.setState({isLoading: false });
-        hashHistory.push(encodeURI('/'));
+        this.setState({ isLoading: true },
+                      this.props.loginRequest(data)
+                      );
     }
 
     onSignup(event) {
       event.preventDefault();
-      //this.modalAlert.open(<Signup/>);
       this.whichModal = "Signup";
       this.setState({isModalOpen:true})
-      //hashHistory.push('/signup');
     }
 
     onSubscribe(event) {
       event.preventDefault();
-      //this.modalAlert.open(<Signup/>);
       console.log("whichModal",this.whichModal);
       this.whichModal = "Subscribe";
       console.log("whichModal",this.whichModal);
       this.setState({isModalOpen:true})
-      //hashHistory.push('/signup');
     }
 
     onNext(domainName){
-      this.props.domainRequest(domainName);
-      this.setState({isLoading:true});
+      this.setState({isLoading:true},
+                    this.props.domainRequest(domainName)
+                    );
     }
 }
 
