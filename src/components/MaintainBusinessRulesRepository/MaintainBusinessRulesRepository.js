@@ -45,7 +45,10 @@ class MaintainBusinessRulesRepository extends Component {
       display: (this.props.showBusinessRuleGrid ? "showBusinessRuleGrid" : false),
       sources:null,
       itemEditable: true,
-      sourceId: (this.props.sourceId ? this.props.sourceId : null),
+      sourceId: (this.props.login_details.domainInfo.tenant_id != "regopz" ?
+                  this.props.login_details.domainInfo.country
+                  :
+                  null),
       showAuditModal: false,
       sourceFileName: null,
       sourceDescription: null,
@@ -147,7 +150,7 @@ class MaintainBusinessRulesRepository extends Component {
       // Render only the grid of the subscribe country for tenant.
       this.props.fetchBusinesRules(this.state.sourceId)
     } else {
-      this.props.fetchCountries();
+      this.props.fetchCountries(this.state.sourceId);
     }
   }
 

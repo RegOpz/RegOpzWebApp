@@ -37,7 +37,9 @@ export default function(state = {}, action) {
       try {
         const { userId, name, role, permission, domainInfo } = helperLogin(action.payload);
         // setTenantDetail(domainInfo);
-        return { user: userId, name: name, role: role, permission: permission, error: null, domainInfo: JSON.parse(domainInfo) };
+        const {tenant_id,country,tenant_description,subscription_details}=JSON.parse(domainInfo);
+        let subscriptionInfo={tenant_id,country,tenant_description,subscription_details};
+        return { user: userId, name: name, role: role, permission: permission, error: null, domainInfo:subscriptionInfo  };
       } catch (err) {
         return { error: err.message };
       }

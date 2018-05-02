@@ -68,6 +68,9 @@ class TenantLeftMenu extends Component {
                           <i className="fa fa-pencil-square-o"></i> Content Management<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
+                        <li>
+                            <a href="#/dashboard/maintain-business-rules-repo" onClick={this.handleLeftMenuClick}>Business Rules Repository</a>
+                        </li>
                       </ul>
                   </li>
                   <li>

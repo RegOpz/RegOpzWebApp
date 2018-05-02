@@ -23,7 +23,7 @@ class LeftMenu extends Component {
                 <div className="left_col scroll-view">
                     <div className="navbar nav_title">
                         <a href="#/dashboard" className="site_title">
-                            <i className="fa fa-paw"></i>
+                            <img src="./images/favicon/favicon-32x32.png" alt="..." />
                             <span> RegOpz Dash!</span>
                         </a>
                     </div>

@@ -24,6 +24,7 @@ import DisplayMessageReducer from './MiddleWareReducer';
 import CaptureTemplateReducer from './CaptureReportTemplateReducer';
 import TransactionReportReducer from './TransactionReportReducer';
 import BusinessRulesRepositoryReducer from './BusinessRulesRepositoryReducer';
+import ReportRulesRepositoryReducer from './ReportRulesRepositoryReducer';
 import ShredDataReducer from './SharedDataReducer';
 
 const rootReducer = combineReducers({
@@ -53,6 +54,7 @@ const rootReducer = combineReducers({
   capture_template:CaptureTemplateReducer,
   transreport: TransactionReportReducer,
   business_rules_repo: BusinessRulesRepositoryReducer,
+  report_rules_repo: ReportRulesRepositoryReducer,
   sharedData: ShredDataReducer,
 });
 

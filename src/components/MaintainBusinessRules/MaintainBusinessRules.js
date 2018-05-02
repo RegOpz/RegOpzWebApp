@@ -711,7 +711,6 @@ class MaintainBusinessRules extends Component {
                 <MaintainBusinessRulesRepository
                 privileges={ component ? component.permissions : null }
                 tenantSource={ tenantSource }
-                sourceId={ this.domainInfo ? this.domainInfo.country: "" }
                 tenantRenderType={"copyRule"}
                 showBusinessRuleGrid={"showBusinessRuleGrid"}
                 handleCancel={this.handleRuleRepositoryClick}/>

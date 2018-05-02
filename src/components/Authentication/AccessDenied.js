@@ -17,7 +17,7 @@ class AccessDenied extends Component{
               </p>
               <div className="mid_center">
                 <h5>Back to RegOpz Dash!</h5>
-                <h1><a href="#/dashboard"><i className="fa fa-home"></i></a></h1>
+                <h1><a href="#/dashboard"><img src="./images/favicon/favicon-32x32.png" alt="..." /></a></h1>
               </div>
             </div>
           </div>
