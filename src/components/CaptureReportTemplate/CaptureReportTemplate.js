@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Modal } from 'react-bootstrap';
 import { Field, reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
@@ -112,6 +113,8 @@ class CaptureTemplate extends Component {
         super(props);
         this.state={
           isSubmitted: false,
+          isOverRide: false,
+          isModalOpen: false,
         }
         this.domainInfo = this.props.login_details.domainInfo;
         this.reportFormatList=[ {'value':'', 'description':'Pleaes choose a format'},
@@ -133,7 +136,7 @@ class CaptureTemplate extends Component {
       if(!nextProps.captureTemplateMsg.error && this.state.isSubmitted){
           this.props.reset();
           document.getElementById('fileInput').value = null;
-          this.setState({isSubmitted:false});
+          this.setState({isSubmitted:true});
       }
     }
 
@@ -212,6 +215,21 @@ class CaptureTemplate extends Component {
                 </div>
               </div>
             </div>
+            <Modal
+              show={this.state.isModalOpen}
+              container={this}
+              onHide={(event) => {
+                  this.setState({isModalOpen:false});
+                }}
+            >
+              <Modal.Header closeButton >
+                <h2>Re-capture  <small>document.getElementById('report_id').value</small></h2>
+              </Modal.Header>
+
+              <Modal.Body>
+                Report currently exists, do you want to override?
+              </Modal.Body>
+            </Modal>
           </div>
         );
     }
@@ -220,6 +238,7 @@ class CaptureTemplate extends Component {
         // console.log("inside handleFormSubmit",data,$("#uploadForm")[0],data.fileInput[0]);
         const { reset } = this.props;
         var newData = new FormData($("#uploadForm")[0]);
+        newData.append('domain_type', this.domainInfo.tenant_id=='regopz' ? 'master': '')
         newData.append('file', data.fileInput[0]);
         this.setState({isSubmitted:true},
                       this.props.loadTemplate(newData,data.report_type));
