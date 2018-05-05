@@ -312,7 +312,8 @@ class MaintainFixedFormatReportRules extends Component {
       //console.log("Repot Linkage",this.props.change_history);
       let sheetName = this.props.gridDataViewReport[0].sheet;
       this.setState({
-        display: "showHistory"
+        display: "showHistory",
+        selectedAuditSheet: 0,
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
       );

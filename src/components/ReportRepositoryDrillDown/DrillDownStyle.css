@@ -1,0 +1,31 @@
+.reg_table_drill_down > thead > tr > th {
+  vertical-align: middle;
+  text-align: left;
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+.reg_table_drill_down > tbody > tr > td {
+  text-align: left;
+  vertical-align: middle !important;
+  word-wrap: break-word;
+  padding: 10px;
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+}
+.breadcrumb {
+  padding-left: 0px;
+}
+
+.reg_cell_formula {
+  overflow-wrap: break-word;
+  background: #e2e2e2;
+  border: none;
+  color: #5A738E;
+}
+
+.table-content-wrap {
+  word-break: break-all;
+}

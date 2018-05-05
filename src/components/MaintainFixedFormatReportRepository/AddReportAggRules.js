@@ -6,11 +6,9 @@ import {connect} from 'react-redux';
 import {dispatch} from 'redux';
 import {
   actionInsertRuleData,
-  actionUpdateRuleData
-} from '../../actions/MaintainReportRuleAction';
-import {
-  actionDrillDown
-} from '../../actions/CaptureReportAction';
+  actionUpdateRuleData,
+  actionRepoDrillDown,
+} from '../../actions/ReportRulesRepositoryAction';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
 require('../MaintainReportRules/MaintainReportRules.css');
@@ -24,6 +22,8 @@ class AddReportAggRules extends Component {
             report_id: this.props.report_id,
             sheet_id: this.props.sheet_id,
             cell_id: this.props.cell_id,
+            comp_agg_extern_ref: null,
+            cell_agg_decsription: null,
             comp_agg_ref: null,
             comp_agg_rule: null,
             reporting_scale: null,
@@ -153,7 +153,7 @@ class AddReportAggRules extends Component {
 
             <div className="form-group">
               <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="report-id">Report ID <span className="required">*</span></label>
-              <div className="col-md-3 col-sm-3 col-xs-12">
+              <div className="col-md-6 col-sm-6 col-xs-12">
                 <input
                   value={this.state.form.report_id}
                   type="text"
@@ -165,7 +165,7 @@ class AddReportAggRules extends Component {
 
               <div className="form-group">
                 <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="sheet-id">Sheet ID <span className="required">*</span></label>
-                <div className="col-md-3 col-sm-3 col-xs-12">
+                <div className="col-md-6 col-sm-6 col-xs-12">
                   <input
                     value={this.state.form.sheet_id}
                     type="text"
@@ -177,7 +177,7 @@ class AddReportAggRules extends Component {
 
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="cell-id">Cell ID <span className="required">*</span></label>
-                  <div className="col-md-3 col-sm-3 col-xs-12">
+                  <div className="col-md-6 col-sm-6 col-xs-12">
                     <input
                       value={this.state.form.cell_id}
                       type="text"
@@ -189,7 +189,7 @@ class AddReportAggRules extends Component {
 
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation Reference <span className="required">*</span></label>
-                    <div className="col-md-4 col-sm-4 col-xs-12">
+                    <div className="col-md-6 col-sm-6 col-xs-12">
                       <input
                         value={this.state.form.comp_agg_ref}
                         type="text"
@@ -199,6 +199,30 @@ class AddReportAggRules extends Component {
                           let newState = {...this.state};
                           //if(this.checkRuleValidity(event) == "valid") {
                             newState.form.comp_agg_ref = event.target.value;
+                            this.setState(newState);
+                          // }
+                          // else {
+                          //   alert("Invalid formula, please check");
+                          //   this.setState(newState);
+                          // }
+                         }
+                        }
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation External Reference <span className="required">*</span></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <input
+                        value={this.state.form.comp_agg_extern_ref}
+                        type="text"
+                        className="form-control col-md-7 col-xs-12"
+                        readOnly={this.viewOnly}
+                        onChange={(event) => {
+                          let newState = {...this.state};
+                          //if(this.checkRuleValidity(event) == "valid") {
+                            newState.form.comp_agg_extern_ref = event.target.value;
                             this.setState(newState);
                           // }
                           // else {
@@ -284,9 +308,32 @@ class AddReportAggRules extends Component {
                       </div>
                     }
 
-                  <div className="form-group">
+                    <div className="form-group">
+                      <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment">Cell Aggegation Logic <span className="required">*</span></label>
+                      <div className="col-md-6 col-sm-6 col-xs-12">
+                        <textarea
+                          type="text"
+                          placeholder="Description for aggegation logic"
+                          required="required"
+                          className="form-control col-md-7 col-xs-12"
+                          value={this.state.form.cell_agg_decsription}
+                          readOnly={this.viewOnly}
+                          maxLength="3000"
+                          minLength="50"
+                          onChange={
+                            (event) => {
+                              let {form}=this.state;
+                              form.cell_agg_decsription = event.target.value;
+                              this.setState({form});
+                            }
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-scale">Reporting Scale<span className="required">*</span></label>
-                    <div className="col-md-2 col-sm-2 col-xs-12">
+                    <div className="col-md-3 col-sm-3 col-xs-12">
                       <input
                         value={this.state.form.reporting_scale}
                         readOnly={this.viewOnly}
@@ -366,7 +413,7 @@ class AddReportAggRules extends Component {
                   </div>
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comment">Comment<span className="required">*</span></label>
-                    <div className="col-md-5 col-sm-5 col-xs-12">
+                    <div className="col-md-6 col-sm-6 col-xs-12">
                       <textarea
                         value={this.state.audit_form.comment}
                         minLength="20"
@@ -386,7 +433,7 @@ class AddReportAggRules extends Component {
                   </div>
                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="last-update-by">Last Updated By<span className="required">*</span></label>
-                    <div className="col-md-3 col-sm-3 col-xs-12">
+                    <div className="col-md-6 col-sm-6 col-xs-12">
                       <input
                         value={this.state.form.last_updated_by}
                         type="text"
@@ -424,7 +471,7 @@ class AddReportAggRules extends Component {
     event.preventDefault();
     console.log(this.state.form);
     let data = {
-      table_name: "report_comp_agg_def",
+      table_name: "report_comp_agg_def_master",
       update_info: this.state.form
     };
     data['change_type'] = this.state.form.id ? "UPDATE" : "INSERT";
@@ -480,7 +527,7 @@ class AddReportAggRules extends Component {
 function mapStateToProps(state) {
   return{
     //cell_rules: state.report_store.cell_rules,
-    cell_options: state.report_store.cell_rules,
+    cell_options: state.report_rules_repo.cellRules,
     login_details: state.login_store,
   };
 }
@@ -494,7 +541,7 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(actionUpdateRuleData(id, data));
     },
     drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+      dispatch(actionRepoDrillDown(report_id,sheet,cell));
     },
   };
 }

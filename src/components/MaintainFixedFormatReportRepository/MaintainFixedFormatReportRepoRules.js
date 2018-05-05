@@ -9,12 +9,12 @@ import {
   actionFetchReportTemplate,
   actionExportXlsx,
   actionExportRulesXlsx,
-  actionFetchReportChangeHistory,
+  //actionFetchReportChangeHistory,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
   //actionFetchDates,
-  actionFetchReportCatalog,
+  // actionFetchReportCatalog,
   //actionFetchReportLinkage,
   //actionFetchDataChangeHistory,
   actionExportCSV,
@@ -22,8 +22,10 @@ import {
 } from '../../actions/ViewDataAction';
 import {
   actionFetchReportData,
-  actionDrillDown
-} from '../../actions/CaptureReportAction';
+  actionRepoDrillDown,
+  actionFetchReportCatalog,
+  actionFetchRepoReportChangeHistory
+} from '../../actions/ReportRulesRepositoryAction';
 import {
   actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
@@ -36,10 +38,10 @@ import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
-import DrillDownRules from '../DrillDown/DrillDownRules';
+import DrillDownRules from '../ReportRepositoryDrillDown/DrillDownRules';
 import AddReportAggRules from './AddReportAggRules';
 import AddReportRules from './AddReportRules';
-import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 require('react-datepicker/dist/react-datepicker.css');
 
@@ -47,7 +49,7 @@ class MaintainFixedFormatReportRules extends Component {
   constructor(props){
     super(props)
     this.state = {
-      sources:null,
+      country:null,
       itemEditable: true,
       reportId: null,
       reportingDate: null,
@@ -64,6 +66,7 @@ class MaintainFixedFormatReportRules extends Component {
       renderStyle: false,
     }
 
+    this.domainInfo = this.props.login_details.domainInfo;
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -120,8 +123,8 @@ class MaintainFixedFormatReportRules extends Component {
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
-    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules Repository" }) ? true : false;
   }
 
   componentWillMount() {
@@ -161,6 +164,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.gridDataViewReport=undefined;
     this.setState({
         display: "showReportGrid",
+        country: item.country,
         reportId: item.report_id,
         reportingDate: item.reporting_date,
         businessDate: item.as_of_reporting_date,
@@ -312,7 +316,8 @@ class MaintainFixedFormatReportRules extends Component {
       //console.log("Repot Linkage",this.props.change_history);
       let sheetName = this.props.gridDataViewReport[0].sheet;
       this.setState({
-        display: "showHistory"
+        display: "showHistory",
+        selectedAuditSheet: 0,
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
       );
@@ -326,7 +331,7 @@ class MaintainFixedFormatReportRules extends Component {
         display: "showReportGrid"
         },
         ()=>{
-          this.props.fetchReportTemplateList();
+          this.props.fetchReportCatalogList();
         }
       );
     } else {
@@ -434,6 +439,7 @@ class MaintainFixedFormatReportRules extends Component {
                   if (this.state.showDrillDownData) {
                       content.push(
                           <AddReportRules
+                            country = { this.state.country }
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             {...this.calcRuleFilter.params.drill_kwargs}
@@ -443,6 +449,7 @@ class MaintainFixedFormatReportRules extends Component {
                   } else if (this.state.showAggRuleDetails) {
                       content.push(
                           <AddReportAggRules
+                            country = { this.state.country }
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             aggRuleData = { this.aggRuleData }
@@ -451,13 +458,14 @@ class MaintainFixedFormatReportRules extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
-                      const permissions=[{"permission": "View Business Rules"}];
+                      const permissions=[{"permission": "View Business Rules Repository"}];
                       content.push(
                           <ViewBusinessRules
+                            country = { this.state.country }
                             privileges={ permissions }
                             showBusinessRuleGrid={true}
                             flagRuleDrillDown={true}
-                            sourceId={this.businessRuleFilterParam.source_id}
+                            sourceId={this.state.country}
                             ruleFilterParam={this.businessRuleFilterParam}
                           />
                       );
@@ -578,9 +586,9 @@ class MaintainFixedFormatReportRules extends Component {
                             </a>
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li style={{ "padding": "5px" }}>
-                                <Link to="/dashboard/maintain-report-rules"
+                                <Link to="/dashboard/maintain-report-rules-repo"
                                   onClick={()=>{ this.setState({ display: false, renderStyle: false, },
-                                                                ()=>{this.props.fetchReportTemplateList();})
+                                                                ()=>{this.props.fetchReportCatalogList();})
                                                 }
                                           }
                                 >
@@ -640,10 +648,10 @@ function mapStateToProps(state){
   return {
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.report_rules_repo.reportCatalogList,
-    gridDataViewReport: state.captured_report,
+    gridDataViewReport: state.report_rules_repo.capturedTemplate,
     gridData: state.view_data_store.gridData,
-    cell_rules: state.report_store.cell_rules,
-    change_history:state.maintain_report_rules_store.change_history,
+    cell_rules: state.report_rules_repo.cellRules,
+    change_history: state.report_rules_repo.changeHistory,
     login_details: state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,
   }
@@ -651,23 +659,17 @@ function mapStateToProps(state){
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchReportTemplateList:(reports,country)=>{
-        dispatch(actionFetchReportTemplate(reports,country))
+    fetchReportCatalogList:(country)=>{
+        dispatch(actionFetchReportCatalog(country))
     },
-    fetchCapturedReport:(report_id, reporting_date) => {
-        dispatch(actionFetchReportData(report_id, reporting_date));
-    },
-    fetchReportCatalog:(startDate,endDate)=>{
-      dispatch(actionFetchReportCatalog(startDate,endDate))
-    },
-    fetchReportData:(report_id, reporting_date)=>{
-      dispatch(actionFetchReportData(report_id, reporting_date))
+    fetchReportData:(report_id)=>{
+      dispatch(actionFetchReportData(report_id))
     },
     drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+      dispatch(actionRepoDrillDown(report_id,sheet,cell));
     },
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
-      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
+      dispatch(actionFetchRepoReportChangeHistory(report_id,sheet_id,cell_id));
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));

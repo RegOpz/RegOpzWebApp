@@ -45,10 +45,12 @@ class MaintainBusinessRulesRepository extends Component {
       display: (this.props.showBusinessRuleGrid ? "showBusinessRuleGrid" : false),
       sources:null,
       itemEditable: true,
-      sourceId: (this.props.login_details.domainInfo.tenant_id != "regopz" ?
-                  this.props.login_details.domainInfo.country
+      sourceId: this.props.sourceId ? this.props.sourceId
                   :
-                  null),
+                  (this.props.login_details.domainInfo.tenant_id != "regopz" ?
+                    this.props.login_details.domainInfo.country
+                    :
+                    null),
       showAuditModal: false,
       sourceFileName: null,
       sourceDescription: null,
@@ -144,7 +146,8 @@ class MaintainBusinessRulesRepository extends Component {
     }
     else if(this.flagRuleDrillDown){
       console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+      // this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+      this.props.fetchBusinesRules(this.state.sourceId)
     } else if(this.tenantRenderType) {
       // TODO
       // Render only the grid of the subscribe country for tenant.
@@ -170,7 +173,8 @@ class MaintainBusinessRulesRepository extends Component {
       console.log("Inside componentWillReceiveProps of MaintainBusinessRules",this.ruleFilterParam);
       this.flagRuleDrillDown = nextProps.flagRuleDrillDown;
       this.ruleFilterParam = nextProps.ruleFilterParam;
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+      // this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+      this.props.fetchBusinesRules(this.state.sourceId)
     }
     if(this.props.leftmenu){
      this.setState({
@@ -315,7 +319,8 @@ class MaintainBusinessRulesRepository extends Component {
   fetchDataToGrid(event){
     let fetchPage=0;
     if(this.flagRuleDrillDown){
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,fetchPage);
+      // this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,fetchPage);
+      this.props.fetchBusinesRules(this.state.sourceId);
     } else if(this.tenantRenderType) {
       // TODO
       // Render only the grid of the subscribe country for tenant.
@@ -691,6 +696,9 @@ class MaintainBusinessRulesRepository extends Component {
                           style={{
                               height: ( this.state.pageSize >= 20 ? "74vh" : "100%")
                           }}
+                          defaultFiltered={
+                            this.ruleFilterParam ? [this.ruleFilterParam] : []
+                          }
                           defaultFilterMethod = {(filter, row, column) => {
                             const id = filter.pivotId || filter.id
                             let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');

@@ -134,9 +134,12 @@ class CaptureTemplate extends Component {
     componentWillReceiveProps(nextProps){
 
       if(!nextProps.captureTemplateMsg.error && this.state.isSubmitted){
+          // Successfully captured report template thus reset all fields
           this.props.reset();
           document.getElementById('fileInput').value = null;
-          this.setState({isSubmitted:true});
+          this.setState({isSubmitted:false});
+      } else if(nextProps.captureTemplateMsg.error && this.state.isSubmitted){
+          this.setState({isSubmitted:false});
       }
     }
 
@@ -147,6 +150,7 @@ class CaptureTemplate extends Component {
 
     render() {
         const { tenant_id, country } = this.domainInfo;
+        const { isSubmitted } = this.state;
         const { handleSubmit, asyncValidating, pristine, reset, submitting, countries, message } = this.props;
         let countryList=[{'value':'', 'description':'Choose a country'}]
         countries && countries.map((item,index)=>{
@@ -207,8 +211,8 @@ class CaptureTemplate extends Component {
                       />
                       <div className="form-group">
                         <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                          <button type="button" className="btn btn-primary" onClick={ this.handleReset } disabled={ pristine || submitting }>Reset</button>
-                          <button type="submit" className="btn btn-success" disabled={ pristine || submitting }>Submit</button>
+                          <button type="button" className="btn btn-primary" onClick={ this.handleReset } disabled={ pristine || submitting || isSubmitted }>Reset</button>
+                          <button type="submit" className="btn btn-success" disabled={ pristine || submitting || isSubmitted }>Submit</button>
                         </div>
                      </div>
                   </form>
@@ -242,8 +246,6 @@ class CaptureTemplate extends Component {
         newData.append('file', data.fileInput[0]);
         this.setState({isSubmitted:true},
                       this.props.loadTemplate(newData,data.report_type));
-        // reset();
-        // document.getElementById('fileInput').value = null;
     }
 
     handleReset() {
