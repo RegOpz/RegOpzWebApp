@@ -14,35 +14,13 @@ class DefChangeList extends Component{
       selectedIndex: null ,
       searchTerm:null
     };
-    this.fetchFlag = true;
     this.auditListWithPrivilege=[];
     this.queryResult=[];
 
     this.handleSearch = this.handleSearch.bind(this);
 
-
   }
 
-  componentWillMount(){
-    this.props.fetchAuditList();
-  }
-
-  componentWillReceiveProps(nextProps){
-    console.log("DefChangeList componentWillReceiveProps......",this.fetchFlag);
-    if (this.fetchFlag) {
-      this.props.fetchAuditList();
-    }
-  }
-
-  componentWillUpdate(){
-
-    console.log("Inside componentWillUpdate DefChangeList....");
-  }
-
-
-  componentDidUpdate(){
-    this.fetchFlag =! this.fetchFlag;
-  }
 
   handleSearch(){
     const { searchTerm } = this.state;
@@ -144,20 +122,6 @@ class DefChangeList extends Component{
   }
 }
 
-const mapDispatchToProps=(dispatch)=>{
-  return{
-    fetchAuditList:()=>{
-      dispatch(actionFetchAuditList());
-    }
-  };
-}
 
-function mapStateToProps(state){
-  return{
-    audit_list:state.def_change_store.audit_list
-  };
-}
 
-const VisibleDefChangeList=connect(mapStateToProps,mapDispatchToProps)(DefChangeList);
-
-export default VisibleDefChangeList;
+export default DefChangeList;

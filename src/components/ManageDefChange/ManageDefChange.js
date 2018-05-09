@@ -18,6 +18,21 @@ class ManageDefChange extends Component{
     this.viewAllChange=_.find(this.props.privileges,{permission:"View Def Changes"})?true:false;
     this.manageDefChange=_.find(this.props.privileges,{permission:"Manage Def Changes"})?true:false;
     this.user=this.props.user;
+    this.fetchFlag=true;
+  }
+
+  componentWillMount(){
+    this.props.fetchAuditList();
+  }
+
+  componentWillReceiveProps(nextProps){
+    if (this.fetchFlag) {
+      this.props.fetchAuditList();
+    }
+  }
+
+  componentDidUpdate(){
+    this.fetchFlag =! this.fetchFlag;
   }
 
   render(){
@@ -37,6 +52,7 @@ class ManageDefChange extends Component{
                     <DefChangeList onSelectListItem={this.handleSelectItem.bind(this)}
                                   viewAllChange={viewAllChange}
                                   user={this.user}
+                                  audit_list={this.props.audit_list}
                       />
                 </div>
                 <div className="col-sm-9 mail_view">
@@ -77,13 +93,22 @@ class ManageDefChange extends Component{
 
 }
 
+function mapStateToProps(state){
+  return{
+    audit_list:state.def_change_store.audit_list
+  };
+}
+
 const mapDispatchToProps=(dispatch)=>{
   return{
     postAuditDecision:(data)=>{
       dispatch(actionPostAuditDecision(data));
+    },
+    fetchAuditList:()=>{
+      dispatch(actionFetchAuditList());
     }
   };
 }
 
-const VisibleManageDefChange=connect(null,mapDispatchToProps)(ManageDefChange);
+const VisibleManageDefChange=connect(mapStateToProps,mapDispatchToProps)(ManageDefChange);
 export default VisibleManageDefChange;
