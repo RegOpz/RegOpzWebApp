@@ -23,9 +23,6 @@ class MasterLeftMenu extends Component {
                           <li>
                               <a href="#/dashboard/capture-report-template"> Capture Report Template</a>
                           </li>
-                          <li>
-                              <a href="#">Data Reteintion</a>
-                          </li>
                       </ul>
                   </li>
                   <li>
@@ -62,11 +59,6 @@ class MasterLeftMenu extends Component {
                       <a>
                           <i className="fa fa-bar-chart"></i> Data Analytics<span className="fa fa-chevron-down"></span>
                       </a>
-                      <ul className="nav child_menu">
-                          <li>
-                              <a href="#/dashboard/variance-analysis" onClick={this.handleLeftMenuClick}>Variance Analysis</a>
-                          </li>
-                      </ul>
                   </li>
                   <li>
                       <a>

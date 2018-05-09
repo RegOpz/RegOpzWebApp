@@ -45,6 +45,7 @@ import AddTransReportSectionOrder from './AddTransReportSectionOrder';
 import AddTransReportSection from './AddTransReportSection';
 import AddReportTransRules from './AddReportTransRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 require('react-datepicker/dist/react-datepicker.css');
 
@@ -121,6 +122,7 @@ class MaintainTransactionReportRules extends Component {
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
+    this.handleReportRepositoryClick = this.handleReportRepositoryClick.bind(this);
 
     this.handleDefineSection = this.handleDefineSection.bind(this);
 
@@ -128,6 +130,8 @@ class MaintainTransactionReportRules extends Component {
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
+    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
+    this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"}) : null;
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
@@ -427,6 +431,29 @@ class MaintainTransactionReportRules extends Component {
     this.handleEditParameterClick();
   }
 
+  handleReportRepositoryClick(){
+    let isOpen = this.state.display === "showReportRepository";
+    if(isOpen) {
+      this.setState({
+        display: false
+        },
+        ()=>{
+          this.props.fetchReportTemplateList();
+        }
+      );
+    } else {
+      //this.props.fetchReportChangeHistory(this.state.reportId);
+      //console.log("Repot Linkage",this.props.change_history);
+      this.setState({
+        display: "showReportRepository"
+        },
+        ()=>{
+          //TODO save in the def catalog
+        }
+      );
+    }
+  }
+
   handleModalOkayClick(event){
     // TODO
   }
@@ -614,6 +641,17 @@ class MaintainTransactionReportRules extends Component {
                         />
                   );
               break;
+          case "showReportRepository":
+              return(
+                      <MaintainReportRulesRepository
+                        privileges={ this.component ? this.component.permissions : null }
+                        tenantRenderType={"copyRule"}
+                        reportFormat={"TRANSACTION"}
+                        country={this.props.login_details.domainInfo.country}
+                        handleCancel={this.handleReportRepositoryClick}
+                        />
+                    );
+              break;
           default:
               return(
                   <ReportCatalogList
@@ -659,6 +697,8 @@ class MaintainTransactionReportRules extends Component {
                             );
                         })(this.state.display)
                     }
+                    {
+                      this.state.display!="showReportRepository" &&
                       <div className="row">
                         <ul className="nav navbar-right panel_toolbox">
                           <li>
@@ -677,6 +717,14 @@ class MaintainTransactionReportRules extends Component {
                                     <i className="fa fa-bars"></i> All Report List
                                 </Link>
                               </li>
+                              {
+                                this.component &&
+                                <li style={{ "padding": "5px" }}>
+                                  <Link onClick={this.handleReportRepositoryClick}>
+                                    <i className="fa fa-cloud-download"></i> Report Repository
+                                  </Link>
+                                </li>
+                              }
                               <li>
                                 <ReportCatalogList
                                   dataCatalog={this.props.dataCatalog}
@@ -698,6 +746,7 @@ class MaintainTransactionReportRules extends Component {
                           </ul>
                         }
                       </div>
+                    }
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">

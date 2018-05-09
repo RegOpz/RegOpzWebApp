@@ -20,14 +20,21 @@ class MaintainReportRulesRepository extends Component {
     this.state = {
         selectedTab: 0,
     }
+    this.country = this.props.country ? this.props.country
+                :
+                (this.props.login_details.domainInfo.tenant_id != "regopz" ?
+                  this.props.login_details.domainInfo.country
+                  :
+                  null);
+    this.tenantRenderType = this.props.tenantRenderType;
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
-    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules Repository" }) ? true : false;
   }
 
   componentWillMount() {
       // TODO
-      this.props.fetchReportCatalogList();
+      this.props.fetchReportCatalogList(this.country);
   }
 
   componentDidUpdate() {
@@ -36,13 +43,19 @@ class MaintainReportRulesRepository extends Component {
   }
   componentWillReceiveProps(nextProps){
     // TODO
+    this.country = nextProps.country ? nextProps.country
+                :
+                (nextProps.login_details.domainInfo.tenant_id != "regopz" ?
+                  nextProps.login_details.domainInfo.country
+                  :
+                  null);
     console.log("nextProps maintain Report Rules",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
         selectedTab: 0,
         },
         ()=>{
-          this.props.fetchReportCatalogList();
+          this.props.fetchReportCatalogList(this.country);
         }
       );
     }
@@ -51,43 +64,60 @@ class MaintainReportRulesRepository extends Component {
   render(){
       return(
         <div >
-          <Tabs
-            defaultActiveKey={0}
-            activeKey={this.state.selectedTab}
-            onSelect={(key) => {
-                this.setState({selectedTab:key});
-            }}
-            >
-            <Tab
-              key={0}
-              eventKey={0}
-              title={"Fixed Format"}
-            >
+          {
+            this.props.tenantRenderType=="copyRule" &&
+            this.props.reportFormat == "FIXEDFORMAT" &&
             <MaintainFixedFormatReportRules
-              privileges={this.props.privileges}
+              {...this.props}
               />
-            </Tab>
-            <Tab
-              key={1}
-              eventKey={1}
-              title={"Transactional"}
-            >
-              <MaintainTransactionReportRules
+          }
+          {
+            this.props.tenantRenderType=="copyRule" &&
+            this.props.reportFormat == "TRANSACTION" &&
+            <MaintainTransactionReportRules
+              {...this.props}
+              />
+          }
+          {
+            !this.props.tenantRenderType &&
+            <Tabs
+              defaultActiveKey={0}
+              activeKey={this.state.selectedTab}
+              onSelect={(key) => {
+                  this.setState({selectedTab:key});
+              }}
+              >
+              <Tab
+                key={0}
+                eventKey={0}
+                title={"Fixed Format"}
+              >
+              <MaintainFixedFormatReportRules
                 privileges={this.props.privileges}
                 />
-            </Tab>
-            <Tab
-              key={2}
-              eventKey={2}
-              title={"Dynamic Aggregation"}
-            >
-              <div className="x_panel">
-                <div className="x_content">
-                  <h4><i className="fa fa-cogs"></i> <i className="fa fa-wrench"></i>  Build in progress ....</h4>
+              </Tab>
+              <Tab
+                key={1}
+                eventKey={1}
+                title={"Transactional"}
+              >
+                <MaintainTransactionReportRules
+                  privileges={this.props.privileges}
+                  />
+              </Tab>
+              <Tab
+                key={2}
+                eventKey={2}
+                title={"Dynamic Aggregation"}
+              >
+                <div className="x_panel">
+                  <div className="x_content">
+                    <h4><i className="fa fa-cogs"></i> <i className="fa fa-wrench"></i>  Build in progress ....</h4>
+                  </div>
                 </div>
-              </div>
-            </Tab>
-          </Tabs>
+              </Tab>
+            </Tabs>
+          }
         </div>
     );
   }

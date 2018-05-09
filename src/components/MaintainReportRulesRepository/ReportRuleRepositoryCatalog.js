@@ -217,11 +217,7 @@ class ReportCatalogList extends Component {
               {linkageData.map((item,index) => {
                 return (
                   <tr key={index}
-                    onClick={
-                      (event)=>{
-                        this.props.handleReportClick(item)
-                      }
-                    }>
+                    >
                     <td>
                       <button
                         className="btn btn-link btn-xs"
@@ -243,6 +239,11 @@ class ReportCatalogList extends Component {
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
+                        onClick={
+                          (event)=>{
+                            this.props.handleReportClick(item)
+                          }
+                        }
                         >
                         {item.report_description}
                       </p>

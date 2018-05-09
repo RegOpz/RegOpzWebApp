@@ -71,6 +71,9 @@ class TenantLeftMenu extends Component {
                         <li>
                             <a href="#/dashboard/maintain-business-rules-repo" onClick={this.handleLeftMenuClick}>Business Rules Repository</a>
                         </li>
+                        <li>
+                            <a href="#/dashboard/maintain-report-rules-repo" onClick={this.handleLeftMenuClick}>Report Rules Repository</a>
+                        </li>
                       </ul>
                   </li>
                   <li>

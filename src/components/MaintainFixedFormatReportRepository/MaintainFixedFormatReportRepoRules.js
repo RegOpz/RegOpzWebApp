@@ -66,6 +66,13 @@ class MaintainFixedFormatReportRules extends Component {
       renderStyle: false,
     }
 
+    this.country = this.props.country ? this.props.country
+                  :
+                  (this.props.login_details.domainInfo.tenant_id != "regopz" ?
+                    this.props.login_details.domainInfo.country
+                    :
+                    null);
+    this.tenantRenderType = this.props.tenantRenderType;
     this.domainInfo = this.props.login_details.domainInfo;
     this.pages=0;
     this.currentPage=0;
@@ -81,30 +88,44 @@ class MaintainFixedFormatReportRules extends Component {
     this.selectedViewColumns=[];
     this.operationName=null;
     this.aggRuleData = null;
-    this.buttons=[
-      { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
-      { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-      { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
-    ];
-    this.editTools=[
-      { title: 'Font', iconClass: 'fa-font', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Text Size', iconClass: 'fa-text-height', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Font Colour', iconClass: 'fa-paint-brush', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
-      { title: 'Background Colour', iconClass: 'fa-square', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
-      { title: 'Bold', iconClass: 'fa-bold', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      { title: 'Italic', iconClass: 'fa-italic', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      { title: 'Align Left', iconClass: 'fa-align-left', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      { title: 'Align Centre', iconClass: 'fa-align-center', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      { title: 'Align Rigt', iconClass: 'fa-align-right', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      { title: 'Border', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-      { title: 'Image', iconClass: 'fa-photo', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      { title: 'merge', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
-      { title: 'split', iconClass: 'fa-th', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-      { title: 'Save', iconClass: 'fa-save', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-    ];
+    if (this.tenantRenderType=="copyRule"){
+      this.buttons=[
+        { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+        { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+        { title: 'Copy Report', iconClass: 'fa-rocket', checkDisabled: 'Yes', className: "btn-success", onClick: this.handleCopyReportClick.bind(this) },
+        { title: 'Copy Selected', iconClass: 'fa-crop', checkDisabled: 'Yes', className: "btn-warning", onClick: this.handleCopySelectedClick.bind(this) },
+        { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+        { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+        { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      ];
+      this.editTools=[];
+    }
+    else {
+      this.buttons=[
+        { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+        { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+        { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+        { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+        { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+        { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+      ];
+      this.editTools=[
+        { title: 'Font', iconClass: 'fa-font', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+        { title: 'Text Size', iconClass: 'fa-text-height', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+        { title: 'Font Colour', iconClass: 'fa-paint-brush', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+        { title: 'Background Colour', iconClass: 'fa-square', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+        { title: 'Bold', iconClass: 'fa-bold', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+        { title: 'Italic', iconClass: 'fa-italic', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+        { title: 'Align Left', iconClass: 'fa-align-left', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+        { title: 'Align Centre', iconClass: 'fa-align-center', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+        { title: 'Align Rigt', iconClass: 'fa-align-right', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+        { title: 'Border', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+        { title: 'Image', iconClass: 'fa-photo', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+        { title: 'merge', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
+        { title: 'split', iconClass: 'fa-th', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+        { title: 'Save', iconClass: 'fa-save', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
+      ];
+    }
     this.buttonClassOverride = "None";
 
     this.renderDynamic = this.renderDynamic.bind(this);
@@ -117,6 +138,8 @@ class MaintainFixedFormatReportRules extends Component {
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
+    this.handleCopyReportClick = this.handleCopyReportClick.bind(this);
+    this.handleCopySelectedClick = this.handleCopySelectedClick.bind(this);
 
     this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
@@ -139,6 +162,13 @@ class MaintainFixedFormatReportRules extends Component {
   componentWillReceiveProps(nextProps){
     this.gridDataViewReport=nextProps.gridDataViewReport;
     this.changeHistory=nextProps.change_history;
+    this.country = this.props.country ? this.props.country
+                  :
+                  (this.props.login_details.domainInfo.tenant_id != "regopz" ?
+                    this.props.login_details.domainInfo.country
+                    :
+                    null);
+    this.tenantRenderType = nextProps.tenantRenderType;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
@@ -183,6 +213,10 @@ class MaintainFixedFormatReportRules extends Component {
         return !this.writeOnly;
       case "Delete":
         return (!this.writeOnly || !this.state.itemEditable);
+      case "Copy Report":
+        return !this.writeOnly;
+      case "Copy Selected":
+        return !this.writeOnly;
       default:
         console.log("No specific checkDisabled has been defined for ",item);
     }
@@ -368,8 +402,17 @@ class MaintainFixedFormatReportRules extends Component {
     this.handleEditParameterClick();
   }
 
+  handleCopyReportClick(){
+    this.operationName = "INSERTTENANT";
+  }
+
+  handleCopySelectedClick(){
+    this.operationName = "INSERTTENANT";
+  }
+
   handleModalOkayClick(event){
     // TODO
+    this.handleCopyReportClick()
   }
 
   handleAuditOkayClick(auditInfo){
@@ -425,8 +468,8 @@ class MaintainFixedFormatReportRules extends Component {
                   let content = [
                       <DrillDownRules
                         cellRules = {this.props.cell_rules}
-                        readOnly = {this.readOnly}
-                        addRulesBtn = {this.writeOnly}
+                        readOnly = {this.tenantRenderType=="copyRule" ? true : this.readOnly}
+                        addRulesBtn = {this.tenantRenderType=="copyRule" ? false : this.writeOnly}
                         selectedCell = {this.selectedCell[0]}
                         handleClose={ this.handleDetails.bind(this) }
                         reportingDate={this.state.reportingDate}
@@ -564,13 +607,13 @@ class MaintainFixedFormatReportRules extends Component {
                         ((displayOption) => {
                             if (!displayOption) {
                                 return(
-                                    <h2>View Report Rules <small>Available Report Rules for </small>
+                                    <h2>View Repository Report Rules <small>Available Report Rules for </small>
                                       <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
                                     </h2>
                                 );
                             }
                             return(
-                                <h2>Maintain Report Rules <small>{' Report '}</small>
+                                <h2>Maintain Repository Report Rules <small>{' Report '}</small>
                                   <small><i className="fa fa-file-text"></i></small>
                                   <small title={this.state.selectedReport.report_description}>{this.state.reportId }</small>
                                 </h2>
@@ -579,6 +622,12 @@ class MaintainFixedFormatReportRules extends Component {
                     }
                       <div className="row">
                         <ul className="nav navbar-right panel_toolbox">
+                          {
+                            this.tenantRenderType &&
+                            <li>
+                              <a className="close-link" onClick={this.props.handleCancel}><i className="fa fa-close"></i></a>
+                            </li>
+                          }
                           <li>
                             <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
                               <i className="fa fa-file-text-o"></i><small>{' Reports '}</small>
@@ -586,9 +635,9 @@ class MaintainFixedFormatReportRules extends Component {
                             </a>
                             <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                               <li style={{ "padding": "5px" }}>
-                                <Link to="/dashboard/maintain-report-rules-repo"
+                                <Link
                                   onClick={()=>{ this.setState({ display: false, renderStyle: false, },
-                                                                ()=>{this.props.fetchReportCatalogList();})
+                                                                ()=>{this.props.fetchReportCatalogList(this.country);})
                                                 }
                                           }
                                 >

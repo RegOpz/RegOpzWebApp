@@ -101,6 +101,7 @@ class AddReportRules extends Component {
                             aggRefTags: []},
                         ()=>{
                           // this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                          this.props.fetchBusinessRules(this.country);
                           this.initialiseFormFields();
                         });
           } else {

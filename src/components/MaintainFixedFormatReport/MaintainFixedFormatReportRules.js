@@ -40,7 +40,9 @@ import DrillDownRules from '../DrillDown/DrillDownRules';
 import AddReportAggRules from './AddReportAggRules';
 import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
+import authenticate from '../Authentication/authenticate';
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainFixedFormatReportRules extends Component {
@@ -114,11 +116,15 @@ class MaintainFixedFormatReportRules extends Component {
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
+    this.handleReportRepositoryClick = this.handleReportRepositoryClick.bind(this);
 
     this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
+
+    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
+    this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"}) : null;
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
@@ -364,6 +370,29 @@ class MaintainFixedFormatReportRules extends Component {
     this.handleEditParameterClick();
   }
 
+  handleReportRepositoryClick(){
+    let isOpen = this.state.display === "showReportRepository";
+    if(isOpen) {
+      this.setState({
+        display: false
+        },
+        ()=>{
+          this.props.fetchReportTemplateList();
+        }
+      );
+    } else {
+      //this.props.fetchReportChangeHistory(this.state.reportId);
+      //console.log("Repot Linkage",this.props.change_history);
+      this.setState({
+        display: "showReportRepository"
+        },
+        ()=>{
+          //TODO save in the def catalog
+        }
+      );
+    }
+  }
+
   handleModalOkayClick(event){
     // TODO
   }
@@ -530,6 +559,17 @@ class MaintainFixedFormatReportRules extends Component {
                       />
                     );
               break;
+          case "showReportRepository":
+              return(
+                      <MaintainReportRulesRepository
+                        privileges={ this.component ? this.component.permissions : null }
+                        tenantRenderType={"copyRule"}
+                        reportFormat={"FIXEDFORMAT"}
+                        country={this.props.login_details.domainInfo.country}
+                        handleCancel={this.handleReportRepositoryClick}
+                        />
+                    );
+              break;
           default:
               return(
                   <ReportCatalogList
@@ -570,6 +610,8 @@ class MaintainFixedFormatReportRules extends Component {
                             );
                         })(this.state.display)
                     }
+                    {
+                      this.state.display!="showReportRepository" &&
                       <div className="row">
                         <ul className="nav navbar-right panel_toolbox">
                           <li>
@@ -588,6 +630,14 @@ class MaintainFixedFormatReportRules extends Component {
                                     <i className="fa fa-bars"></i> All Report List
                                 </Link>
                               </li>
+                              {
+                                this.component &&
+                                <li style={{ "padding": "5px" }}>
+                                  <Link onClick={this.handleReportRepositoryClick}>
+                                    <i className="fa fa-cloud-download"></i> Report Repository
+                                  </Link>
+                                </li>
+                              }
                               <li>
                                 <ReportCatalogList
                                   dataCatalog={this.props.dataCatalog}
@@ -609,6 +659,7 @@ class MaintainFixedFormatReportRules extends Component {
                           </ul>
                         }
                       </div>
+                    }
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">

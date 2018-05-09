@@ -701,7 +701,8 @@ class MaintainBusinessRules extends Component {
                   </div>
               );
           case "showRuleRepository":
-              const component=_.find(this.props.login_details.permission,{component:"Maintain Business Rules Repository"});
+              const isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Business Rules Repository"];
+              const component=isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Business Rules Repository"}) :  null;
               const tenantSource={
                             sourceId: this.state.sourceId,
                             sourceFileName: this.state.sourceFileName,
