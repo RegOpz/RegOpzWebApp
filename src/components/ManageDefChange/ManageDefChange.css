@@ -4,7 +4,19 @@
 
 .def-change-list{
   height: 80vh;
-  overflow-y: auto;
+  overflow-y: scroll;
+}
+
+#auditList::-webkit-scrollbar-track {
+	-webkit-box-shadow: inset 0 0 3px rgba(0,0,0,0.3);
+	background-color: #F5F5F5;
+}
+#auditList::-webkit-scrollbar {
+	width: 3px;
+	background-color: #F5F5F5;
+}
+#auditList::-webkit-scrollbar-thumb {
+	background-color: #a9a9a9;
 }
 
 .form-def-change-detail{
@@ -12,20 +24,34 @@
   overflow-y: auto;
 }
 
-.list_item_active:hover{
+.list_item_active .mail_list:hover{
   cursor:pointer;
-  color: white;
-  background-color: #546784;
+  color: darkslategray;
+  /*background-color: #546784;*/
 }
 
 .list_item_select{
-  color: white;
-  background-color:#546784 !important;
+  /*color: white;*/
+  /*background-color:#54678414 !important;*/
+}
+
+.list_item_select .mail_list{
+  /*color: #02278a;*/
+  background-color:#dddddd61 !important;
+}
+
+.list_item_select:hover{
+  /*color: #a9a9a9;*/
+  /*background-color:#a9a9a92e !important;*/
+}
+.list_item_select .mail_list:hover{
+  color: #02278a;
+  /*background-color:#a9a9a92e !important;*/
 }
 
 .panel_list_item_active:hover{
   cursor:pointer;
-  background-color: #f7f7f7;
+  background-color: darkgrey;
 }
 
 .column-name{

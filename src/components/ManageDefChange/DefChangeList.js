@@ -2,6 +2,7 @@ import React,{Component} from 'react';
 import {connect} from 'react-redux';
 import {dispatch} from 'redux';
 import _ from 'lodash';
+import moment from 'moment';
 import {actionFetchAuditList} from '../../actions/DefChangeAction';
 
 require('./ManageDefChange.css');
@@ -18,6 +19,7 @@ class DefChangeList extends Component{
     this.queryResult=[];
 
     this.handleSearch = this.handleSearch.bind(this);
+    this.groupSummary = this.groupSummary.bind(this);
 
   }
 
@@ -26,24 +28,175 @@ class DefChangeList extends Component{
     const { searchTerm } = this.state;
     let queryResult = this.auditListWithPrivilege;
     if ( searchTerm != null ){
-        let searchList = RegExp(`(${searchTerm.toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+        let searchList = RegExp(`(${searchTerm.toLowerCase().replace(/\\/g,'\\\\').replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|').replace(/\|\|/g,'|')})`,'i');
 
         console.log("handleSearch",searchList)
         queryResult=this.auditListWithPrivilege.filter((element)=>{
+            let strElement=JSON.stringify(element)+" changed on: " + moment.utc(element.group_date_of_change).format('DD-MMM-YYYY');
             return(
-              element.id.toString().match(searchList)||
-              element.change_type.match(searchList)||
-              element.table_name.match(searchList)||
-              element.change_reference.match(searchList)||
-              element.date_of_change.match(searchList)||
-              element.maker.match(searchList)||
-              element.maker_comment.match(searchList)
+              strElement.toString().match(searchList)
             );
           }
         );
         //console.log("queryResult",queryResult)
     }
     this.queryResult=queryResult;
+  }
+
+  groupSummary(group){
+    if (group.group_tables.match(RegExp(`business_rules`))){
+      return(
+        <div>
+          <div className="left">
+            <i className="fa fa-tags"></i>
+            <h6>
+              {moment.utc(group.group_date_of_change).format('DD')}
+              <br/>
+              <small>{moment.utc(group.group_date_of_change).format('MMM')}</small>
+            </h6>
+          </div>
+          <div className="right">
+            <h3>
+              Business rule changes<small>{group.maker}</small>
+            </h3>
+            <p>
+              <small>
+                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " new rules added"}</span>
+                <br></br>
+                <span><i className="fa fa-circle amber"></i>&nbsp; {group.updates + " existing rules amended"}</span>
+                <br></br>
+                <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " rules requested to be marked as deleted"}</span>
+              </small>
+            </p>
+            <h3>
+              <small>{moment.utc(group.group_date_of_change).format('hh:mm:ss a')}</small>
+            </h3>
+          </div>
+        </div>
+      )
+    }
+    if (group.group_tables.match(RegExp(`report_def`))){
+      return(
+        <div>
+          <div className="left">
+            <i className="fa fa-file-text"></i>
+            <h6>
+              {moment.utc(group.group_date_of_change).format('DD')}
+              <br/>
+              <small>{moment.utc(group.group_date_of_change).format('MMM')}</small>
+            </h6>
+          </div>
+          <div className="right">
+            <h3>
+              Report template changes <small>{group.maker}</small>
+            </h3>
+            <p>
+              <small>
+                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " new changes added"}</span>
+                <br></br>
+                <span><i className="fa fa-circle amber"></i>&nbsp; {group.updates + " existing styles/texts amended"}</span>
+                <br></br>
+                <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " style/text requested to be removed"}</span>
+              </small>
+            </p>
+            <h3>
+              <small>{moment.utc(group.group_date_of_change).format('hh:mm:ss a')}</small>
+            </h3>
+          </div>
+        </div>
+      )
+    }
+    if (group.group_tables.match(RegExp(`report_calc_def|report_comp_agg_def`))){
+      return(
+        <div>
+          <div className="left">
+            <i className="fa fa-puzzle-piece"></i>
+            <h6>
+              {moment.utc(group.group_date_of_change).format('DD')}
+              <br/>
+              <small>{moment.utc(group.group_date_of_change).format('MMM')}</small>
+            </h6>
+          </div>
+          <div className="right">
+            <h3>
+              Report rules & logic changes <small>{group.maker}</small>
+            </h3>
+            <p >
+              <small>
+                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " new calculation logic created"}</span>
+                <br></br>
+                <span><i className="fa fa-circle amber"></i>&nbsp; {group.updates + " existing calculation logics amended"}</span>
+                <br></br>
+                <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " calculation logics requested to be marked as deleted"}</span>
+              </small>
+            </p>
+            <h3>
+              <small>{moment.utc(group.group_date_of_change).format('hh:mm:ss a')}</small>
+            </h3>
+          </div>
+        </div>
+      )
+    }
+    if (group.group_tables.match(RegExp(`permissions`))){
+      return(
+        <div>
+          <div className="left">
+            <i className="fa fa-shield"></i>
+            <h6>
+              {moment.utc(group.group_date_of_change).format('DD')}
+              <br/>
+              <small>{moment.utc(group.group_date_of_change).format('MMM')}</small>
+            </h6>
+          </div>
+          <div className="right">
+            <h3>
+              Role Permissions change<small>{group.maker}</small>
+            </h3>
+            <p>
+              <small>
+                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " New Permission grant requested"}</span>
+                <br></br>
+                <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " Permission to be revoked"}</span>
+              </small>
+            </p>
+            <h3>
+              <small>{moment.utc(group.group_date_of_change).format('hh:mm:ss a')}</small>
+            </h3>
+          </div>
+        </div>
+      )
+    }
+    if (group.group_tables.match(RegExp(`role`))){
+      return(
+        <div>
+          <div className="left">
+            <i className="fa fa-users"></i>
+            <h6>
+              {moment.utc(group.group_date_of_change).format('DD')}
+              <br/>
+              <small>{moment.utc(group.group_date_of_change).format('MMM')}</small>
+            </h6>
+          </div>
+          <div className="right">
+            <h3>
+              Role {group.inserts ? 'created' : ''} {group.deletes ? 'deleted' : ''} <small>{group.maker}</small>
+            </h3>
+            <p>
+              <small>
+                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " New Permission grant requested"}</span>
+                <br></br>
+                <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " Permission to be revoked"}</span>
+              </small>
+            </p>
+            <h3>
+              <small>{moment.utc(group.group_date_of_change).format('hh:mm:ss a')}</small>
+            </h3>
+          </div>
+        </div>
+      )
+    }
+
+
   }
   render(){
     let {audit_list}=this.props;
@@ -66,7 +219,7 @@ class DefChangeList extends Component{
     console.log("Audit List........",userOnlyAuditList);
     const msgList=audit_list_with_search.map((item,index)=>{
           //console.log(item,index);
-          return(<li className={ this.state.selectedIndex == index ? "list_item_select" : "list_item_active" }
+          return(<a className={ this.state.selectedIndex == index ? "list_item_select" : "list_item_active" }
                       key={index}
                       onClick={(event)=>{
                         this.setState({ selectedIndex: index });
@@ -75,47 +228,40 @@ class DefChangeList extends Component{
                       }
                     }>
                     <div className="mail_list">
-                      <h3>{item.change_type}
-                      <small>on {item.table_name} of record id {item.id} [{item.change_reference.toString().substring(0,20)}...]</small>
-                      </h3>
-                      {((item)=>{
-                          if (item.change_type=="UPDATE"){
-                              console.log("Update Info........",item.update_info);
-                              const update_list=item.update_info.map((uitem,uindex)=>{
-                                  console.log("Uitem.....",uitem);
-                                  return (<div key={uindex}>
-                                            <p>
-                                              <span className="badge">{uitem.field_name}</span> &nbsp;
-                                              <small>
-                                                <i className="fa fa-circle-o"></i>&nbsp;<i>{uitem.old_val?uitem.old_val.toString().substring(0,30):""} ...</i> &nbsp;
-                                                <i className="fa fa-circle"></i>&nbsp;<i>{uitem.new_val?uitem.new_val.toString().substring(0,30):""} ...</i>
-                                              </small>
-                                            </p>
-                                          </div>);
-                              });
-                              return update_list;
-                          }
-
-                      })(item)}
-
-                      <p><span className="badge">Comment</span>{item.maker_comment.toString().substring(0,125)} ...</p>
+                      {this.groupSummary(item)}
                     </div>
-                </li>
+                </a>
               );
         });
 
       return(
         <div>
-            <input className="form-control"
-                  placeholder="Search (YYYY-MM-DD)"
-                  value={this.state.searchTerm}
-                  onChange={(event) => {
-                      this.setState({ searchTerm: event.target.value });
-                  }}
-            />
-            <ul className="list-unstyled msg_list def-change-list">
-              {msgList}
-            </ul>
+            <div className="input-group">
+              <input className="form-control"
+                    placeholder="Serach for ..."
+                    value={this.state.searchTerm}
+                    onChange={(event) => {
+                        this.setState({ searchTerm: event.target.value });
+                    }}
+              />
+            </div>
+            {
+              audit_list_with_search.length>0 ?
+              msgList
+              :
+              <div className="mail_list">
+                <div className="left">
+                  <i className="fa fa-warning amber"></i>
+                </div>
+                <div className="right">
+                  <p>
+                    No matching record found for search condition
+                    <br/>
+                    <span className="amber">{this.state.searchTerm}</span>
+                  </p>
+                </div>
+              </div>
+            }
         </div>
       );
 
