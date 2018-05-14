@@ -6,6 +6,8 @@ export default class ModalAlert extends Component {
     super(props);
     this.state = { showModal: false };
     this.isDiscardToBeShown = this.props.showDiscard;
+    this.buttonTextOkay = this.props.buttonTextOkay ? this.props.buttonTextOkay : "Ok";
+    this.buttonTextDiscard = this.props.buttonTextDiscard ? this.props.buttonTextDiscard : "Discard";
   }
 
   close() {
@@ -33,7 +35,7 @@ export default class ModalAlert extends Component {
                 this.close();
                 if(typeof(this.props.onClickOkay) != 'undefined')
                   this.props.onClickOkay();
-              }}>Ok</Button>
+              }}>{this.buttonTextOkay}</Button>
             {
               (() => {
                 if(this.isDiscardToBeShown){
@@ -42,7 +44,7 @@ export default class ModalAlert extends Component {
                         this.close();
                         if(typeof(this.props.onClickDiscard) != 'undefined')
                           this.props.onClickDiscard();
-                    }}>Discard</Button>
+                    }}>{this.buttonTextDiscard}</Button>
                   )
                 }
               })()

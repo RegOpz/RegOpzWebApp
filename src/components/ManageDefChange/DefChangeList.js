@@ -219,12 +219,12 @@ class DefChangeList extends Component{
     console.log("Audit List........",userOnlyAuditList);
     const msgList=audit_list_with_search.map((item,index)=>{
           //console.log(item,index);
-          return(<a className={ this.state.selectedIndex == index ? "list_item_select" : "list_item_active" }
+          return(<a className={ this.props.index == index ? "list_item_select" : "list_item_active" }
                       key={index}
                       onClick={(event)=>{
                         this.setState({ selectedIndex: index });
                         const maker=item.maker==this.props.user?'self':'other';
-                        this.props.onSelectListItem(item,maker);
+                        this.props.onSelectListItem(item,maker,index);
                       }
                     }>
                     <div className="mail_list">

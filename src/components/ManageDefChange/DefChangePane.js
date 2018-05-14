@@ -3,8 +3,9 @@ import {dispatch} from 'redux';
 import moment from 'moment';
 import {connect} from 'react-redux';
 import _ from 'lodash';
-import {Media, Label, Badge, Modal, Button} from 'react-bootstrap';
-import {actionFetchRecordDetail} from '../../actions/DefChangeAction';
+import {Media, Label, Badge, Button} from 'react-bootstrap';
+import DefChangeDetails from './DefChangeDetails';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 class DefChangePane extends Component{
   constructor(props){
@@ -12,11 +13,15 @@ class DefChangePane extends Component{
     this.item=this.props.item;
     this.state={comment:null,
                 commentNoOfCharacter:0,
-                isModalOpen:false,
-                actionType:null
+                selectedChangeItem: null,
+                // isModalOpen:false,
+                actionType:null,
+                display: false,
+                displayDetails: false,
               };
     this.fetchFlag=true;
-    this.actionList=this.props.actionList ? this.props.actionList : {approve:[],reject:[], regress:[]};
+    this.selectNextItem=true;
+    this.actionList={approve:[],reject:[], regress:[]};
     this.groupChangeList = this.groupChangeList.bind(this);
     this.businessRulesList = this.businessRulesList.bind(this);
     this.reportRulesList = this.reportRulesList.bind(this);
@@ -26,34 +31,38 @@ class DefChangePane extends Component{
     this.actionButtons = this.actionButtons.bind(this);
     this.handleAddRemoveItem = this.handleAddRemoveItem.bind(this);
     this.checkDisabled= this.checkDisabled.bind(this);
+    this.onSelectChangeItem = this.onSelectChangeItem.bind(this);
+    this.showUpdateColumnList = this.showUpdateColumnList.bind(this);
+    this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
+    this.handleModalDiscardClick = this.handleModalDiscardClick.bind(this);
     }
 
   componentWillReceiveProps(nextProps){
     if(this.item!=nextProps.item){
       this.item=nextProps.item;
       this.actionList=nextProps.actionList ? nextProps.actionList : {approve:[],reject:[], regress:[]};
+      this.setState({
+                      comment: "",
+                      commentNoOfCharacter:0,
+                      display: false,
+                      displayDetails: false});
     }
-    // if (this.fetchFlag){
-    //   if(this.item){
-    //     this.props.fetchRecordDetail(this.item.table_name,this.item.id);
-    //     }
-    // }
-  }
 
-  // componentWillUpdate(){
-  //   if (this.fetchFlag){
-  //     if(this.item){
-  //       this.props.fetchRecordDetail(this.item.table_name,this.item.id);
-  //       }
-  //   }
-  //
-  // }
+  }
 
   componentDidUpdate(){
     if(this.item){
       //this.renderDefChangeDetails(this.props.record_detail,this.item);
       this.fetchFlag=!this.fetchFlag;
     }
+  }
+
+  componentDidMount(){
+    // TO refer to the component elements from parent
+    this.props.onRef(this);
+  }
+  componentWillUnmount(){
+    // TODO
   }
 
   groupChangeList(changeItem){
@@ -201,7 +210,7 @@ class DefChangePane extends Component{
 
   businessRulesList(changeItem) {
     return(
-      <div title={changeItem.maker_comment.substring(0,300)}>
+      <div title={this.state.display ? null : changeItem.maker_comment.substring(0,300)}>
         <div className="left">
           <i className="fa fa-tags"></i>
           <h6>
@@ -221,24 +230,12 @@ class DefChangePane extends Component{
             {changeItem.change_type + " " + changeItem.change_reference}
             <br></br>
             <i className="fa fa-comments-o"></i>
-            <span className="truncate-text">&nbsp;{changeItem.maker_comment}</span>
-            <br></br>
-            {
-              changeItem.change_type=='UPDATE' &&
-              changeItem.update_info.map((uitem,uindex)=>{
-                return(
-                  <span key={this.item.group_id + uindex}>
-                    <small>
-                      <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
-                      <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
-                      <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
-                      <span className="truncate-text"><i className="fa fa-angle-double-right"></i>&nbsp;</span>
-                    </small>
-                  </span>
-                );
-              })
-            }
+            <span className={this.state.display ? "preserve-text" : "truncate-text"}>&nbsp;{changeItem.maker_comment}</span>
           </p>
+          <br></br>
+          {
+            this.showUpdateColumnList(changeItem)
+          }
           <h3>
             <small>{moment.utc(changeItem.date_of_change).format('hh:mm:ss a')}</small>
           </h3>
@@ -249,7 +246,7 @@ class DefChangePane extends Component{
 
   reportRulesList(changeItem) {
     return(
-      <div title={changeItem.maker_comment.substring(0,300)}>
+      <div title={this.state.display ? null : changeItem.maker_comment.substring(0,300)}>
         <div className="left">
           <i className="fa fa-puzzle-piece"></i>
           <h6>
@@ -268,24 +265,12 @@ class DefChangePane extends Component{
             {changeItem.change_type + " " + changeItem.change_reference}
             <br></br>
             <i className="fa fa-comments-o"></i>
-            <span className="truncate-text">&nbsp;{changeItem.maker_comment}</span>
-            <br></br>
-            {
-              changeItem.change_type=='UPDATE' &&
-              changeItem.update_info.map((uitem,uindex)=>{
-                return(
-                  <span key={this.item.group_id + uindex}>
-                    <small>
-                      <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
-                      <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
-                      <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
-                      <span className="truncate-text"><i className="fa fa-angle-double-right"></i>&nbsp;</span>
-                    </small>
-                  </span>
-                );
-              })
-            }
+            <span className={this.state.display ? "preserve-text" : "truncate-text"}>&nbsp;{changeItem.maker_comment}</span>
           </p>
+          <br></br>
+          {
+            this.showUpdateColumnList(changeItem)
+          }
           <h3>
             <small>{moment.utc(changeItem.date_of_change).format('hh:mm:ss a')}</small>
           </h3>
@@ -296,7 +281,7 @@ class DefChangePane extends Component{
 
   reportTemplatesList(changeItem) {
     return(
-      <div title={changeItem.maker_comment.substring(0,300)}>
+      <div title={this.state.display ? null : changeItem.maker_comment.substring(0,300)}>
         <div className="left">
           <i className="fa fa-file-text"></i>
           <h6>
@@ -315,24 +300,12 @@ class DefChangePane extends Component{
             {changeItem.change_type + " " + changeItem.change_reference}
             <br></br>
             <i className="fa fa-comments-o"></i>
-            <span className="truncate-text">&nbsp;{changeItem.maker_comment}</span>
-            <br></br>
-            {
-              changeItem.change_type=='UPDATE' &&
-              changeItem.update_info.map((uitem,uindex)=>{
-                return(
-                  <span key={this.item.group_id + uindex}>
-                    <small>
-                      <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
-                      <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
-                      <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
-                      <span className="truncate-text"><i className="fa fa-angle-double-right"></i>&nbsp;</span>
-                    </small>
-                  </span>
-                );
-              })
-            }
+            <span className={this.state.display ? "preserve-text" : "truncate-text"}>&nbsp;{changeItem.maker_comment}</span>
           </p>
+          <br></br>
+          {
+            this.showUpdateColumnList(changeItem)
+          }
           <h3>
             <small>{moment.utc(changeItem.date_of_change).format('hh:mm:ss a')}</small>
           </h3>
@@ -343,7 +316,7 @@ class DefChangePane extends Component{
 
   permissionsList(changeItem) {
     return(
-      <div title={changeItem.maker_comment.substring(0,300)}>
+      <div title={this.state.display ? null : changeItem.maker_comment.substring(0,300)}>
         <div className="left">
           <i className="fa fa-shield"></i>
           <h6>
@@ -362,7 +335,7 @@ class DefChangePane extends Component{
             {(changeItem.change_type=='INSERT'? 'Granted permission ': 'Revoked permission' ) + " " + changeItem.change_reference}
             <br></br>
             <i className="fa fa-comments-o"></i>
-            <span className="truncate-text">&nbsp;{changeItem.maker_comment}</span>
+            <span className={this.state.display ? "preserve-text" : "truncate-text"}>&nbsp;{changeItem.maker_comment}</span>
           </p>
           <h3>
             <small>{moment.utc(changeItem.date_of_change).format('hh:mm:ss a')}</small>
@@ -401,6 +374,96 @@ class DefChangePane extends Component{
     );
   }
 
+  showUpdateColumnList(changeItem){
+      if(changeItem.change_type=='UPDATE' && !this.state.display){
+          return(
+            <span>
+            {
+              changeItem.update_info.map((uitem,uindex)=>{
+                return(
+                  <span key={this.item.group_id + uindex}>
+                    <small>
+                      <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
+                      <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
+                      <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
+                      <span className="truncate-text"><i className="fa fa-angle-double-right"></i>&nbsp;</span>
+                    </small>
+                  </span>
+                );
+              })
+            }
+            </span>
+          );
+      }
+      if(changeItem.change_type=='UPDATE' && this.state.display){
+          return(
+              <table className="table table-hover">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Attribute Name</th>
+                    <th>Old Value</th>
+                    <th>New Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {
+                  changeItem.update_info.map((uitem,uindex)=>{
+                    return(
+                      <tr key={uindex}>
+                        <td><strong>{uindex+1}</strong></td>
+                        <td>
+                          <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
+                        </td>
+                        <td>
+                          <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
+                        </td>
+                        <td>
+                          <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                }
+                </tbody>
+              </table>
+          );
+      }
+  }
+
+  onSelectChangeItem(changeItem){
+    console.log('onSelectChangeItem.......',changeItem);
+    let isOpen=(this.state.display=="changeItemDetails");
+    if(isOpen){
+      this.setState({
+                      selectedChangeItem: null,
+                      display: false,
+                      displayDetails: false,
+                    });
+    } else {
+      this.setState({
+                      selectedChangeItem: changeItem,
+                      display: "changeItemDetails",
+                      displayDetails: false,
+                    },
+                    console.log("onSelectChangeItem actionlist check.....",this.state.selectedChangeItem)
+                  );
+    }
+
+  }
+
+  handleModalOkayClick(event){
+    //TODO
+    this.modalAlert.isDiscardToBeShown = false;
+
+  }
+
+  handleModalDiscardClick(event){
+    //TODO
+    this.modalAlert.isDiscardToBeShown = false;
+
+  }
+
   render(){
     if(this.item==null){
       return(
@@ -415,11 +478,7 @@ class DefChangePane extends Component{
           return(<div className="list_item_active"
                       key={index}
                       onClick={(event)=>{
-                        let changeItemDetails={
-                              changeItem: changeItem,
-                              group_tables: this.item.group_tables
-                            };
-                        this.props.onSelectChangeItem(changeItemDetails,this.actionList);
+                        this.onSelectChangeItem(changeItem);
                       }
                     }>
                     <div className="mail_list">
@@ -429,7 +488,7 @@ class DefChangePane extends Component{
               );
         });
     return(
-      <div className="form-horizontal form-label-left form-def-change-detail">
+      <div className="form-horizontal form-label-left">
         {
           ((viewOnly,maker)=>{
             if(!viewOnly){
@@ -476,7 +535,8 @@ class DefChangePane extends Component{
                       }
                       {
                         maker!='self' &&
-                        (this.actionList.approve.length ==0 && this.actionList.reject.length == 0) &&
+                        this.actionList.approve.length ==0 &&
+                        this.actionList.reject.length == 0 &&
                         <div>
                           <button type="button" className="btn btn-sm btn-warning" onClick={this.handleReject.bind(this)}> Reject</button>
                           <button type="button" className="btn btn-sm btn-success" onClick={this.handleApprove.bind(this)}>Approve</button>
@@ -497,39 +557,59 @@ class DefChangePane extends Component{
                         </div>
                       }
                     </div>
+                    <div className="clearfix" />
+                    <div className="ln_solid" />
                  </div>
-                 <div className="clearfix" />
-                 <div className="ln_solid" />
                 </div>
               );
             }
           })(this.props.viewOnly,this.props.maker )
         }
-        <div>
+        <div className="form-def-change-detail">
           <div>
-            { changeList }
+            {
+              !this.state.display &&
+              <div>
+                {changeList}
+              </div>
+            }
+            {
+              this.state.display &&
+              <div className="mail_list">
+                <ul className="nav navbar-right panel_toolbox">
+                  <li>
+                    <a className="close-link" onClick={this.onSelectChangeItem} title="Close"><i className="fa fa-close"></i></a>
+                  </li>
+                </ul>
+                <button className="btn btn-link"
+                  onClick={this.onSelectChangeItem}
+                  title="Back to list">
+                  <i className="fa fa-arrow-left"></i>
+                </button>
+                {this.groupChangeList(this.state.selectedChangeItem)}
+                {
+                  !this.state.displayDetails &&
+                  <button className="col-md-offset-10 btn btn-xs btn-info"
+                    onClick={(event)=>{
+                      this.setState({displayDetails: "showRecordDetails"});
+                    }}
+                    title="Record details">
+                    Record Details
+                  </button>
+                }
+                {
+                  this.state.displayDetails=="showRecordDetails" &&
+                  <DefChangeDetails
+                    item={this.state.selectedChangeItem}/>
+                }
+              </div>
+            }
           </div>
-          <Modal
-             show={this.state.isModalOpen}
-             container={this}
-             onHide={(event) => {
-                 this.setState({isModalOpen:false});
-               }}
-          >
-             <Modal.Header closeButton>
-               <Modal.Title>Review Comment</Modal.Title>
-             </Modal.Header>
-
-             <Modal.Body>
-               Please enter review comment at least 20 character long.
-             </Modal.Body>
-
-             <Modal.Footer>
-               <Button onClick={(event) => {
-                   this.setState({isModalOpen:false})
-                 }}>Ok</Button>
-             </Modal.Footer>
-          </Modal>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+            onClickDiscard={this.handleModalDiscardClick}
+          />
         </div>
       </div>
     );
@@ -544,7 +624,8 @@ class DefChangePane extends Component{
       this.setState({comment:null});
       this.setState({commentNoOfCharacter:0});
     } else{
-      this.setState({isModalOpen:true});
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
     }
 
   }
@@ -558,7 +639,8 @@ class DefChangePane extends Component{
       this.setState({comment:null});
       this.setState({commentNoOfCharacter:0});
     } else{
-      this.setState({isModalOpen:true});
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
     }
   }
 
@@ -572,7 +654,8 @@ class DefChangePane extends Component{
       this.setState({comment:null});
       this.setState({commentNoOfCharacter:0});
     } else{
-      this.setState({isModalOpen:true});
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
     }
 
   }
@@ -581,15 +664,12 @@ class DefChangePane extends Component{
 
 const mapDispatchToProps=(dispatch)=>{
   return{
-    fetchRecordDetail:(table_name,id)=>{
-      dispatch(actionFetchRecordDetail(table_name,id));
-    }
+    //TODO
   };
 }
 
 function mapStateToProps(state){
   return{
-    record_detail:state.def_change_store.record_detail,
     login_details:state.login_store
   };
 }
