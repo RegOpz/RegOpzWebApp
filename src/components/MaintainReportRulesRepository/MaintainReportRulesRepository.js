@@ -5,6 +5,7 @@ import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import { Tab, Tabs } from 'react-bootstrap';
 import _ from 'lodash';
+import moment from 'moment';
 import {
   actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
@@ -27,6 +28,10 @@ class MaintainReportRulesRepository extends Component {
                   :
                   null);
     this.tenantRenderType = this.props.tenantRenderType;
+    this.groupId = this.props.groupId ?
+                    this.props.groupId
+                    :
+                    this.props.user + this.props.tenant_id + "RRR" + moment.utc();
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules Repository" }) ? true : false;
@@ -94,6 +99,7 @@ class MaintainReportRulesRepository extends Component {
               >
               <MaintainFixedFormatReportRules
                 privileges={this.props.privileges}
+                groupId={this.groupId}
                 />
               </Tab>
               <Tab
@@ -103,6 +109,7 @@ class MaintainReportRulesRepository extends Component {
               >
                 <MaintainTransactionReportRules
                   privileges={this.props.privileges}
+                  groupId={this.groupId}
                   />
               </Tab>
               <Tab

@@ -90,6 +90,7 @@ class MaintainBusinessRules extends Component {
     ]
     this.buttonClassOverride = "None";
     this.selectedKeys = '';
+    this.groupId = this.props.user + this.props.tenant_id + "BR" + moment.utc();
 
 
     this.handleDataFileClick = this.handleDataFileClick.bind(this);
@@ -493,6 +494,8 @@ class MaintainBusinessRules extends Component {
         change_type:this.operationName,
         change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.state.sourceId} - ${data["table_name"]}`,
         maker:this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.groupId,
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
@@ -509,6 +512,8 @@ class MaintainBusinessRules extends Component {
         change_type:this.operationName,
         change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.state.sourceId} - ${data["table_name"]}`,
         maker:this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.groupId,
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
@@ -525,6 +530,8 @@ class MaintainBusinessRules extends Component {
        change_type:this.operationName,
        change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.state.sourceId} - ${data["table_name"]}`,
        maker:this.props.login_details.user,
+       maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+       group_id: this.groupId,
      };
      Object.assign(this.auditInfo,auditInfo);
      data["audit_info"]=this.auditInfo;
@@ -714,6 +721,10 @@ class MaintainBusinessRules extends Component {
                 tenantSource={ tenantSource }
                 tenantRenderType={"copyRule"}
                 showBusinessRuleGrid={"showBusinessRuleGrid"}
+                user={ this.props.user }
+                tenant_id={ this.props.tenant_id }
+                groupId={ this.groupId }
+                tenantWriteOnly={ this.writeOnly }
                 handleCancel={this.handleRuleRepositoryClick}/>
               );
               break;
@@ -737,6 +748,7 @@ class MaintainBusinessRules extends Component {
                         handleCancel={this.handleAdd}
                         handleClose={this.handleAdd}
                         editable={ this.writeOnly && this.state.itemEditable }
+                        groupId={ this.groupId }
                         />
                   );
               }

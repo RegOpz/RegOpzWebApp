@@ -29,7 +29,9 @@ export default function authenticate(ComposedComponent){
                   component={name}/>
         }
         console.log("Render function called, Authentication.....",component);
-        const newProps={user:this.props.login_details.user,privileges:component.permissions}
+        const newProps={user:this.props.login_details.user,
+                        tenant_id:this.props.login_details.domainInfo.tenant_id, 
+                        privileges:component.permissions}
 
         return <ComposedComponent {...this.props} {...newProps}/>
       }

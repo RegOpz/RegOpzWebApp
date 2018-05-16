@@ -35,6 +35,7 @@ class DefChangePane extends Component{
     this.showUpdateColumnList = this.showUpdateColumnList.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleModalDiscardClick = this.handleModalDiscardClick.bind(this);
+    this.processActionList = this.processActionList.bind(this);
     }
 
   componentWillReceiveProps(nextProps){
@@ -222,8 +223,8 @@ class DefChangePane extends Component{
         <div className="right">
           <h3>
             Business rule changes &nbsp;
-            {this.actionButtons(changeItem)}
-            <small>{changeItem.maker}&nbsp;
+            {!this.props.viewOnly && this.actionButtons(changeItem)}
+            <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;
             </small>
           </h3>
           <p>
@@ -258,8 +259,8 @@ class DefChangePane extends Component{
         <div className="right">
           <h3>
             Report rule & logic changes &nbsp;
-            {this.actionButtons(changeItem)}
-            <small>{changeItem.maker}</small>
+            {!this.props.viewOnly && this.actionButtons(changeItem)}
+            <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
           </h3>
           <p>
             {changeItem.change_type + " " + changeItem.change_reference}
@@ -293,8 +294,8 @@ class DefChangePane extends Component{
         <div className="right">
           <h3>
             Report template changes &nbsp;
-            {this.actionButtons(changeItem)}
-            <small>{changeItem.maker}</small>
+            {!this.props.viewOnly && this.actionButtons(changeItem)}
+            <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
           </h3>
           <p>
             {changeItem.change_type + " " + changeItem.change_reference}
@@ -328,8 +329,8 @@ class DefChangePane extends Component{
         <div className="right">
           <h3>
             Role Permissions changes &nbsp;
-            {this.actionButtons(changeItem)}
-            <small>{changeItem.maker}</small>
+            {!this.props.viewOnly && this.actionButtons(changeItem)}
+            <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
           </h3>
           <p>
             {(changeItem.change_type=='INSERT'? 'Granted permission ': 'Revoked permission' ) + " " + changeItem.change_reference}
@@ -358,7 +359,8 @@ class DefChangePane extends Component{
         </div>
         <div className="right">
           <h3>
-            Role {changeItem.change_type=='INSERT' ? 'created' : ''} {changeItem.change_type=='DELETE' ? 'deleted' : ''}<small>{changeItem.maker}</small>
+            Role {changeItem.change_type=='INSERT' ? 'created' : ''} {changeItem.change_type=='DELETE' ? 'deleted' : ''}
+            <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
           </h3>
           <p>
             {changeItem.change_type + " " + changeItem.change_reference}
@@ -551,7 +553,7 @@ class DefChangePane extends Component{
                               this.actionList={approve:[],reject:[], regress:[]};
                               this.setState({comment:"", commentNoOfCharacter:0, actionType:null});
                             }}>Reset</button>
-                          <button type="button" className="btn btn-sm btn-primary" onClick={()=>{}}>Submit Review</button>
+                          <button type="button" className="btn btn-sm btn-primary" onClick={this.handleSubmitReview.bind(this)}>Submit Review</button>
                           <span className="badge bg-green"><i className="fa fa-check-square-o"></i>&nbsp;{this.actionList.approve.length}</span>&nbsp;
                           <span className="badge bg-orange"><i className="fa fa-ban"></i>&nbsp;{this.actionList.reject.length}</span>
                         </div>
@@ -565,7 +567,7 @@ class DefChangePane extends Component{
             }
           })(this.props.viewOnly,this.props.maker )
         }
-        <div className="form-def-change-detail">
+        <div className={ this.props.viewOnly ? "form-def-change-detail-viewonly" : "form-def-change-detail" }>
           <div>
             {
               !this.state.display &&
@@ -615,14 +617,50 @@ class DefChangePane extends Component{
     );
   }
 
+  processActionList(){
+    this.actionList.approve.map((element,index)=>{
+      element.status="APPROVED";
+      element.checker=this.props.login_details.user;
+      element.checker_tenent_id=this.props.login_details.domainInfo.tenant_id;
+      element.checker_comment=this.state.comment;
+    });
+    this.actionList.reject.map((element,index)=>{
+      element.status="REJECTED";
+      element.checker=this.props.login_details.user;
+      element.checker_tenent_id=this.props.login_details.domainInfo.tenant_id;
+      element.checker_comment=this.state.comment;
+    });
+    this.actionList.regress.map((element,index)=>{
+      element.status="REGRESSED";
+      element.checker=this.props.login_details.user;
+      element.checker_tenent_id=this.props.login_details.domainInfo.tenant_id;
+      element.checker_comment=this.state.comment;
+    });
+    console.log("inside processActionList...",this.actionList);
+    this.props.onSubmitDicision(this.actionList);
+    this.actionList={approve:[],reject:[], regress:[]};
+    this.setState({comment:"", commentNoOfCharacter:0, actionType:null, displayDetails: false, display: false});
+  }
+
+  handleSubmitReview(){
+    if(this.state.comment != null && this.state.comment.length > 20){
+      this.processActionList();
+    } else{
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
+    }
+  }
+
   handleReject(){
     if(this.state.comment != null && this.state.comment.length > 20){
-      this.item.status="REJECTED";
-      this.item.checker=this.props.login_details.user;
-      this.item.checker_comment=this.state.comment;
-      this.props.onReject(this.item);
-      this.setState({comment:null});
-      this.setState({commentNoOfCharacter:0});
+      if ( this.actionList.reject.length ==0 && this.state.selectedChangeItem){
+        this.actionList.reject.push(this.state.selectedChangeItem);
+      }
+      if ( this.actionList.reject.length ==0 && !this.state.selectedChangeItem){
+        this.actionList.reject=this.item.group;
+      }
+      this.processActionList();
+      // this.props.onReject(this.item);
     } else{
       this.modalAlert.isDiscardToBeShown = false;
       this.modalAlert.open("Please enter review comment at least 20 character long.");
@@ -632,12 +670,13 @@ class DefChangePane extends Component{
 
   handleApprove(){
     if(this.state.comment != null && this.state.comment.length > 20){
-      this.item.status="APPROVED";
-      this.item.checker=this.props.login_details.user;
-      this.item.checker_comment=this.state.comment;
-      this.props.onApprove(this.item);
-      this.setState({comment:null});
-      this.setState({commentNoOfCharacter:0});
+      if ( this.actionList.approve.length ==0 && this.state.selectedChangeItem){
+        this.actionList.approve.push(this.state.selectedChangeItem);
+      }
+      if ( this.actionList.approve.length ==0 && !this.state.selectedChangeItem){
+        this.actionList.approve=this.item.group;
+      }
+      this.processActionList();
     } else{
       this.modalAlert.isDiscardToBeShown = false;
       this.modalAlert.open("Please enter review comment at least 20 character long.");
@@ -647,12 +686,13 @@ class DefChangePane extends Component{
   handleRegress(){
     console.log("handleRegress........",this.props.login_details);
     if(this.state.comment != null && this.state.comment.length > 20){
-      this.item.status="REGRESSED";
-      this.item.checker=this.props.login_details.user;
-      this.item.checker_comment=this.state.comment;
-      this.props.onRegress(this.item);
-      this.setState({comment:null});
-      this.setState({commentNoOfCharacter:0});
+      if ( this.actionList.regress.length ==0 && this.state.selectedChangeItem){
+        this.actionList.regress.push(this.state.selectedChangeItem);
+      }
+      if ( this.actionList.regress.length ==0 && !this.state.selectedChangeItem){
+        this.actionList.regress=this.item.group;
+      }
+      this.processActionList();
     } else{
       this.modalAlert.isDiscardToBeShown = false;
       this.modalAlert.open("Please enter review comment at least 20 character long.");

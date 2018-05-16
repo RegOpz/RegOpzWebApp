@@ -91,6 +91,7 @@ class ViewDataComponentV2 extends Component {
       {title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success"},
     ]
     this.buttonClassOverride = "None";
+    this.groupId = this.props.user + "DS" + moment.utc();
 
 
     this.handleDataFileClick = this.handleDataFileClick.bind(this);
@@ -542,7 +543,9 @@ class ViewDataComponentV2 extends Component {
         change_type:this.operationName,
         change_reference:`Duplicate of Data: ${this.selectedItems[0]["id"]} of Source: ${this.state.sourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
         maker:this.props.login_details.user,
-        business_date:this.state.businessDate
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        business_date:this.state.businessDate,
+        group_id: this.groupId,
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
@@ -560,7 +563,9 @@ class ViewDataComponentV2 extends Component {
         change_type:this.operationName,
         change_reference:`Delete of Data: ${this.selectedItems[0]['id']} of Source: ${this.state.sourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
         maker:this.props.login_details.user,
-        business_date:this.state.businessDate
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        business_date:this.state.businessDate,
+        group_id: this.groupId
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
@@ -578,7 +583,9 @@ class ViewDataComponentV2 extends Component {
        change_type:this.operationName,
        change_reference:`Update of Data: ${this.updateInfo['id']} of Source: ${this.state.sourceId} - ${data["table_name"]} Business Date: ${moment(this.state.businessDate).format('DD-MMM-YYYY')}`,
        maker:this.props.login_details.user,
-       business_date:this.state.businessDate
+       maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+       business_date:this.state.businessDate,
+       group_id: this.groupId,
      };
      Object.assign(this.auditInfo,auditInfo);
      data["audit_info"]=this.auditInfo;
@@ -720,6 +727,7 @@ class ViewDataComponentV2 extends Component {
                         readOnly={(!this.writeOnly || !this.state.itemEditable)}
                         updateSourceData={this.updateSourceData}
                         insertSourceData={this.insertSourceData}
+                        groupId={this.groupId}
                         />
                   );
               }

@@ -7,7 +7,8 @@ import {
     Link,
     IndexRoute,
     hashHistory,
-    browserHistory
+    browserHistory,
+    withRouter
 } from 'react-router';
 import { Provider, connect } from 'react-redux';
 import { createStore, applyMiddleware } from 'redux';
@@ -148,8 +149,8 @@ ReactDOM.render(
                     <Route path="maintain-report-rules" name="Maintain Report Rules" component={authenticate(MaintainReportRules)} />
                     <Route path="maintain-sources" name="Maintain Sources" component={authenticate(MaintainSources)} />
                     <Route path="variance-analysis" name="Variance Analysis" component={authenticate(VarianceAnalysis)} />
-                    <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(ManageDefChange)} />
-                    <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(ManageDataChange)} />
+                    <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(withRouter(ManageDefChange))} />
+                    <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(withRouter(ManageDataChange))} />
                     <Route path="manage-roles" name="Manage Roles" component={authenticate(ManageRoles)} />
                     <Route path="manage-users" name="Manage Users" component={authenticate(ManageUsers)} />
                     <Route path="manage-users/edit-user" name="Edit User" component={EditUsers} />

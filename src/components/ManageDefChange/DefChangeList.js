@@ -208,7 +208,7 @@ class DefChangeList extends Component{
     }
 
     let userOnlyAuditList=audit_list.filter((element)=>{
-                                    return( element.maker==this.props.user);
+                                    return( element.maker==this.props.user && element.maker_tenant_id==this.props.tenant_id );
                                   });
 
     this.auditListWithPrivilege=this.props.viewAllChange?audit_list:userOnlyAuditList;
@@ -216,14 +216,14 @@ class DefChangeList extends Component{
     console.log("this.state.searchTerm", this.state.searchTerm)
     this.handleSearch();
     let audit_list_with_search=this.state.searchTerm?this.queryResult:this.auditListWithPrivilege;
-    console.log("Audit List........",userOnlyAuditList);
+    console.log("Audit List........",audit_list_with_search);
     const msgList=audit_list_with_search.map((item,index)=>{
           //console.log(item,index);
           return(<a className={ this.props.index == index ? "list_item_select" : "list_item_active" }
                       key={index}
                       onClick={(event)=>{
                         this.setState({ selectedIndex: index });
-                        const maker=item.maker==this.props.user?'self':'other';
+                        const maker=(item.maker==this.props.user && item.maker_tenant_id==this.props.tenant_id)?'self':'other';
                         this.props.onSelectListItem(item,maker,index);
                       }
                     }>

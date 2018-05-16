@@ -487,6 +487,7 @@ class MaintainFixedFormatReportRules extends Component {
                             handleClose={this.handleDetails.bind(this)}
                             {...this.calcRuleFilter.params.drill_kwargs}
                             formData={this.calcRuleFilter.form}
+                            groupId={this.props.groupId}
                           />
                       );
                   } else if (this.state.showAggRuleDetails) {
@@ -498,6 +499,7 @@ class MaintainFixedFormatReportRules extends Component {
                             aggRuleData = { this.aggRuleData }
                             dml_allowed = { this.aggRuleData.dml_allowed }
                             gridData={this.props.gridDataViewReport}
+                            groupId={this.props.groupId}
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {

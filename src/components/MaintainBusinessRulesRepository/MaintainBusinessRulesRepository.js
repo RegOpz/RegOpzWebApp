@@ -107,6 +107,10 @@ class MaintainBusinessRulesRepository extends Component {
 
     this.buttonClassOverride = "None";
     this.selectedKeys = '';
+    this.groupId = this.props.groupId ?
+                    this.props.groupId
+                    :
+                    this.props.user + this.props.tenant_id + "BRR" + moment.utc();
 
 
     this.handleCountryClick = this.handleCountryClick.bind(this);
@@ -136,6 +140,7 @@ class MaintainBusinessRulesRepository extends Component {
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Business Rules Repository" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Business Rules Repository" }) ? true : false;
+    this.tenantWriteOnly = this.props.tenantWriteOnly;
   }
 
   componentWillMount(){
@@ -217,7 +222,7 @@ class MaintainBusinessRulesRepository extends Component {
       case "Delete":
         return (!this.writeOnly || !this.state.itemEditable);
       case "Copy Rule":
-        return !this.writeOnly;
+        return !this.tenantWriteOnly;
       default:
         console.log("No specific checkDisabled has been defined for ",item);
     }
@@ -570,6 +575,8 @@ class MaintainBusinessRulesRepository extends Component {
         change_type:this.operationName,
         change_reference:`Delete of Repository Rule: ${this.selectedItems[0]['business_rule']} of country: ${this.state.sourceId}`,
         maker:this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.groupId,
       };
       Object.assign(this.auditInfo,auditInfo);
       data["audit_info"]=this.auditInfo;
@@ -586,7 +593,11 @@ class MaintainBusinessRulesRepository extends Component {
         data["rules"]=this.selectedItems;
       }
 
-      data["audit_comment"]=auditInfo.comment;
+      data["audit_info"]={"audit_comment": auditInfo.comment,
+                          "maker": this.props.user,
+                          "maker_tenant_id": this.props.tenant_id,
+                          "group_id": this.groupId
+                        };
       // console.log("INSERTTENANT data...", data);
       this.props.copyBusinessRuleToTenant(data,this.tenantSource.sourceId)
     }
@@ -794,6 +805,7 @@ class MaintainBusinessRulesRepository extends Component {
                         handleCancel={this.handleAdd}
                         handleClose={this.handleAdd}
                         editable={ this.writeOnly && this.state.itemEditable }
+                        groupId={ this.groupId }
                         />
                   );
               }

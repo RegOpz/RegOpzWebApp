@@ -1,6 +1,7 @@
 import React,{Component} from 'react';
 import {dispatch} from 'redux';
 import {connect} from 'react-redux';
+import {hashHistory} from 'react-router';
 import _ from 'lodash';
 import DefChangeList from './DefChangeList';
 import DefChangePane from './DefChangePane';
@@ -25,21 +26,27 @@ class ManageDefChange extends Component{
                   // actionList:null,
                 };
     this.modalOkay = false;
+    this.nextLocation = null;
+    this.user=this.props.user;
+    this.tenant_id=this.props.tenant_id;
+    this.fetchFlag=true;
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
+    this.handleUnsavedItems = this.handleUnsavedItems.bind(this);
+
     this.viewOwnChange=_.find(this.props.privileges,{permission:"View Own Def Changes"})?true:false;
     this.viewAllChange=_.find(this.props.privileges,{permission:"View Def Changes"})?true:false;
     this.manageDefChange=_.find(this.props.privileges,{permission:"Manage Def Changes"})?true:false;
-    this.user=this.props.user;
-    this.fetchFlag=true;
 
   }
 
   componentWillMount(){
     this.props.fetchAuditList();
+    this.unregisterLeaveHook = this.props.router.setRouteLeaveHook(this.props.route, this.routerWillLeave.bind(this));
   }
 
   componentWillReceiveProps(nextProps){
-    if (this.fetchFlag) {
+    if (this.props.submitDecisionStatus!=nextProps.submitDecisionStatus) {
+      console.log("Inside componentWillReceiveProps of manageDataChange if block..")
       this.props.fetchAuditList();
     }
   }
@@ -50,10 +57,18 @@ class ManageDefChange extends Component{
 
   componentWillUnmount(){
     // TODO
+    this.routerWillLeave();
+  }
+
+  routerWillLeave(nextLocation) {
+    this.nextLocation = null;
     const { approve, reject, regress } = this.defChangePane.actionList;
     if(approve.length||reject.length||regress.length){
-      alert("There are unsaved items");
+      this.handleUnsavedItems(approve.length,reject.length,regress.length);
+      this.nextLocation = nextLocation;
+      return false;
     }
+    return true;
   }
 
   render(){
@@ -83,6 +98,7 @@ class ManageDefChange extends Component{
                       <DefChangeList onSelectListItem={this.handleSelectItem.bind(this)}
                                     viewAllChange={viewAllChange}
                                     user={this.user}
+                                    tenant_id={this.tenant_id}
                                     index={this.state.index}
                                     audit_list={this.props.audit_list}
                         />
@@ -92,9 +108,7 @@ class ManageDefChange extends Component{
                   <DefChangePane
                     item={this.state.selectedListItem}
                     index={this.state.index}
-                    onApprove={this.handleDecision.bind(this)}
-                    onReject={this.handleDecision.bind(this)}
-                    onRegress={this.handleDecision.bind(this)}
+                    onSubmitDicision={this.handleDecision.bind(this)}
                     maker={this.state.maker}
                     onRef={(defChangePane) => {this.defChangePane = defChangePane}}
                     viewOnly={viewOnly}/>
@@ -111,44 +125,49 @@ class ManageDefChange extends Component{
     );
   }
 
+  handleUnsavedItems(approveCount,rejectCount,regressCount) {
+    this.modalAlert.isDiscardToBeShown = true;
+    this.modalAlert.buttonTextOkay = "Yes";
+    this.modalAlert.buttonTextDiscard = "No";
+    this.modalAlert.open(
+        <div className="x_panel">
+          <div>There are unsaved reviews.</div>
+          <table className="table table-hover">
+            <thead>
+              <tr>
+                <th>Change Type</th>
+                <th>Review Count</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="green">Approve</td>
+                <td className="green">{approveCount}</td>
+              </tr>
+              <tr>
+                <td className="amber">Reject</td>
+                <td className="amber">{rejectCount}</td>
+              </tr>
+              <tr>
+                <td className="amber">Regress</td>
+                <td className="amber">{regressCount}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div>
+            Do you want to proceed without saving these changes?
+          </div>
+        </div>
+      );
+  }
+
   handleSelectItem(item,maker,index){
-    console.log('onSelectListItem.......',item,maker,this.defChangePane);
+    // console.log('onSelectListItem.......',item,maker,this.defChangePane);
+    this.selectedListItemitem=null;
     const { approve, reject, regress } = this.defChangePane.actionList;
     if(approve.length||reject.length||regress.length){
       //this.renderDefChangeDetails(this.props.record_detail,this.item);
-      this.modalAlert.isDiscardToBeShown = true;
-      this.modalAlert.buttonTextOkay = "Yes";
-      this.modalAlert.buttonTextDiscard = "No";
-      this.modalAlert.open(
-          <div className="x_panel">
-            <div>There are unsaved reviews.</div>
-            <table className="table table-hover">
-              <thead>
-                <tr>
-                  <th>Change Type</th>
-                  <th>Review Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="green">Approve</td>
-                  <td className="green">{approve.length}</td>
-                </tr>
-                <tr>
-                  <td className="amber">Reject</td>
-                  <td className="amber">{reject.length}</td>
-                </tr>
-                <tr>
-                  <td className="amber">Regress</td>
-                  <td className="amber">{regress.length}</td>
-                </tr>
-              </tbody>
-            </table>
-            <div>
-              Do you want to proceed without saving these changes?
-            </div>
-          </div>
-        );
+      this.handleUnsavedItems(approve.length,reject.length,regress.length);
       this.selectedListItemitem={selectedListItem:item,
                                   maker:maker,
                                   display: false,
@@ -169,13 +188,19 @@ class ManageDefChange extends Component{
   handleModalOkayClick(){
     //TODO
     this.modalAlert.isDiscardToBeShown = false;
-    this.setState(this.selectedListItemitem);
+    if(this.nextLocation){
+      this.defChangePane.actionList = {approve:[],reject:[],regress:[]};
+      hashHistory.push(this.nextLocation);
+    }
+    if (this.selectedListItemitem){
+      this.setState(this.selectedListItemitem);
+    }
 
   }
 
-  handleDecision(item){
-    this.props.postAuditDecision(item);
-    this.setState({selectedListItem:null});
+  handleDecision(itemList){
+    this.props.postAuditDecision(itemList);
+    this.setState({selectedListItem:null,index:-1});
 
   }
 
@@ -191,7 +216,9 @@ class ManageDefChange extends Component{
 
 function mapStateToProps(state){
   return{
-    audit_list:state.def_change_store.audit_list
+    login_details: state.login_store,
+    audit_list:state.def_change_store.audit_change_list,
+    submitDecisionStatus:  state.def_change_store.post_decision_status,
   };
 }
 

@@ -2,6 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from '../Constant/constant';
 
 export const FETCH_DATA_AUDIT_LIST='FETCH_DATA_AUDIT_LIST';
+export const FETCH_DATA_AUDIT_HISTORY='FETCH_DATA_AUDIT_HISTORY';
 export const FETCH_DATA_RECORD_DETAIL='FETCH_DATA_RECORD_DETAIL';
 export const POST_DATA_AUDIT_DECISION='POST_DATA_AUDIT_DECISION';
 
@@ -10,9 +11,10 @@ export function actionFetchDataAuditList(idList,tableName){
   url += idList ? "&id_list=" + idList : "" ;
   url += tableName ? "&table_name="+tableName : "" ;
   const request=axios.get(url);
+  const type=tableName? FETCH_DATA_AUDIT_HISTORY : FETCH_DATA_AUDIT_LIST;
 
   return {
-    type:FETCH_DATA_AUDIT_LIST,
+    type:type,
     payload:request
   };
 }

@@ -481,6 +481,8 @@ class AddReportAggRules extends Component {
       change_type:data["change_type"],
       change_reference:`Aggregation Rule of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id}`,
       maker: this.props.login_details.user,
+      maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+      group_id: this.props.groupId,
     };
 
     Object.assign(audit_info,this.state.audit_form);

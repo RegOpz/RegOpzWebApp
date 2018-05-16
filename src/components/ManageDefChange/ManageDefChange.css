@@ -24,6 +24,11 @@
   overflow-y: auto;
 }
 
+.form-def-change-detail-viewonly{
+  height: 76vh;
+  overflow-y: auto;
+}
+
 .list_item_active .mail_list:hover{
   cursor:pointer;
   color: darkslategray;

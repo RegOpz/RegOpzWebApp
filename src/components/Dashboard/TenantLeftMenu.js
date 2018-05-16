@@ -89,10 +89,10 @@ class TenantLeftMenu extends Component {
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <Link to="/dashboard/workflow/manage-def-change"> Manage Definition Change</Link>
+                              <a href="#/dashboard/workflow/manage-def-change"> Manage Definition Change</a>
                           </li>
                           <li>
-                             <Link to="/dashboard/workflow/manage-data-change"> Manage Data Change</Link>
+                             <a href="#/dashboard/workflow/manage-data-change"> Manage Data Change</a>
                           </li>
                       </ul>
                   </li>

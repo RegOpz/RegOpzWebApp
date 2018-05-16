@@ -640,6 +640,8 @@ class AddBusinessRule extends Component {
       change_type: data.change_type,
       change_reference: `Rule: ${this.state.form.business_rule} of Source: ${this.state.form.source_id}`,
       maker: this.props.login_details.user,
+      maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+      group_id: this.props.groupId,
     };
     Object.assign(audit_info, this.state.audit_form);
 

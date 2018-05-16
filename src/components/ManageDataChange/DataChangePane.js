@@ -1,37 +1,50 @@
 import React,{Component} from 'react';
 import {dispatch} from 'redux';
+import moment from 'moment';
 import {connect} from 'react-redux';
-import {Media, Label, Badge, Modal, Button} from 'react-bootstrap';
-import {actionFetchDataRecordDetail} from '../../actions/DataChangeAction';
-class DataChangePane extends Component{
+import _ from 'lodash';
+import {Media, Label, Badge, Button} from 'react-bootstrap';
+import DefChangeDetails from '../ManageDefChange/DefChangeDetails';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
+class DataChangePane extends Component{
   constructor(props){
     super(props);
     this.item=this.props.item;
     this.state={comment:null,
                 commentNoOfCharacter:0,
-                isModalOpen:false
+                selectedChangeItem: null,
+                // isModalOpen:false,
+                actionType:null,
+                display: false,
+                displayDetails: false,
               };
     this.fetchFlag=true;
+    this.selectNextItem=true;
+    this.actionList={approve:[],reject:[], regress:[]};
+    this.groupChangeList = this.groupChangeList.bind(this);
+    this.actionButtons = this.actionButtons.bind(this);
+    this.handleAddRemoveItem = this.handleAddRemoveItem.bind(this);
+    this.checkDisabled= this.checkDisabled.bind(this);
+    this.onSelectChangeItem = this.onSelectChangeItem.bind(this);
+    this.showUpdateColumnList = this.showUpdateColumnList.bind(this);
+    this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
+    this.handleModalDiscardClick = this.handleModalDiscardClick.bind(this);
+    this.processActionList = this.processActionList.bind(this);
     }
 
   componentWillReceiveProps(nextProps){
-    this.item=nextProps.item;
-    if (this.fetchFlag){
-      if(this.item){
-        this.props.fetchRecordDetail(this.item.table_name,this.item.id);
-        }
+    if(this.item!=nextProps.item){
+      this.item=nextProps.item;
+      this.actionList=nextProps.actionList ? nextProps.actionList : {approve:[],reject:[], regress:[]};
+      this.setState({
+                      comment: "",
+                      commentNoOfCharacter:0,
+                      display: false,
+                      displayDetails: false});
     }
-  }
 
-  // componentWillUpdate(){
-  //   if (this.fetchFlag){
-  //     if(this.item){
-  //       this.props.fetchRecordDetail(this.item.table_name,this.item.id);
-  //       }
-  //   }
-  //
-  // }
+  }
 
   componentDidUpdate(){
     if(this.item){
@@ -40,324 +53,492 @@ class DataChangePane extends Component{
     }
   }
 
-  render(){
-    if(this.item==null){
-      return(<div> </div>);
+  componentDidMount(){
+    // TO refer to the component elements from parent
+    this.props.onRef(this);
+  }
+  componentWillUnmount(){
+    // TODO
+  }
+
+  groupChangeList(changeItem){
+    return(
+      <div title={this.state.display ? null : changeItem.maker_comment.substring(0,300)}>
+        <div className="left">
+          <i className="fa fa-th-large"></i>
+          <h6>
+            {moment.utc(changeItem.date_of_change).format('DD')}
+            <br/>
+            <small>{moment.utc(changeItem.date_of_change).format('MMM')}</small>
+          </h6>
+        </div>
+        <div className="right">
+          <h3>
+            {changeItem.table_name.toUpperCase().replace(/_/g,' ')} &nbsp;
+            {!this.props.viewOnly && this.actionButtons(changeItem)}
+            <small>{changeItem.maker}&nbsp;
+            </small>
+          </h3>
+          <p>
+            {changeItem.change_type + " " + changeItem.change_reference}
+            <br></br>
+            <i className="fa fa-comments-o"></i>
+            <span className={this.state.display ? "preserve-text" : "truncate-text"}>&nbsp;{changeItem.maker_comment}</span>
+          </p>
+          <br></br>
+          {
+            this.showUpdateColumnList(changeItem)
+          }
+          <h3>
+            <small>{moment.utc(changeItem.date_of_change).format('hh:mm:ss a')}</small>
+          </h3>
+        </div>
+      </div>
+    );
+
+  }
+
+  actionButtons(changeItem){
+    return(
+      <span>
+        {
+          this.props.maker!='self' &&
+          <button className="btn btn-link btn-xs"
+            disabled={this.checkDisabled("approve",changeItem)}
+            onClick={(event)=>{
+              this.handleAddRemoveItem("approve",changeItem);
+              console.log("actionButtons....",this.actionList);
+              event.stopPropagation();
+            }}
+            title="Add to approval list">
+            <i className="fa fa-check-square-o green"></i>
+              {
+                _.find(this.actionList.approve,changeItem) &&
+                <span className="green">Added to approval list</span>
+              }
+          </button>
+        }
+        {
+          this.props.maker!='self' &&
+          <button className="btn btn-link btn-xs"
+            disabled={this.checkDisabled("reject",changeItem)}
+            onClick={(event)=>{
+              this.handleAddRemoveItem("reject",changeItem);
+              console.log("actionButtons....",this.actionList);
+              event.stopPropagation();
+            }}
+            title="Add to rejection list">
+            <i className="fa fa-ban amber"></i>
+              {
+                _.find(this.actionList.reject,changeItem) &&
+                <span className="amber">Added to rejection list</span>
+              }
+          </button>
+        }
+        {
+          this.props.maker=='self' &&
+          <button className="btn btn-link btn-xs"
+            disabled={this.checkDisabled("regress",changeItem)}
+            onClick={(event)=>{
+              this.handleAddRemoveItem("regress",changeItem);
+              console.log("actionButtons....",this.actionList);
+              event.stopPropagation();
+            }}
+            title="Add to regress list">
+            <i className="fa fa-eye-slash amber"></i>
+              {
+                _.find(this.actionList.regress,changeItem) &&
+                <span className="amber">Added to regress list</span>
+              }
+          </button>
+        }
+        <button className="btn btn-link btn-xs"
+          disabled={this.checkDisabled("remove",changeItem)}
+          onClick={(event)=>{
+            this.handleAddRemoveItem("remove",changeItem);
+            console.log("actionButtons....",this.actionList);
+            event.stopPropagation();
+          }}
+          title="Remove from review list">
+          <i className="fa fa-undo"></i>
+        </button>
+      </span>
+    )
+  }
+
+  handleAddRemoveItem(actionType,changeItem){
+    // TODO
+    switch(actionType){
+      case "approve":
+        if (!_.find(this.actionList.approve,changeItem) && !_.find(this.actionList.reject,changeItem)){
+          this.actionList.approve.push(changeItem);
+          this.setState({actionType: "approve"});
+        }
+        break;
+      case "reject":
+        if (!_.find(this.actionList.approve,changeItem) && !_.find(this.actionList.reject,changeItem)) {
+          this.actionList.reject.push(changeItem);
+          this.setState({actionType: "reject"});
+        }
+        break;
+      case "regress":
+        if(!_.find(this.actionList.regress,changeItem)) {
+          this.actionList.regress.push(changeItem);
+          this.setState({actionType: "regress"});
+        }
+        break;
+      case "remove":
+        let index = null;
+        if(this.props.maker=='self'){
+          index = _.indexOf(this.actionList.regress,changeItem);
+          if (index!=-1){
+            this.actionList.regress.splice(index,1);
+          }
+        } else {
+          index = _.indexOf(this.actionList.approve,changeItem);
+          if (index!=-1){
+            this.actionList.approve.splice(index,1);
+          } else {
+            index = _.indexOf(this.actionList.reject,changeItem);
+            if(index!=-1){
+              this.actionList.reject.splice(index,1);
+            }
+          }
+        }
+        this.setState({actionType: "remove"});
+        break;
     }
 
+  }
+
+  checkDisabled(buttonType,changeItem){
+    switch(buttonType){
+      case "remove":
+        return !(_.find(this.actionList.approve,changeItem) || _.find(this.actionList.reject,changeItem) || _.find(this.actionList.regress,changeItem));
+        break;
+      default:
+        return (_.find(this.actionList.approve,changeItem) || _.find(this.actionList.reject,changeItem) || _.find(this.actionList.regress,changeItem))
+        break;
+    }
+  }
+
+  showUpdateColumnList(changeItem){
+      if(changeItem.change_type=='UPDATE' && !this.state.display){
+          return(
+            <span>
+            {
+              changeItem.update_info.map((uitem,uindex)=>{
+                return(
+                  <span key={this.item.group_id + uindex}>
+                    <small>
+                      <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
+                      <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
+                      <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
+                      <span className="truncate-text"><i className="fa fa-angle-double-right"></i>&nbsp;</span>
+                    </small>
+                  </span>
+                );
+              })
+            }
+            </span>
+          );
+      }
+      if(changeItem.change_type=='UPDATE' && this.state.display){
+          return(
+              <table className="table table-hover">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Attribute Name</th>
+                    <th>Old Value</th>
+                    <th>New Value</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {
+                  changeItem.update_info.map((uitem,uindex)=>{
+                    return(
+                      <tr key={uindex}>
+                        <td><strong>{uindex+1}</strong></td>
+                        <td>
+                          <span><strong className="amber"><i className="fa fa-leaf"></i>{ " " + uitem.field_name + " "}&nbsp;</strong></span>
+                        </td>
+                        <td>
+                          <span className="truncate-text"><i className="fa fa-circle-o"></i>{" " + uitem.old_val + " "}&nbsp;</span>
+                        </td>
+                        <td>
+                          <span className="truncate-text"><i className="fa fa-circle"></i>{ " " + uitem.new_val + " "}&nbsp;</span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                }
+                </tbody>
+              </table>
+          );
+      }
+  }
+
+  onSelectChangeItem(changeItem){
+    console.log('onSelectChangeItem.......',changeItem);
+    let isOpen=(this.state.display=="changeItemDetails");
+    if(isOpen){
+      this.setState({
+                      selectedChangeItem: null,
+                      display: false,
+                      displayDetails: false,
+                    });
+    } else {
+      this.setState({
+                      selectedChangeItem: changeItem,
+                      display: "changeItemDetails",
+                      displayDetails: false,
+                    },
+                    console.log("onSelectChangeItem actionlist check.....",this.state.selectedChangeItem)
+                  );
+    }
+
+  }
+
+  handleModalOkayClick(event){
+    //TODO
+    this.modalAlert.isDiscardToBeShown = false;
+
+  }
+
+  handleModalDiscardClick(event){
+    //TODO
+    this.modalAlert.isDiscardToBeShown = false;
+
+  }
+
+  render(){
+    if(this.item==null){
+      return(
+        <h5>
+          <i className="fa fa-hand-o-left"></i> Please select a change request item to view details.
+        </h5>
+      );
+    }
+
+    const changeList=this.item.group.map((changeItem,index)=>{
+          //console.log(item,index);
+          return(<div className="list_item_active"
+                      key={index}
+                      onClick={(event)=>{
+                        this.onSelectChangeItem(changeItem);
+                      }
+                    }>
+                    <div className="mail_list">
+                      {this.groupChangeList(changeItem)}
+                    </div>
+                </div>
+              );
+        });
     return(
-      <div className="form-horizontal form-label-left form-def-change-detail">
+      <div className="form-horizontal form-label-left">
         {
           ((viewOnly,maker)=>{
-            if(!viewOnly && maker !='self'){
+            if(!viewOnly){
               return(
                 <div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comment">Reviwer Comment <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <textArea
-                        type="text"
-                        value={this.state.comment}
-                        minLength="20"
-                        maxLength="1000"
-                        required="required"
-                        className="form-control col-md-6 col-sm-12 col-xs-12"
-                        onChange={(event)=>{
-                                     this.setState({comment:event.target.value,commentNoOfCharacter:event.target.value.length});
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comment">
+                      {maker=='self' ? 'Regression Comment' : 'Reviwer Comment'} <span className="required">*</span></label>
+                    <div className="col-md-9 col-sm-9 col-xs-12">
+                      <textArea
+                          type="text"
+                          value={this.state.comment}
+                          minLength="20"
+                          maxLength="1000"
+                          required="required"
+                          className="form-control col-md-9 col-sm-12 col-xs-12"
+                          onChange={(event)=>{
+                                       this.setState({comment:event.target.value,commentNoOfCharacter:event.target.value.length});
+                                     }
                                    }
-                                 }
-                      />
-                    <Badge>{this.state.commentNoOfCharacter}</Badge>
+                        />
+                      <Badge>{this.state.commentNoOfCharacter}</Badge>
+                    </div>
                   </div>
+                  <div className="form-group">
+                    <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                      {
+                        maker=='self' &&
+                        <div>
+                          {
+                            this.actionList.regress.length > 0 &&
+                            <button type="button" className="btn btn-sm btn-default"
+                              onClick={()=>{
+                                this.actionList={approve:[],reject:[], regress:[]};
+                                this.setState({comment:"", commentNoOfCharacter:0, actionType:null});
+                              }}>Reset</button>
+                          }
+                          <button type="button" className="btn btn-sm btn-warning" onClick={this.handleRegress.bind(this)}> Regress</button>
+                          {
+                            this.actionList.regress.length > 0 &&
+                            <span className="badge bg-orange"><i className="fa fa-eye-slash">&nbsp;</i>{this.actionList.regress.length}</span>
+                          }
+                        </div>
+                      }
+                      {
+                        maker!='self' &&
+                        this.actionList.approve.length ==0 &&
+                        this.actionList.reject.length == 0 &&
+                        <div>
+                          <button type="button" className="btn btn-sm btn-warning" onClick={this.handleReject.bind(this)}> Reject</button>
+                          <button type="button" className="btn btn-sm btn-success" onClick={this.handleApprove.bind(this)}>Approve</button>
+                        </div>
+                      }
+                      {
+                        maker!='self' &&
+                        (this.actionList.approve.length >0 || this.actionList.reject.length > 0) &&
+                        <div>
+                          <button type="button" className="btn btn-sm btn-default"
+                            onClick={()=>{
+                              this.actionList={approve:[],reject:[], regress:[]};
+                              this.setState({comment:"", commentNoOfCharacter:0, actionType:null});
+                            }}>Reset</button>
+                          <button type="button" className="btn btn-sm btn-primary" onClick={this.handleSubmitReview.bind(this)}>Submit Review</button>
+                          <span className="badge bg-green"><i className="fa fa-check-square-o"></i>&nbsp;{this.actionList.approve.length}</span>&nbsp;
+                          <span className="badge bg-orange"><i className="fa fa-ban"></i>&nbsp;{this.actionList.reject.length}</span>
+                        </div>
+                      }
+                    </div>
+                    <div className="clearfix" />
+                    <div className="ln_solid" />
+                 </div>
                 </div>
-                <div className="form-group">
-                  <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button" className="btn btn-warning" onClick={this.handleReject.bind(this)}> Reject</button>
-                    <button type="button" className="btn btn-success" onClick={this.handleApprove.bind(this)}>Approve</button>
-                  </div>
-               </div>
-
-              <div className="clearfix" />
-              <div className="ln_solid" />
-            </div>
-
-
               );
-            } else if(maker=='self'){
-
-              return(
-                <div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comment">Regression Comment <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <textArea
-                        type="text"
-                        value={this.state.comment}
-                        minLength="20"
-                        maxLength="1000"
-                        required="required"
-                        className="form-control col-md-6 col-sm-12 col-xs-12"
-                        onChange={(event)=>{
-                                     this.setState({comment:event.target.value,commentNoOfCharacter:event.target.value.length});
-                                   }
-                                 }
-                      />
-                    <Badge>{this.state.commentNoOfCharacter}</Badge>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                    <button type="button" className="btn btn-warning" onClick={this.handleRegress.bind(this)}> Regress</button>
-                  </div>
-               </div>
-
-              <div className="clearfix" />
-              <div className="ln_solid" />
-            </div>
-
-              );
-
             }
           })(this.props.viewOnly,this.props.maker )
         }
-
-
-
-       <div>
-         <h3>{this.item.change_type}
-           <small> on <span className="badge">{this.item.table_name}</span> of record id :
-             <span className="badge"> id: {this.item.id} </span> [{this.item.change_reference}].
-             Change initiated by <span className="badge">{this.item.maker}</span> on {this.item.date_of_change}.
-           </small>
-         </h3>
-         <div className="clearfix" />
-         <div className="ln_solid" />
-         <div><h4>Change Summary</h4>
-
-             {((item)=>{
-                 if (item.change_type=="UPDATE"){
-                     console.log("Update Info........",item.update_info);
-                     const update_list=item.update_info.map((uitem,uindex)=>{
-                         console.log("Uitem.....",uitem);
-                         return (
-                                <tr>
-                                   <th scope="row">{uindex + 1}</th>
-                                   <td><h4><Label bsStyle="warning">{uitem.field_name}</Label></h4></td>
-                                   <td>{uitem.new_val}</td>
-                                   <td>{uitem.old_val}</td>
-                                </tr>
-                              );
-                     });
-                     return(
-                       <table className="table table-hover">
-                         <thead>
-                           <tr>
-                             <th>#</th>
-                             <th>Column Name</th>
-                             <th>New Value</th>
-                             <th>Old Value</th>
-                           </tr>
-                         </thead>
-                         <tbody>
-                           {update_list}
-                         </tbody>
-                       </table>
-                     );
-                 } else {
-                   return (<table className="table table-hover">
-                             <thead>
-                               <tr>
-                               </tr>
-                             </thead>
-                             <tbody>
-                                 <tr><td>This is a {item.change_type} request</td></tr>
-                             </tbody>
-                           </table>
-                       )
-                 }
-             })(this.item)}
-
-         </div>
-         <div className="clearfix" />
-         <div className="ln_solid" />
-            <p className="preserve-text"><Badge>Comment</Badge>&nbsp;{this.item.maker_comment}</p>
-         </div>
-         <div className="clearfix" />
-         <div className="ln_solid" />
-         <div id="def_change_detail"> {this.renderDefChangeDetails(this.props.record_detail,this.item)}</div>
-
-         <Modal
-           show={this.state.isModalOpen}
-           container={this}
-           onHide={(event) => {
-               this.setState({isModalOpen:false});
-             }}
-         >
-           <Modal.Header closeButton>
-             <Modal.Title>Review Comment</Modal.Title>
-           </Modal.Header>
-
-           <Modal.Body>
-             Please enter review comment at least 20 character long.
-           </Modal.Body>
-
-           <Modal.Footer>
-             <Button onClick={(event) => {
-                 this.setState({isModalOpen:false})
-               }}>Ok</Button>
-           </Modal.Footer>
-         </Modal>
-
+        <div className={ this.props.viewOnly ? "form-def-change-detail-viewonly" : "form-def-change-detail" }>
+          <div>
+            {
+              !this.state.display &&
+              <div>
+                {changeList}
+              </div>
+            }
+            {
+              this.state.display &&
+              <div className="mail_list">
+                <ul className="nav navbar-right panel_toolbox">
+                  <li>
+                    <a className="close-link" onClick={this.onSelectChangeItem} title="Close"><i className="fa fa-close"></i></a>
+                  </li>
+                </ul>
+                <button className="btn btn-link"
+                  onClick={this.onSelectChangeItem}
+                  title="Back to list">
+                  <i className="fa fa-arrow-left"></i>
+                </button>
+                {this.groupChangeList(this.state.selectedChangeItem)}
+                {
+                  !this.state.displayDetails &&
+                  <button className="col-md-offset-10 btn btn-xs btn-info"
+                    onClick={(event)=>{
+                      this.setState({displayDetails: "showRecordDetails"});
+                    }}
+                    title="Record details">
+                    Record Details
+                  </button>
+                }
+                {
+                  this.state.displayDetails=="showRecordDetails" &&
+                  <DefChangeDetails
+                    item={this.state.selectedChangeItem}/>
+                }
+              </div>
+            }
+          </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+            onClickDiscard={this.handleModalDiscardClick}
+          />
         </div>
+      </div>
     );
   }
 
-  renderDefChangeDetails(displayItem,auditItem){
-    console.log("Inside renderDefChangeDetails........");
-    // const divElement=document.getElementById("def_change_detail");
-    // $(divElement).empty();
-    if (typeof displayItem != 'undefined'){
-    let key = Object.keys(displayItem);
-
-    // for (let key of Object.keys(displayItem)){
-        // let nodeFormGroup=document.createElement("div");
-        // nodeFormGroup.className="form-group";
-        //
-        // let nodeLabel=document.createElement("label");
-        // nodeLabel.className="control-label col-md-3 col-sm-3 col-xs-12";
-        // nodeFormGroup.appendChild(nodeLabel);
-        //
-        // let element=document.createTextNode(key);
-        // nodeLabel.appendChild(element);
-        //
-        // let nodeInputDiv=document.createElement("div");
-        // nodeInputDiv.className="col-md-6 col-sm-6 col-xs-12";
-        // nodeFormGroup.appendChild(nodeInputDiv);
-        //
-        // //nodeInput.className="col-md-5 col-sm-5 col-xs-12";
-        // let nodeInput=document.createElement("input");
-        // nodeInput.readOnly="true";
-        // nodeInput.value=displayItem[key];
-        // nodeInputDiv.appendChild(nodeInput);
-        // //element=document.createTextNode(displayItem[key]);
-        // //nodeFormGroup.appendChild(element);
-        // divElement.appendChild(nodeFormGroup);
-    // }
-    return(
-      <div className="dashboard-widget-content">
-        <h3>Record Details</h3>
-        <ul className="list-unstyled timeline widget">
-          <table className="table table-hover">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Column Name</th>
-                <th>Reference Value</th>
-              </tr>
-            </thead>
-            <tbody>
-            {
-              key.map(function(item,index){
-                console.log("inside record media body",item,displayItem[item]);
-                return(
-                        <tr>
-                          <th scope="row">{index + 1}</th>
-                            {((auditItem,column,presentValue)=>{
-                                let update_list=[];
-                                if (auditItem.change_type=="UPDATE"){
-                                    console.log("audit item Update Info........",auditItem.update_info);
-
-                                    auditItem.update_info.map((uitem,uindex)=>{
-                                        console.log("audit item Uitem.....",uitem);
-                                        if(uitem.field_name==column){
-                                          update_list.push(<td><Label bsStyle="warning">{column}</Label></td>);
-                                          update_list.push(
-                                                    <td>
-                                                      <p>
-                                                        <small>
-                                                          <i className="fa fa-circle-o"></i>&nbsp;<i>  {uitem.old_val}</i>
-                                                          <br></br>
-                                                          <i className="fa fa-circle"></i>&nbsp;<i>  {uitem.new_val}</i>
-                                                        </small>
-                                                      </p>
-                                                    </td>
-                                                );
-                                        }
-                                    });
-                                    console.log("inside update details",update_list)
-                                    //return update_list.length >0 ? update_list : presentValue;
-                                    if (update_list.length==0){
-                                      update_list.push(<td><Label bsStyle="primary">{column}</Label></td>);
-                                      update_list.push(
-                                          <td>
-                                            <p>{presentValue}</p>
-                                          </td>
-                                        );
-                                    }
-                                }
-                                else {
-                                  update_list.push(<td><Label bsStyle="primary">{column}</Label></td>);
-                                  update_list.push(
-                                      <td>
-                                        <p>{presentValue}</p>
-                                      </td>
-                                    );
-                                }
-                                return update_list;
-                            })(auditItem,item,displayItem[item])}
-                      </tr>
-                )
-              })
-            }
-            </tbody>
-          </table>
-        </ul>
-      </div>
-    )
+  processActionList(){
+    this.actionList.approve.map((element,index)=>{
+      element.status="APPROVED";
+      element.checker=this.props.login_details.user;
+      element.checker_comment=this.state.comment;
+    });
+    this.actionList.reject.map((element,index)=>{
+      element.status="REJECTED";
+      element.checker=this.props.login_details.user;
+      element.checker_comment=this.state.comment;
+    });
+    this.actionList.regress.map((element,index)=>{
+      element.status="REGRESSED";
+      element.checker=this.props.login_details.user;
+      element.checker_comment=this.state.comment;
+    });
+    console.log("inside processActionList...",this.actionList);
+    this.props.onSubmitDicision(this.actionList);
+    this.actionList={approve:[],reject:[], regress:[]};
+    this.setState({comment:"", commentNoOfCharacter:0, actionType:null, displayDetails: false, display: false});
   }
-  else {
-    return(<div></div>)
-  }
+
+  handleSubmitReview(){
+    if(this.state.comment != null && this.state.comment.length > 20){
+      this.processActionList();
+    } else{
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
+    }
   }
 
   handleReject(){
     if(this.state.comment != null && this.state.comment.length > 20){
-      this.item.status="REJECTED";
-      this.item.checker=this.props.login_details.user;
-      this.item.checker_comment=this.state.comment;
-      this.props.onReject(this.item);
-      this.setState({comment:null});
-      this.setState({commentNoOfCharacter:0});
+      if ( this.actionList.reject.length ==0 && this.state.selectedChangeItem){
+        this.actionList.reject.push(this.state.selectedChangeItem);
+      }
+      if ( this.actionList.reject.length ==0 && !this.state.selectedChangeItem){
+        this.actionList.reject=this.item.group;
+      }
+      this.processActionList();
+      // this.props.onReject(this.item);
     } else{
-      this.setState({isModalOpen:true});
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
     }
 
   }
 
   handleApprove(){
     if(this.state.comment != null && this.state.comment.length > 20){
-      this.item.status="APPROVED";
-      this.item.checker=this.props.login_details.user;
-      this.item.checker_comment=this.state.comment;
-      this.props.onApprove(this.item);
-      this.setState({comment:null});
-      this.setState({commentNoOfCharacter:0});
+      if ( this.actionList.approve.length ==0 && this.state.selectedChangeItem){
+        this.actionList.approve.push(this.state.selectedChangeItem);
+      }
+      if ( this.actionList.approve.length ==0 && !this.state.selectedChangeItem){
+        this.actionList.approve=this.item.group;
+      }
+      this.processActionList();
     } else{
-      this.setState({isModalOpen:true});
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
     }
   }
 
   handleRegress(){
     console.log("handleRegress........",this.props.login_details);
     if(this.state.comment != null && this.state.comment.length > 20){
-      this.item.status="REGRESSED";
-      this.item.checker=this.props.login_details.user;
-      this.item.checker_comment=this.state.comment;
-      this.props.onRegress(this.item);
-      this.setState({comment:null});
-      this.setState({commentNoOfCharacter:0});
+      if ( this.actionList.regress.length ==0 && this.state.selectedChangeItem){
+        this.actionList.regress.push(this.state.selectedChangeItem);
+      }
+      if ( this.actionList.regress.length ==0 && !this.state.selectedChangeItem){
+        this.actionList.regress=this.item.group;
+      }
+      this.processActionList();
     } else{
-      this.setState({isModalOpen:true});
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please enter review comment at least 20 character long.");
     }
 
   }
@@ -366,15 +547,12 @@ class DataChangePane extends Component{
 
 const mapDispatchToProps=(dispatch)=>{
   return{
-    fetchRecordDetail:(table_name,id)=>{
-      dispatch(actionFetchDataRecordDetail(table_name,id));
-    }
+    //TODO
   };
 }
 
 function mapStateToProps(state){
   return{
-    record_detail:state.data_change_store.record_detail,
     login_details:state.login_store
   };
 }
