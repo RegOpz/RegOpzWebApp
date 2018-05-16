@@ -4,6 +4,7 @@ import { hashHistory } from 'react-router';
 import { Label, Checkbox } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
+import moment from 'moment';
 import {
     actionFetchRoles,
     actionFetchComponents,
@@ -34,6 +35,7 @@ class AddRolesComponent extends Component {
         this.permissionList = null;
         this.modalAlert = null;
         this.buttonClicked = null;
+        this.grouId = this.props.user + "PRMS" + moment.utc();
         this.isDefaultChecked = this.isDefaultChecked.bind(this);
         this.savePrevious = this.savePrevious.bind(this);
         this.onTextChange = this.onTextChange.bind(this);
@@ -422,7 +424,12 @@ class AddRolesComponent extends Component {
         } else if (this.buttonClicked == 'Submit') {
             this.savePrevious();
             if (this.dataSource != null) {
-                let formData = { ...this.dataSource, role: this.state.role, comment: form.comment } ;
+                let formData = { ...this.dataSource,
+                                role: this.state.role,
+                                comment: form.comment,
+                                maker: this.props.user,
+                                maker_tenant_id: this.props.tenant_id,
+                                group_id: this.grouId} ;
                 console.log("Submiting form data:", formData);
                 this.props.submitForm(formData)
             } else {

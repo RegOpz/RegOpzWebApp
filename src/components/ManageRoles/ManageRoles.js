@@ -83,6 +83,8 @@ class ManageRolesComponent extends Component {
               return(
                   <AddRoles
                     role={this.selectedRole}
+                    user={this.props.user}
+                    tenant_id={this.props.tenant_id}
                     handleClose={this.handleCancel.bind(this)}
                   />
               );
