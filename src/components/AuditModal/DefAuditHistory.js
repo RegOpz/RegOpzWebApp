@@ -38,15 +38,15 @@ class DefAuditHistory extends Component{
         if (startDate != null) {
             linkageData = linkageData.filter(item => {
                 let audit_date = new Date(item.date_of_change);
-                let start_date = new Date(startDate)
-                return audit_date.getTime() > start_date.getTime();
+                let start_date = new Date(moment(startDate).format('YYYY-MM-DDT00:00:00'))
+                return audit_date.getTime() >= start_date.getTime();
             });
         }
         if (endDate != null) {
             linkageData = linkageData.filter(item => {
                 let audit_date = new Date(item.date_of_change);
-                let end_date = new Date(endDate)
-                return audit_date.getTime() < end_date.getTime();
+                let end_date = new Date(moment(endDate).format('YYYY-MM-DDT24:00:00'))
+                return moment.utc(audit_date) <= moment.utc(end_date);
             });
         }
         if (filterText != null) {
@@ -166,7 +166,9 @@ class DefAuditHistory extends Component{
                               <small>{" " + item.change_reference}</small>
                             </Media.Heading>
                             <h6>
-                              <Badge>{item.change_type}</Badge> by {item.maker} on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}
+                              <Badge>{item.change_type}</Badge>
+                              <span> by {item.maker_tenant_id ? item.maker_tenant_id + '/' : '' }{item.maker}</span>
+                              <span> on {moment(item.date_of_change).format('ll')} {moment(item.date_of_change).format('LTS')}</span>
                             </h6>
                             <i className="fa fa-comments-o"></i>
                             <p className="preserve-text">{item.maker_comment}</p>

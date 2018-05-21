@@ -467,7 +467,7 @@ class MaintainBusinessRulesRepository extends Component {
         selectedKeys += (selectedKeys ? ',' + item.id : item.id)
       })
       this.selectedKeys = selectedKeys ? selectedKeys : "undefined";
-      this.props.fetchAuditList(this.selectedKeys,"business_rules_master");
+      this.props.fetchAuditList(this.selectedKeys,"business_rules_master",this.state.sourceId);
       console.log("Repot Linkage",this.props.change_history);
       this.setState({ display: "showHistory" });
     }
@@ -930,8 +930,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportLinkage: (sourceId,selectedKeys) => {
       dispatch(actionFetchReportLinkage(sourceId,selectedKeys))
     },
-    fetchAuditList: (idList, tableName) => {
-      dispatch(actionFetchAuditList(idList, tableName));
+    fetchAuditList: (idList, tableName, sourceId) => {
+      dispatch(actionFetchAuditList(idList, tableName,sourceId));
     },
     exportCSV:(sourceId) => {
       dispatch(actionExportCSV(sourceId));
