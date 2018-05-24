@@ -648,11 +648,12 @@ class MaintainBusinessRules extends Component {
                                         }
                                       }
                           getTrProps={(state, rowInfo, column) => {
-                                        let isSelected = rowInfo && this.state.rowIndex.length != 0 && this.state.rowIndex.includes(rowInfo.original.id)
+                                        let isSelected = rowInfo && this.state.rowIndex.length != 0 && this.state.rowIndex.includes(rowInfo.original.id);
+                                        let isEditable = rowInfo && rowInfo.original.dml_allowed !='Y';
                                         return {
                                             style : {
-                                                background: isSelected  ? '#009688' : '',
-                                                color: isSelected  ? '#ECF0F1' : '',
+                                                background: isSelected  ? '#009688' : (isEditable ? '' : ''),
+                                                color: isSelected  ? '#ECF0F1' : (isEditable ? '#f901017d' : ''),
                                               }
                                         }
                                       }}

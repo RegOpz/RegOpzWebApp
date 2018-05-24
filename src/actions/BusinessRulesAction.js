@@ -45,7 +45,7 @@ export function actionUpdateBusinessRule(item) {
 	const request = axios.put(url + "/" + item['update_info']['id'], item);
 	return {
 		type: UPDATE_RULES,
-		payload: { result:"updated" }
+		payload: request
 	}
 }
 

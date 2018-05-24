@@ -3,6 +3,7 @@ import {
   FETCH_RULES,
   INSERT_RULES,
   DELETE_RULES,
+  UPDATE_RULES,
   EXPORT_RULES_CSV
 } from '../actions/BusinessRulesAction';
 import {
@@ -21,13 +22,8 @@ export default function(state=[], action) {
       return Object.assign({}, state, {
         gridBusinessRulesData: action.payload.data
       });
-    case INSERT_RULES:
-    	state[0].rows.splice(action.meta.at, 0, action.payload.data);
-    	return state.splice(0, 1, state);
-    case DELETE_RULES:
-    	// state[0].rows.splice(action.meta.at, 1);
-    	// return state.splice(0, 1, state);
-      return state;
+    case INSERT_RULES: case UPDATE_RULES: case DELETE_RULES:
+    	return { ...state, message: action.payload.data };
     case EXPORT_RULES_CSV:
       window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
       return state;
