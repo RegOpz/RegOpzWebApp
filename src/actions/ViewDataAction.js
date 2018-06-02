@@ -33,10 +33,11 @@ export function actionFetchDates(startDate='19000101',endDate='39991231', table_
 }
 
 // TODO:
-export function actionFetchReportFromDate(source_id, business_date, page) {
+export function actionFetchReportFromDate(source_id, business_date, page,filter) {
+  let url = BASE_URL + `view-data/report?source_id=${source_id}&business_date=${business_date}&page=${page}&filter=`+encodeURIComponent(filter)
   return {
     type: FETCH_REPORT_BY_DATE,
-    payload: axios.get(BASE_URL + `view-data/report?source_id=${source_id}&business_date=${business_date}&page=${page}`)
+    payload: axios.get(url)
   }
 }
 
@@ -158,9 +159,10 @@ export function actionFetchDataChangeHistory(table_name, id_list, business_date)
 }
 
 export function actionExportCSV(table_name,business_ref,sql){
+  let url = `${BASE_URL}view-data/report/export-csv?table_name=${table_name}&business_ref=${business_ref}&sql=`+encodeURIComponent(sql)
   return{
     type:EXPORT_DATA_CSV,
-    payload:axios.get(`${BASE_URL}view-data/report/export-csv?table_name=${table_name}&business_ref=${business_ref}&sql=${sql}`)
+    payload:axios.get(url)
   }
 }
 

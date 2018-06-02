@@ -50,6 +50,7 @@ class ViewDataComponentV2 extends Component {
       sourceDescription: null,
       businessDate: null,
       showAuditModal: false,
+      retainFilter: false,
       // state variables for react-table
       rowIndex: [],
       currentPage: 0,
@@ -60,6 +61,7 @@ class ViewDataComponentV2 extends Component {
       page: 0,
       offsetPage:0,
       isFetched: true,
+      isFilterChanged: false,
       sorted: [],
       filtered: [],
       filteredData: [],
@@ -80,6 +82,7 @@ class ViewDataComponentV2 extends Component {
     this.operationName=null;
     this.buttons=[
       {title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary"},
+      {title: 'Filter', iconClass: 'fa-filter', checkDisabled: 'Yes', className: "btn-primary"},
       {title: 'Add', iconClass: 'fa-plus', checkDisabled: 'Yes', className: "btn-success"},
       {title: 'Copy', iconClass: 'fa-copy', checkDisabled: 'Yes', className: "btn-success"},
       {title: 'Details', iconClass: 'fa-pencil', checkDisabled: 'No', className: "btn-success"},
@@ -99,6 +102,7 @@ class ViewDataComponentV2 extends Component {
     this.actionButtonClicked = this.actionButtonClicked.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.handleRefreshGrid = this.handleRefreshGrid.bind(this);
+    this.handleFilterGrid = this.handleFilterGrid.bind(this);
     this.handlePageNavigation = this.handlePageNavigation.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
     this.handleAdd = this.handleAdd.bind(this);
@@ -139,7 +143,8 @@ class ViewDataComponentV2 extends Component {
     if(this.gridData != nextProps.gridData){
       console.log("nextProps gridData ...",this.gridData, nextProps.gridData,this.state);
       this.gridData=nextProps.gridData;
-      this.setState({isFetched: true})
+      let pages = Math.ceil(this.gridData.count / this.state.pageSize);
+      this.setState({isFetched: true, pages: pages})
     }
     this.reportLinkage=nextProps.report_linkage;
     this.changeHistory=nextProps.change_history;
@@ -196,6 +201,8 @@ class ViewDataComponentV2 extends Component {
     switch (item){
       case "Add":
         return !this.writeOnly;
+      case "Filter":
+        return !this.state.isFilterChanged;
       case "Copy":
         return !this.writeOnly;
       case "Delete":
@@ -213,7 +220,7 @@ class ViewDataComponentV2 extends Component {
       this.setState({ display: "showToggleColumns" });
     }
     else {
-      this.setState({ display: "showDataGrid" });
+      this.setState({ display: "showDataGrid", retainFilter: true });
     }
   }
 
@@ -227,7 +234,7 @@ class ViewDataComponentV2 extends Component {
     this.selectedViewColumns = selectedColumns;
     //console.log(selectedColumns);
     //console.log(this.selectedViewColumns);
-    this.setState({ display: "showDataGrid" });
+    this.setState({ display: "showDataGrid", retainFilter: true });
   }
 
   reactTableColumns(){
@@ -241,8 +248,14 @@ class ViewDataComponentV2 extends Component {
     return reactTableViewColumns;
   }
 
-  recatTablePages(state){
+  recatTablePages(state,instance){
     console.log("Inside reactTablePages ....", state,state.page,this.state.pageSize,this.state.pages,this.state.currentPage);
+    console.log("Inside reactTablePages instance...",state.filtered,this.state.filtered);
+    let isFilterChanged = (JSON.stringify(state.filtered)!=JSON.stringify(this.state.filtered))
+    state.page = isFilterChanged && state.page==0 ? this.state.page : state.page;
+    state.filtered = this.state.retainFilter ? this.state.filtered : state.filtered;
+    instance.state.page = state.page;
+    instance.state.filtered = state.filtered;
     let pageSize = state.pageSize;
     let offsetPageFactor = 100 / pageSize;
     let offsetPage = (pageSize < 100) ? (state.page%offsetPageFactor): 0;
@@ -264,6 +277,8 @@ class ViewDataComponentV2 extends Component {
                     pages: pages, pageSize: pageSize, page: state.page,
                     offsetPage: offsetPage, isFetched: isFetched,
                     sorted: state.sorted, filtered: state.filtered,
+                    isFilterChanged: isFilterChanged,
+                    retainFilter: false
                   },
                   ()=>{
                     console.log("Inside setState reactTablePages ....", this.state.page,this.state.pageSize,this.state.pages,this.state.currentPage, fetchedFirstRow, fetchedLastRow, pageStartRow, isFetched,offsetPage);
@@ -273,6 +288,7 @@ class ViewDataComponentV2 extends Component {
                     }
 
                   });
+    console.log("Inside reactTablePages instance 2 ...",instance);
   }
 
   reactTableData(){
@@ -299,6 +315,9 @@ class ViewDataComponentV2 extends Component {
     switch (itemClicked){
       case "Refresh":
         this.handleRefreshGrid(event);
+        break;
+      case "Filter":
+        this.handleFilterGrid(event);
         break;
       case "Add":
         this.handleAdd(event,"add");
@@ -341,6 +360,26 @@ class ViewDataComponentV2 extends Component {
     this.fetchDataToGrid(event);
   }
 
+  handleFilterGrid(event){
+    this.selectedItems=[];
+    this.useDataGridPageHandler = true;
+    this.setState(
+        {
+          itemEditable:true,
+          rowIndex: [],
+          currentPage: 0,
+          // pageSize: 20,
+          // manual: false,
+          // loading: true,
+          page: 0,
+          // offsetPage:0,
+          isFetched: false,
+          isFilterChanged: false,
+        },
+        this.fetchDataToGrid(event)
+      );
+  }
+
   handlePageNavigation(event, pageNo) {
     console.log("Inside handlePageNavigation",this.state.currentPage,pageNo);
     this.fetchDataToGrid(event);
@@ -351,7 +390,7 @@ class ViewDataComponentV2 extends Component {
       this.dataFilterParam.params.drill_kwargs.page = this.state.currentPage;
       this.props.fetchDrillDownReport(this.dataFilterParam);
     } else {
-      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.state.currentPage);
+      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.state.currentPage,JSON.stringify(this.state.filtered));
       console.log("this.props.fetchReportFromDate gridData ...", this.props.gridData);
     }
   }
@@ -361,7 +400,7 @@ class ViewDataComponentV2 extends Component {
     let isOpen = this.state.display === "showAddForm";
     if(isOpen) {
       this.useDataGridPageHandler=false;
-      this.setState({ display: "showDataGrid", rowIndex: [] },
+      this.setState({ display: "showDataGrid", rowIndex: [], retainFilter: true },
         ()=>{
               if(this.selectedItems){
                 // this.selectedItems = this.flatGrid.deSelectAll();
@@ -427,7 +466,7 @@ class ViewDataComponentV2 extends Component {
     if(isOpen) {
       this.selectedItems = [];
       this.useDataGridPageHandler=false;
-      this.setState({ display: "showDataGrid", rowIndex: [] });
+      this.setState({ display: "showDataGrid", rowIndex: [], retainFilter: true });
     } else {
       if(this.selectedItems.length < 1){
         this.modalAlert.isDiscardToBeShown = false;
@@ -460,7 +499,7 @@ class ViewDataComponentV2 extends Component {
     if(isOpen) {
       this.selectedItems = [];
       this.useDataGridPageHandler=false;
-      this.setState({ display: "showDataGrid", rowIndex: [] });
+      this.setState({ display: "showDataGrid", rowIndex: [], retainFilter: true });
     } else {
       let selectedKeys='';
       this.selectedItems.map((item,index)=>{
@@ -621,7 +660,7 @@ class ViewDataComponentV2 extends Component {
                             />
                             <ReactTable
                               data={this.reactTableData()}
-                              filterable={false}
+                              filterable={true}
                               sortable={false}
                               className="-highlight -striped"
                               columns={this.reactTableColumns()}
@@ -635,7 +674,7 @@ class ViewDataComponentV2 extends Component {
                               }}
                               onFetchData={(state, instance) => {
                                 // show the loading overlay
-                                this.recatTablePages(state);
+                                this.recatTablePages(state, instance);
                                 // fetch your data
                                 // pageSizeOptions= {[100,]}
                                 // defaultPageSize= {100}
@@ -883,8 +922,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchSource:(startDate,endDate, catalog_type)=>{
       dispatch(actionFetchSource(startDate,endDate,catalog_type))
     },
-    fetchReportFromDate:(source_id,business_date,page)=>{
-      dispatch(actionFetchReportFromDate(source_id,business_date,page))
+    fetchReportFromDate:(source_id,business_date,page,filter)=>{
+      dispatch(actionFetchReportFromDate(source_id,business_date,page,filter))
     },
     fetchDrillDownReport:(drill_info)=>{
       dispatch(actionFetchDrillDownReport(drill_info))
