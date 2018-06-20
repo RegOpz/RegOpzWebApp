@@ -34,6 +34,7 @@ import moment from 'moment';
 import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import ReportCatalogList from './ReportCatalogList';
+import ReportVersionsList from './ReportVersionsList';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
@@ -84,6 +85,7 @@ class ViewReport extends Component {
     this.operationName=null;
     this.flatGrid = null;
     this.aggRuleData = null;
+    this.reportVersions = undefined;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
@@ -97,6 +99,7 @@ class ViewReport extends Component {
 
     this.handleReportClick = this.handleReportClick.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
+    this.viewReportVersions = this.viewReportVersions.bind(this);
     this.handleDateFilter = this.handleDateFilter.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
     this.checkDisabled = this.checkDisabled.bind(this);
@@ -160,7 +163,10 @@ class ViewReport extends Component {
         if (item.report_type=="TRANSACTION"){
           this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
         } else {
-          this.props.fetchReportData(this.state.reportId,this.state.reportingDate);
+          this.props.fetchReportData(this.state.reportId,this.state.reportingDate,
+            this.state.selectedRecord.version,this.state.selectedRecord.report_snapshot,
+            this.state.selectedRecord.report_parameters
+          );
         }
 
       }
@@ -182,6 +188,36 @@ class ViewReport extends Component {
     else {
       this.setState({
         display: "editParameter",
+        reportId: item.report_id,
+        reportingDate: item.reporting_date,
+        businessDate: item.as_of_reporting_date,
+        selectedRecord: item,
+       },
+        // Nothing to add at this stage
+      );
+    }
+  }
+
+  viewReportVersions(item) {
+    console.log("selected view report versions item",item);
+    let isOpen = this.state.display === "viewReportVersions";
+    if(isOpen){
+      this.reportVersions = undefined;
+      this.setState({
+        display: false,
+        reportId: null,
+        reportingDate: null,
+        businessDate: null,
+        selectedRecord: null,
+      },
+      // Nothing to add at this stage
+      );
+    }
+    else {
+      this.reportVersions = {data_sources:item.versions};
+      // console.log("Inside data_sources....", this.reportVersions);
+      this.setState({
+        display: "viewReportVersions",
         reportId: item.report_id,
         reportingDate: item.reporting_date,
         businessDate: item.as_of_reporting_date,
@@ -230,7 +266,10 @@ class ViewReport extends Component {
     if (item.report_type=="TRANSACTION"){
       this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
     } else {
-      this.props.fetchReportData(this.state.reportId,this.state.reportingDate);
+      this.props.fetchReportData(this.state.reportId,this.state.reportingDate,
+        this.state.selectedRecord.version,this.state.selectedRecord.report_snapshot,
+        this.state.selectedRecord.report_parameters
+      );
     }
   }
 
@@ -525,6 +564,16 @@ class ViewReport extends Component {
                     />
                   );
             break;
+          case "viewReportVersions":
+            return(
+                <ReportVersionsList
+                  dataCatalog={this.reportVersions}
+                  handleReportClick={this.handleReportClick}
+                  editParameter={this.handleEditParameterClick}
+                  generateReport={this.submitGenerateReport}
+                  />
+            );
+            break;
           default:
               return(
                   <ReportCatalogList
@@ -534,6 +583,7 @@ class ViewReport extends Component {
                     dateFilter={this.handleDateFilter}
                     editParameter={this.handleEditParameterClick}
                     generateReport={this.submitGenerateReport}
+                    viewReportVersions={this.viewReportVersions}
                     />
               );
       }
@@ -654,8 +704,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportCatalog:(startDate,endDate)=>{
       dispatch(actionFetchReportCatalog(startDate,endDate))
     },
-    fetchReportData:(report_id, reporting_date)=>{
-      dispatch(actionFetchReportData(report_id, reporting_date))
+    fetchReportData:(report_id, reporting_date, version, report_snapshot,report_parameters)=>{
+      dispatch(actionFetchReportData(report_id, reporting_date, version, report_snapshot,report_parameters))
     },
     fetchTransReportData:(report_id, reporting_date)=>{
       dispatch(actionFetchTransReportData(report_id, reporting_date))

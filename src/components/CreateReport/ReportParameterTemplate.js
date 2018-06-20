@@ -195,6 +195,7 @@ import './CreateReport.css';
   }
 
   handleSubmit(event){
+    console.log("this.props.report_def_catalog....",this.props.report_def_catalog)
     event.preventDefault();
     this.todayDate=moment().format("DD-MMM-YYYY h:mm:ss a");
     let report_info={
@@ -209,7 +210,7 @@ import './CreateReport.css';
       report_parameters:null,
       report_create_status:this.state.reportCreateStatus,
       report_create_date:this.todayDate,
-      report_type: this.props.report_def_catalog[0].report[0].report_type,
+      report_type: this.props.report_type ? this.props.report_type : this.props.report_def_catalog[0].report[0].report_type,
       report_event: 'CREATEREPORT'
     };
     report_info.report_parameters='"business_date_from":"' + report_info.business_date_from + '",' +

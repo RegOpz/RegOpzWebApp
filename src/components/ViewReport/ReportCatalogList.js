@@ -84,7 +84,7 @@ class ReportCatalogList extends Component {
             console.log("matchText",matchText);
             linkageData = linkageData.filter(element =>
                 element.report_id.toString().match(matchText) ||
-                element.reporting_date.match(matchText) ||
+                element.reporting_date.toString().match(matchText) ||
                 element.country.match(matchText) ||
                 element.report_description.match(matchText) ||
                 (element.report_create_status ? element.report_create_status : "").match(matchText) ||
@@ -98,7 +98,7 @@ class ReportCatalogList extends Component {
   }
 
   render(){
-    console.log(this.linkageData);
+    console.log("ReportCatalogList....",this.linkageData);
     this.handleFilter();
     return(
       <div className="x_panel">
@@ -161,7 +161,7 @@ class ReportCatalogList extends Component {
               <thead>
                 <tr>
                   <th>Report ID</th>
-                  <th>Country</th>
+                  <th>Version</th>
                   <th>Reporting Date</th>
                   <th>Data Period</th>
                   <th>Report status</th>
@@ -192,7 +192,7 @@ class ReportCatalogList extends Component {
                         </small>
                       </button>
                     </td>
-                    <td>{item.country}</td>
+                    <td>{item.version}</td>
                     <td>{moment(item.as_of_reporting_date).format("DD-MMM-YYYY")}</td>
                     <td>
                       {moment(item.reporting_date.toString().substring(0,8)).format("DD-MMM-YYYY") + " to " + moment(item.reporting_date.toString().substring(8,16)).format("DD-MMM-YYYY")}
@@ -230,6 +230,21 @@ class ReportCatalogList extends Component {
                         <div className="btn-group">
                         <button
                           className="btn btn-circle btn-link btn-xs"
+                          data-toggle="tooltip"
+                          data-placement="top"
+                          title="View Report Versions"
+                          onClick={
+                            (event)=>{
+                              this.props.viewReportVersions(item)
+                            }
+                          }
+                        >
+                          <i className="fa fa-bars" aria-hidden="true"></i>
+                        </button>
+                        </div>
+                        <div className="btn-group">
+                        <button
+                          className="btn btn-circle btn-link btn-xs"
                           onClick={
                             (event) => {
                               let report_info = {
@@ -241,6 +256,7 @@ class ReportCatalogList extends Component {
                                 reporting_currency: item.reporting_currency,
                                 report_create_date: moment().format("DD-MMM-YYYY h:mm:ss a"),
                                 report_type: item.report_type,
+                                as_of_reporting_date: item.as_of_reporting_date,
                               }
                               //console.log(report_info);
                               this.props.generateReport(report_info);
