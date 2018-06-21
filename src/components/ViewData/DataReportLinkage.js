@@ -58,7 +58,7 @@ class DataReportLinkage extends Component {
         </div>
       )
     else {
-      let columns = ['report_id','sheet_id','cell_id','qualifying_key'];
+      let columns = ['report_id','sheet_id','cell_id','qualifying_key','reporting_date','version'];
       console.log("Columns of the object.keys() ",columns)
       let reactTableViewColumns=[];
       if (columns){
@@ -73,7 +73,7 @@ class DataReportLinkage extends Component {
           filterable={true}
           className="-highlight -striped"
           columns={reactTableViewColumns}
-          pivotBy={['qualifying_key','report_id','sheet_id']}
+          pivotBy={['qualifying_key','report_id','reporting_date','version','sheet_id']}
           defaultFilterMethod = {(filter, row, column) => {
             const id = filter.pivotId || filter.id
             let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');

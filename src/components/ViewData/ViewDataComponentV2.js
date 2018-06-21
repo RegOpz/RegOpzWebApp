@@ -503,7 +503,8 @@ class ViewDataComponentV2 extends Component {
     } else {
       let selectedKeys='';
       this.selectedItems.map((item,index)=>{
-        selectedKeys += (selectedKeys!='' ? ',(' + item.id + ',' + item.business_date + ')': '(' + item.id + ',' + item.business_date + ')')
+        // selectedKeys += (selectedKeys!='' ? ',(' + item.id + ',' + item.business_date + ')': '(' + item.id + ',' + item.business_date + ')')
+        selectedKeys += (selectedKeys!='' ? ',(' + item.id + ')': '(' + item.id + ')')
       })
       console.log("Repot Linkage",this.props.change_history);
       // this.selectedItems = this.flatGrid.deSelectAll();
@@ -515,8 +516,8 @@ class ViewDataComponentV2 extends Component {
                 this.props.fetchDataChangeHistory(this.props.gridData.table_name,null,this.state.businessDate);
               } else {
                 // this is in the drilldown stage where we would like to see only the history of the related records.
-                selectedKeys = this.props.gridData.sql.replace("a.*"," a.id,a.business_date ");
-                this.props.fetchDataChangeHistory(this.props.gridData.table_name,encodeURI(selectedKeys));
+                let cellDetails = JSON.stringify(this.props.gridData.cell_details);
+                this.props.fetchDataChangeHistory(this.props.gridData.table_name,null,null,encodeURIComponent(cellDetails));
               }
             }
         );
@@ -940,8 +941,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportLinkage:(source_id,qualifying_key,business_date) => {
       dispatch(actionFetchReportLinkage(source_id,qualifying_key,business_date));
     },
-    fetchDataChangeHistory:(table_name,id_list,business_date) => {
-      dispatch(actionFetchDataChangeHistory(table_name,id_list,business_date));
+    fetchDataChangeHistory:(table_name,id_list,business_date,cellDetails) => {
+      dispatch(actionFetchDataChangeHistory(table_name,id_list,business_date,cellDetails));
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));

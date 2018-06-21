@@ -312,6 +312,8 @@ class ViewReport extends Component {
   handleCalcRuleClicked(event,calcRuleFilter){
     console.log("Clicked calcRuleFilter",calcRuleFilter);
     this.calcRuleFilter = calcRuleFilter;
+    this.calcRuleFilter.params.drill_kwargs['version']=this.state.selectedRecord.version;
+    console.log("Clicked calcRuleFilter 2",calcRuleFilter);
     this.setState({
         showDrillDownData : true,
         showDrillDownCalcBusinessRules : false,
