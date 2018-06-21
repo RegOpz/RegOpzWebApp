@@ -56,6 +56,17 @@ class ReportVersionsList extends Component {
       <div className="x_panel">
         <div className="x_title">
           <h2>Available Versions <small> for the selected report</small></h2>
+          <ul className="nav navbar-right panel_toolbox">
+            <li>
+              <a className="close-link"
+                data-toggle="tooltip"
+                data-placement="top"
+                title="Close"
+                onClick={()=>{this.props.handleClose(event)}}>
+                <i className="fa fa-close"></i>
+              </a>
+            </li>
+          </ul>
           <div className="clearfix"></div>
         </div>
         <div className="x_content">

@@ -376,7 +376,7 @@ class ViewDataComponentV2 extends Component {
           isFetched: false,
           isFilterChanged: false,
         },
-        this.fetchDataToGrid(event)
+        this.fetchDataToGrid(event,"Filter")
       );
   }
 
@@ -385,12 +385,19 @@ class ViewDataComponentV2 extends Component {
     this.fetchDataToGrid(event);
   }
 
-  fetchDataToGrid(event){
+  fetchDataToGrid(event, requestType){
+    console.log("fetchDataToGrid currentPage ...", this.state.currentPage,this.state.isFilterChanged);
+    // Note: Reset the page to 0 if its :
+    // A) filter request or
+    // B) refresh request but the filter conditions changed in between
+    // Otherwise just refresh the page where the current data is shown
     if(this.flagDataDrillDown){
-      this.dataFilterParam.params.drill_kwargs.page = this.state.currentPage;
+      this.dataFilterParam.params.drill_kwargs.page = requestType=="Filter" ? 0 : (this.state.isFilterChanged? 0: this.state.currentPage);
+      this.dataFilterParam.params.drill_kwargs.filter = JSON.stringify(this.state.filtered);
       this.props.fetchDrillDownReport(this.dataFilterParam);
     } else {
-      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,this.state.currentPage,JSON.stringify(this.state.filtered));
+      let page=requestType=="Filter" ? 0 : (this.state.isFilterChanged? 0: this.state.currentPage);
+      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,page,JSON.stringify(this.state.filtered));
       console.log("this.props.fetchReportFromDate gridData ...", this.props.gridData);
     }
   }

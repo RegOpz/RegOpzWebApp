@@ -313,6 +313,7 @@ class ViewReport extends Component {
     console.log("Clicked calcRuleFilter",calcRuleFilter);
     this.calcRuleFilter = calcRuleFilter;
     this.calcRuleFilter.params.drill_kwargs['version']=this.state.selectedRecord.version;
+    this.calcRuleFilter.params.drill_kwargs['filter']='';
     console.log("Clicked calcRuleFilter 2",calcRuleFilter);
     this.setState({
         showDrillDownData : true,
@@ -573,6 +574,7 @@ class ViewReport extends Component {
                   handleReportClick={this.handleReportClick}
                   editParameter={this.handleEditParameterClick}
                   generateReport={this.submitGenerateReport}
+                  handleClose={this.viewReportVersions}
                   />
             );
             break;
@@ -666,6 +668,7 @@ class ViewReport extends Component {
                         }
                         {
                           this.state.display &&
+                          this.state.display != "viewReportVersions" &&
                           <ul className="nav navbar-right panel_toolbox">
                             <label className="switch">
                             <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
