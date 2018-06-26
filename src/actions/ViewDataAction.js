@@ -33,8 +33,9 @@ export function actionFetchDates(startDate='19000101',endDate='39991231', table_
 }
 
 // TODO:
-export function actionFetchReportFromDate(source_id, business_date, page,filter) {
+export function actionFetchReportFromDate(source_id, business_date, page,filter,version) {
   let url = BASE_URL + `view-data/report?source_id=${source_id}&business_date=${business_date}&page=${page}&filter=`+encodeURIComponent(filter)
+  url += "&version=" + version;
   return {
     type: FETCH_REPORT_BY_DATE,
     payload: axios.get(url)
@@ -51,11 +52,13 @@ export function actionFetchDrillDownReport(drill_info) {
 }
 
 // TODO:
-export function actionFetchDrillDownRulesReport(rules, source_id, page) {
-  console.log('In the action drilldown fetch rules ', rules, source_id, page);
+export function actionFetchDrillDownRulesReport(rules, source_id, page,business_date,qualified_data_version) {
+  console.log('In the action drilldown fetch rules ', rules, source_id, page,business_date,qualified_data_version);
+  let url = BASE_URL + `business-rules/drill-down-rules?source_id=${source_id}&rules=${rules}&page=${page}`;
+  url += "&business_date=" + business_date + "&qualified_data_version=" + qualified_data_version;
   return {
     type: FETCH_DRILLDOWN_RULES_REPORT,
-    payload: axios.get(BASE_URL + `business-rules/drill-down-rules?source_id=${source_id}&rules=${rules}&page=${page}`),
+    payload: axios.get(url),
   }
 }
 
@@ -159,8 +162,9 @@ export function actionFetchDataChangeHistory(table_name, id_list, business_date,
   }
 }
 
-export function actionExportCSV(table_name,business_ref,sql){
+export function actionExportCSV(table_name,business_ref,sql,exportReference){
   let url = `${BASE_URL}view-data/report/export-csv?table_name=${table_name}&business_ref=${business_ref}&sql=`+encodeURIComponent(sql)
+  url+= '&exportReference=' + encodeURIComponent(exportReference)
   return{
     type:EXPORT_DATA_CSV,
     payload:axios.get(url)

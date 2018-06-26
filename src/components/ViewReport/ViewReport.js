@@ -298,7 +298,8 @@ class ViewReport extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: false,
           },
-          this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
+          this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell,
+                              this.state.selectedRecord.report_snapshot)
         );
       }
     }
@@ -327,6 +328,7 @@ class ViewReport extends Component {
   handleBusinessRuleClicked(event,businessRuleFilterParam){
     console.log("Clicked businessRule ruleFilterParam",businessRuleFilterParam);
     this.businessRuleFilterParam = businessRuleFilterParam;
+    this.businessRuleFilterParam['report_snapshot'] = this.state.selectedRecord.report_snapshot;
     this.setState({
         showDrillDownData : false,
         showDrillDownCalcBusinessRules : true,
@@ -567,17 +569,17 @@ class ViewReport extends Component {
                     />
                   );
             break;
-          case "viewReportVersions":
-            return(
-                <ReportVersionsList
-                  dataCatalog={this.reportVersions}
-                  handleReportClick={this.handleReportClick}
-                  editParameter={this.handleEditParameterClick}
-                  generateReport={this.submitGenerateReport}
-                  handleClose={this.viewReportVersions}
-                  />
-            );
-            break;
+        case "viewReportVersions":
+          return(
+              <ReportVersionsList
+                dataCatalog={this.reportVersions}
+                handleReportClick={this.handleReportClick}
+                editParameter={this.handleEditParameterClick}
+                generateReport={this.submitGenerateReport}
+                handleClose={this.viewReportVersions}
+                />
+          );
+          break;
           default:
               return(
                   <ReportCatalogList
@@ -715,8 +717,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchTransReportData:(report_id, reporting_date)=>{
       dispatch(actionFetchTransReportData(report_id, reporting_date))
     },
-    drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+    drillDown:(report_id,sheet,cell,report_snapshot) => {
+      dispatch(actionDrillDown(report_id,sheet,cell,report_snapshot));
     },
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
       dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));

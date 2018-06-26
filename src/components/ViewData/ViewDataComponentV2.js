@@ -27,6 +27,7 @@ import RegOpzFlatGrid from '../RegOpzFlatGrid/RegOpzFlatGrid';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import AddData from './AddData';
 import DataCatalogList from './DataCatalogList';
+import DataVersionsList from './DataVersionsList';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
@@ -65,6 +66,7 @@ class ViewDataComponentV2 extends Component {
       sorted: [],
       filtered: [],
       filteredData: [],
+      selectedRecord: null,
     }
 
     this.dataFilterParam=this.props.dataFilterParam;
@@ -98,6 +100,7 @@ class ViewDataComponentV2 extends Component {
 
 
     this.handleDataFileClick = this.handleDataFileClick.bind(this);
+    this.viewDataVersions = this.viewDataVersions.bind(this);
     this.handleDateFilter = this.handleDateFilter.bind(this);
     this.actionButtonClicked = this.actionButtonClicked.bind(this);
     this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
@@ -179,11 +182,43 @@ class ViewDataComponentV2 extends Component {
         businessDate: item.business_date,
         sourceFileName: item.data_file_name,
         sourceDescription: item.source_description,
-        rowIndex: []
+        rowIndex: [],
+        selectedRecord: null,
      },
-      this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage)
+      this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage,null,item.version)
     );
   }
+
+  viewDataVersions(item) {
+    console.log("selected view data versions item",item);
+    let isOpen = this.state.display === "viewDataVersions";
+    if(isOpen){
+      this.setState({
+        display: false,
+        sourceId: item.source_id,
+        businessDate: item.business_date,
+        sourceFileName: item.data_file_name,
+        sourceDescription: item.source_description,
+        selectedRecord: null,
+      },
+      // Nothing to add at this stage
+      );
+    }
+    else {
+      // console.log("Inside data_sources....", this.reportVersions);
+      this.setState({
+        display: "viewDataVersions",
+        sourceId: item.source_id,
+        businessDate: item.business_date,
+        sourceFileName: item.data_file_name,
+        sourceDescription: item.source_description,
+        selectedRecord: item,
+       },
+        // Nothing to add at this stage
+      );
+    }
+  }
+
 
   handleDateFilter(dates) {
     this.setState({
@@ -397,7 +432,9 @@ class ViewDataComponentV2 extends Component {
       this.props.fetchDrillDownReport(this.dataFilterParam);
     } else {
       let page=requestType=="Filter" ? 0 : (this.state.isFilterChanged? 0: this.state.currentPage);
-      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,page,JSON.stringify(this.state.filtered));
+      this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,page,
+                                    JSON.stringify(this.state.filtered,
+                                    this.state.selectedRecord ? this.state.selectedRecord.version : null));
       console.log("this.props.fetchReportFromDate gridData ...", this.props.gridData);
     }
   }
@@ -532,8 +569,21 @@ class ViewDataComponentV2 extends Component {
   }
 
   handleExportCSV(event) {
-    let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
-    this.props.exportCSV(this.props.gridData.table_name,business_ref,this.props.gridData.sql);
+    let business_ref = '';
+    if (this.props.flagDataDrillDown){
+        let drill_kwargs = this.dataFilterParam.params.drill_kwargs
+        business_ref += "_report_" + drill_kwargs.report_id.replace(/ /g,'_');
+        business_ref += "_sheet_" + drill_kwargs.sheet_id.replace(/ /g,'_');
+        business_ref += "_cell_" + drill_kwargs.cell_id.replace(/ /g,'_');
+        business_ref += "_ver_" + drill_kwargs.version.toString();
+        let exportReference = JSON.stringify(drill_kwargs)
+        this.props.exportCSV(this.props.gridData.table_name,business_ref,null,exportReference);
+    }
+    else {
+        business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
+        this.props.exportCSV(this.props.gridData.table_name,business_ref,this.props.gridData.sql);
+    }
+
   }
 
   handleFullSelect(items){
@@ -799,6 +849,16 @@ class ViewDataComponentV2 extends Component {
                   );
               }
               break;
+          case "viewDataVersions":
+            return(
+                <DataVersionsList
+                  dataCatalog={this.state.selectedRecord}
+                  handleDataFileClick={this.handleDataFileClick}
+                  applyRules={this.props.applyRules}
+                  handleClose={this.viewDataVersions}
+                  />
+            );
+            break;
           default:
               return(
                   <DataCatalogList
@@ -807,6 +867,7 @@ class ViewDataComponentV2 extends Component {
                     handleDataFileClick={this.handleDataFileClick}
                     dateFilter={this.handleDateFilter}
                     applyRules={this.props.applyRules}
+                    viewDataVersions={this.viewDataVersions}
                     />
               );
       }
@@ -930,8 +991,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchSource:(startDate,endDate, catalog_type)=>{
       dispatch(actionFetchSource(startDate,endDate,catalog_type))
     },
-    fetchReportFromDate:(source_id,business_date,page,filter)=>{
-      dispatch(actionFetchReportFromDate(source_id,business_date,page,filter))
+    fetchReportFromDate:(source_id,business_date,page,filter,version)=>{
+      dispatch(actionFetchReportFromDate(source_id,business_date,page,filter,version))
     },
     fetchDrillDownReport:(drill_info)=>{
       dispatch(actionFetchDrillDownReport(drill_info))
@@ -951,8 +1012,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchDataChangeHistory:(table_name,id_list,business_date,cellDetails) => {
       dispatch(actionFetchDataChangeHistory(table_name,id_list,business_date,cellDetails));
     },
-    exportCSV:(table_name,business_ref,sql) => {
-      dispatch(actionExportCSV(table_name,business_ref,sql));
+    exportCSV:(table_name,business_ref,sql,exportReference) => {
+      dispatch(actionExportCSV(table_name,business_ref,sql,exportReference));
     },
     applyRules:(source_info) => {
       dispatch(actionApplyRules(source_info));

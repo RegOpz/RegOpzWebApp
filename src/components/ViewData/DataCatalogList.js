@@ -160,7 +160,6 @@ class DataCatalogList extends Component {
                 <tr>
                   <th>Business Date</th>
                   <th>Source ID</th>
-                  <th>Country</th>
                   <th>Data File Name</th>
                   <th>File load status</th>
                   <th>Data loaded by</th>
@@ -173,7 +172,6 @@ class DataCatalogList extends Component {
                   <tr key={index}>
                     <td>{moment(item.business_date).format("DD-MMM-YYYY")}</td>
                     <td>{item.source_id}</td>
-                    <td>{item.country}</td>
                     <td>
                       <button
                         className="btn btn-link btn-xs"
@@ -204,6 +202,21 @@ class DataCatalogList extends Component {
                           title="Operation Log History"
                         >
                           <i className="fa fa-history" aria-hidden="true"></i>
+                        </button>
+                        </div>
+                        <div className="btn-group">
+                        <button
+                          className="btn btn-circle btn-link btn-xs"
+                          data-toggle="tooltip"
+                          data-placement="top"
+                          title="View Data Feed Versions"
+                          onClick={
+                            (event)=>{
+                              this.props.viewDataVersions(item)
+                            }
+                          }
+                        >
+                          <i className="fa fa-bars" aria-hidden="true"></i>
                         </button>
                         </div>
                         <div className="btn-group">

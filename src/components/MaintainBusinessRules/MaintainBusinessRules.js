@@ -129,7 +129,9 @@ class MaintainBusinessRules extends Component {
     }
     else if(this.flagRuleDrillDown){
       console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+                                          this.ruleFilterParam.page,this.ruleFilterParam.business_date,
+                                          this.ruleFilterParam.qualified_data_version);
     } else {
       this.props.fetchSources();
     }
@@ -150,7 +152,9 @@ class MaintainBusinessRules extends Component {
       console.log("Inside componentWillReceiveProps of MaintainBusinessRules",this.ruleFilterParam);
       this.flagRuleDrillDown = nextProps.flagRuleDrillDown;
       this.ruleFilterParam = nextProps.ruleFilterParam;
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,this.ruleFilterParam.page);
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+                                          this.ruleFilterParam.page,this.ruleFilterParam.business_date,
+                                          this.ruleFilterParam.qualified_data_version);
     }
     if(this.props.leftmenu){
      this.setState({
@@ -300,7 +304,9 @@ class MaintainBusinessRules extends Component {
   fetchDataToGrid(event){
     let fetchPage=0;
     if(this.flagRuleDrillDown){
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,fetchPage);
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+                                          fetchPage,this.ruleFilterParam.business_date,
+                                          this.ruleFilterParam.qualified_data_version);
     } else {
       this.props.fetchBusinesRules(this.state.sourceId,fetchPage);
     }
@@ -853,8 +859,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchBusinesRules: (source_id,page, order) => {
       dispatch(actionFetchBusinessRules(source_id,page, order))
     },
-    fetchDrillDownRulesReport:(rules,source_id,page)=>{
-      dispatch(actionFetchDrillDownRulesReport(rules,source_id,page))
+    fetchDrillDownRulesReport:(rules,source_id,page,busines_date,qualified_data_version)=>{
+      dispatch(actionFetchDrillDownRulesReport(rules,source_id,page,busines_date,qualified_data_version))
     },
     insertBusinessRule: (data, at) => {
       dispatch(actionInsertBusinessRule(data, at))

@@ -29,8 +29,9 @@ export function actionFetchReportData(report_id, reporting_date, version,report_
 }
 
 // TODO:
-export function actionDrillDown(report_id, sheet_id, cell_id) {
+export function actionDrillDown(report_id, sheet_id, cell_id, report_snapshot) {
   let uri = `${BASE_URL}document/drill-down?report_id=${report_id}&sheet_id=${sheet_id}&cell_id=${cell_id}`;
+  uri += `&report_snapshot=${report_snapshot}`
   let urlEncodedURI = encodeURI(uri);
   const request = axios.get(urlEncodedURI);
   console.log(request)

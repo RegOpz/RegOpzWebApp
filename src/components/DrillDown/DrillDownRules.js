@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { Label } from 'react-bootstrap';
+import moment from 'moment';
 
 
 class DrillDownRules extends Component {
@@ -227,6 +228,8 @@ class DrillDownRules extends Component {
       )
     else {
       let item = cellRules.cell_rules;
+      let qd = cellRules.report_snapshot.qualified_data;
+      console.log("item....",item,qd)
       return (
       <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
         <div className="row">
@@ -351,28 +354,84 @@ class DrillDownRules extends Component {
                   <td><Label>{item.aggregation_func}</Label> <b>of</b> <small>{item.aggregation_ref.replace(/,/g,', ')}</small></td>
                   <td>
                     <small>{item.cell_business_rules.replace(/,/g,' ')}</small>
-                    <button
-                      type="button"
-                      className="btn btn-link btn-xs"
-                      onClick={
-                        (event)=>{
-                          let calcBusinessRuleFilter = {
-                                  report_id: item.report_id,
-                                  sheet_id: item.sheet_id,
-                                  cell_id: item.cell_id,
-                                  reporting_date: this.reportingDate,
-                                  source_id: item.source_id,
-                                  cell_calc_ref: item.cell_calc_ref,
-                                  rules: item.cell_business_rules,
-                                  page: 0
+                    {
+                      !this.props.addRulesBtn &&
+                      qd &&
+                      Object.keys(qd).includes(item.source_id.toString()) &&
+                      <div className="x_content">
+                      {
+                        Object.keys(qd[item.source_id]).map(key =>{
+                          return(
+                              <button className="btn btn-default btn-xs"
+                                data-toggle="tooltip"
+                                title={"Rule Details" + "\n(version: " + qd[item.source_id][key]+")"}
+                                onClick={
+                                  (event)=>{
+                                    let calcBusinessRuleFilter = {
+                                            report_id: item.report_id,
+                                            sheet_id: item.sheet_id,
+                                            cell_id: item.cell_id,
+                                            reporting_date: this.reportingDate,
+                                            source_id: item.source_id,
+                                            cell_calc_ref: item.cell_calc_ref,
+                                            rules: item.cell_business_rules,
+                                            page: 0,
+                                            business_date: key,
+                                            qualified_data_version: qd[item.source_id][key],
+                                          }
+                                    this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
+                                    //this.showRulesPanel=!this.showRulesPanel;
+                                    this.handleCollapse(event);
+                                  }
                                 }
-                          this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
-                          //this.showRulesPanel=!this.showRulesPanel;
-                          this.handleCollapse(event);
-                        }
-                      }>
-                      <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
-                    </button>
+                              >
+                                <small>
+                                <i className="fa fa-camera"></i>
+                                  <span>{" " + moment(key.toString()).format("DD-MMM")}</span>
+                                </small>
+                              </button>
+                            )
+                        })
+                      }
+                      </div>
+                    }
+                    {
+                      (
+                        this.props.addRulesBtn ||
+                        (qd && !Object.keys(qd).includes(item.source_id.toString()))
+                      ) &&
+                      <div>
+                      {
+                        <button className="btn btn-link btn-xs"
+                          data-toggle="tooltip"
+                          title={"Rule Details"}
+                          onClick={
+                            (event)=>{
+                              let calcBusinessRuleFilter = {
+                                      report_id: item.report_id,
+                                      sheet_id: item.sheet_id,
+                                      cell_id: item.cell_id,
+                                      reporting_date: this.reportingDate,
+                                      source_id: item.source_id,
+                                      cell_calc_ref: item.cell_calc_ref,
+                                      rules: item.cell_business_rules,
+                                      page: 0,
+                                    }
+                              this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
+                              //this.showRulesPanel=!this.showRulesPanel;
+                              this.handleCollapse(event);
+                            }
+                          }
+                        >
+                          <i className="fa fa-shield"></i>
+                        </button>
+                      }
+                      {
+                        qd && !Object.keys(qd).includes(item.source_id.toString()) &&
+                          <i className="fa fa-warning amber">{" No Business Rules version Qualified"}</i>
+                      }
+                      </div>
+                    }
                   </td>
                   <td>
                     {
