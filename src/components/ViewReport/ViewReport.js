@@ -29,6 +29,9 @@ import {
 import {
   actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
+import {
+  actionFetchOperationLog
+} from '../../actions/OperationLogAction';
 import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
@@ -44,6 +47,7 @@ import AddReportAggRules from '../MaintainFixedFormatReport/AddReportAggRules';
 import ViewData from '../ViewData/ViewDataComponentV2';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 import CreateReport from '../CreateReport/CreateReport';
+import OperationLogList from '../OperationLog/OperationLogList';
 require('react-datepicker/dist/react-datepicker.css');
 
 class ViewReport extends Component {
@@ -74,6 +78,7 @@ class ViewReport extends Component {
     this.dataSource = null;
     this.gridDataViewReport=undefined;
     this.changeHistory=undefined;
+    this.operationLogs=undefined;
     this.gridData=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
@@ -108,6 +113,7 @@ class ViewReport extends Component {
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.submitGenerateReport = this.submitGenerateReport.bind(this);
+    this.viewOperationLog = this.viewOperationLog.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
@@ -134,6 +140,7 @@ class ViewReport extends Component {
     }
     this.gridData=nextProps.gridData;
     this.changeHistory=nextProps.change_history;
+    this.operationLogs=nextProps.operation_log;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
@@ -214,7 +221,7 @@ class ViewReport extends Component {
       );
     }
     else {
-      this.reportVersions = {data_sources:item.versions};
+      this.reportVersions = {data_sources: item.versions};
       // console.log("Inside data_sources....", this.reportVersions);
       this.setState({
         display: "viewReportVersions",
@@ -224,6 +231,28 @@ class ViewReport extends Component {
         selectedRecord: item,
        },
         // Nothing to add at this stage
+      );
+    }
+  }
+
+  viewOperationLog(item) {
+    console.log("selected view operation log for item",item);
+    let isOpen = this.state.display === "viewOperationLog";
+    if(isOpen){
+      this.operationLogs = undefined;
+      console.log("this.state.selectedRecord..",this.state.selectedRecord)
+      this.viewReportVersions(this.state.selectedRecord);
+    }
+    else {
+      this.setState({
+        display: "viewOperationLog",
+        reportId: item.report_id,
+        reportingDate: item.reporting_date,
+        businessDate: item.as_of_reporting_date,
+        selectedRecord: item,
+       },
+        // Nothing to add at this stage
+        ()=>{this.props.fetchOperationLog("Report",item.id)}
       );
     }
   }
@@ -305,6 +334,7 @@ class ViewReport extends Component {
     }
 
   }
+  
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
     this.selectedCell = cell;
@@ -560,7 +590,7 @@ class ViewReport extends Component {
                   );
               }
               break;
-        case "editParameter":
+          case "editParameter":
             return(
                     <CreateReport
                       reportDetails={this.state.selectedRecord}
@@ -569,17 +599,26 @@ class ViewReport extends Component {
                     />
                   );
             break;
-        case "viewReportVersions":
-          return(
-              <ReportVersionsList
-                dataCatalog={this.reportVersions}
-                handleReportClick={this.handleReportClick}
-                editParameter={this.handleEditParameterClick}
-                generateReport={this.submitGenerateReport}
-                handleClose={this.viewReportVersions}
-                />
-          );
-          break;
+          case "viewReportVersions":
+            return(
+                <ReportVersionsList
+                  dataCatalog={this.reportVersions}
+                  handleReportClick={this.handleReportClick}
+                  editParameter={this.handleEditParameterClick}
+                  generateReport={this.submitGenerateReport}
+                  handleClose={this.viewReportVersions}
+                  viewOperationLog={this.viewOperationLog}
+                  />
+            );
+            break;
+          case "viewOperationLog":
+            return(
+                <OperationLogList
+                  data={this.operationLogs}
+                  handleClose={this.viewOperationLog}
+                  />
+            );
+            break;
           default:
               return(
                   <ReportCatalogList
@@ -590,6 +629,7 @@ class ViewReport extends Component {
                     editParameter={this.handleEditParameterClick}
                     generateReport={this.submitGenerateReport}
                     viewReportVersions={this.viewReportVersions}
+                    viewOperationLog={this.viewOperationLog}
                     />
               );
       }
@@ -741,6 +781,9 @@ const mapDispatchToProps = (dispatch) => {
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
+    fetchOperationLog:(entity_type,entity_id) => {
+      dispatch(actionFetchOperationLog(entity_type,entity_id));
+    },
   }
 }
 
@@ -754,6 +797,7 @@ function mapStateToProps(state){
     gridData: state.view_data_store.gridData,
     cell_rules: state.report_store.cell_rules,
     change_history:state.maintain_report_rules_store.change_history,
+    operation_log: state.operation_log_store.operation_log,
     login_details:state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,
   }

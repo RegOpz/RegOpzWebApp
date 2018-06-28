@@ -208,6 +208,11 @@ class ReportCatalogList extends Component {
                           data-toggle="tooltip"
                           data-placement="top"
                           title="Operation Log History"
+                          onClick={
+                            (event)=>{
+                              this.props.viewOperationLog(item)
+                            }
+                          }
                         >
                           <i className="fa fa-history" aria-hidden="true"></i>
                         </button>
