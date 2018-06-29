@@ -19,7 +19,7 @@ class OperationLogList extends Component{
     return(
       <div className="x_panel">
         <div className="x_title">
-          <h2>Operational Log<small> Time Line </small><small>historyReference</small></h2>
+          <h2>Operational Log<small> Time Line </small><small>{this.props.reference ? this.props.reference: ''}</small></h2>
             <ul className="nav navbar-right panel_toolbox">
               <li>
                 <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
@@ -104,6 +104,23 @@ class OperationLogList extends Component{
         logtable.push(
           <tr>
             <td colSpan={6}>
+            <h5 className="badge bg-green">Log Details of {item.operation_type} on {item.operation_start_time} by {item.operation_maker}</h5>
+            <ul className="nav navbar-right panel_toolbox">
+              <li>
+                <a className="close-link"
+                title="Hide Log Details"
+                onClick={
+                  (event)=>{
+                    this.setState({showLogDetails: !this.state.showLogDetails});
+                  }
+                }><i className="fa fa-chevron-up"></i></a>
+              </li>
+              <li>
+                <a className=""
+                title="Refresh"
+                onClick={(event)=>{this.props.refreshOperationLog(item.entity_id)}}><i className="fa fa-refresh"></i></a>
+              </li>
+            </ul>
               <div className="dashboard-widget-content">
                 <ul className="list-unstyled timeline widget">
                 {
@@ -113,10 +130,13 @@ class OperationLogList extends Component{
                           <div className="block_content">
                           <h2 className="title">{detail.operation_sub_type}</h2>
                           <div>
-                            <span>{detail.operation_time}</span>
+                            <i className="fa fa-clock-o dark"></i>
+                            <span>{" " + detail.operation_time+ " "}</span>
+                            <i className="fa fa-gear"></i>
                             <span><strong>{" " + detail.operation_status}</strong></span>
                             <p className="excerpt">
-                            {detail.operation_narration}
+                            <i className="fa fa-comments"></i>
+                              {" " + detail.operation_narration}
                             </p>
                           </div>
                         </div>

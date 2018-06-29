@@ -114,6 +114,7 @@ class ViewReport extends Component {
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.submitGenerateReport = this.submitGenerateReport.bind(this);
     this.viewOperationLog = this.viewOperationLog.bind(this);
+    this.refreshOperationLog = this.refreshOperationLog.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
@@ -257,6 +258,11 @@ class ViewReport extends Component {
     }
   }
 
+  refreshOperationLog(entity_id){
+    // this.operationLogs = undefined;
+    this.props.fetchOperationLog("Report",entity_id);
+  }
+
   handleDateFilter(dates) {
     this.setState({
       startDate: dates.startDate,
@@ -334,7 +340,7 @@ class ViewReport extends Component {
     }
 
   }
-  
+
   handleSelectCell(cell){
     console.log("handleSelectCell",cell);
     this.selectedCell = cell;
@@ -615,7 +621,9 @@ class ViewReport extends Component {
             return(
                 <OperationLogList
                   data={this.operationLogs}
+                  reference={"Report " + this.state.reportId + " version " + this.state.selectedRecord.id}
                   handleClose={this.viewOperationLog}
+                  refreshOperationLog={this.refreshOperationLog}
                   />
             );
             break;
