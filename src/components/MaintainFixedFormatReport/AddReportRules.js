@@ -33,8 +33,6 @@ class AddReportRules extends Component {
           cell_business_rules:null,
           aggregation_ref:null,
           aggregation_func:null,
-          valid_from:null,
-          valid_to:null,
           last_updated_by:null,
           id:null,
           },
@@ -85,8 +83,6 @@ class AddReportRules extends Component {
         cell_business_rules:null,
         aggregation_ref:null,
         aggregation_func:null,
-        valid_from:null,
-        valid_to:null,
         last_updated_by:null,
         id:null,
       };
@@ -118,8 +114,6 @@ class AddReportRules extends Component {
               cell_business_rules:null,
               aggregation_ref:null,
               aggregation_func:null,
-              valid_from:null,
-              valid_to:null,
               last_updated_by:null,
               id:null,
             };
@@ -142,21 +136,6 @@ class AddReportRules extends Component {
     return possibleSuggestionsArray.filter(function(suggestion)  {
         return suggestion.toLowerCase().includes(lowerCaseQuery)
     })
-  }
-  handleValidFromDateChange(date){
-    let form = this.state.form;
-    form.valid_from = date;
-
-    this.setState({form:form});
-
-  }
-
-  handleValidTillDateChange(date){
-    let form = this.state.form;
-    form.valid_to = date;
-
-    this.setState({form:form});
-
   }
 
   handleDelete(i) {
@@ -447,34 +426,6 @@ class AddReportRules extends Component {
                           this.setState({form:form});
                         }
                       }
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Valid from <span className="required"> </span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <DatePicker
-                        dateFormat="YYYYMMDD"
-                        selected={this.state.form.valid_from}
-                        onChange={console.log("this.handleValidFromDateChange.bind(this)")}
-                        placeholderText="Rule Valid From"
-                        readOnly="readonly"
-                        className="view_data_date_picker_input form-control"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Valid till <span className="required"> </span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <DatePicker
-                        dateFormat="YYYYMMDD"
-                        selected={this.state.form.valid_to}
-                        onChange={console.log("this.handleValidTillDateChange.bind(this)")}
-                        placeholderText="Rule Valid Till"
-                        readOnly="readonly"
-                        className="view_data_date_picker_input form-control"
                     />
                   </div>
                 </div>

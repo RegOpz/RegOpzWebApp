@@ -121,55 +121,51 @@ class RuleCopyIntoTenantReport extends Component {
                             <thead>
                               <tr>
                                 <th>Rule</th>
+                                <th>In use</th>
                                 <th>Rule Description</th>
                                 <th>Tenant Rule Logic</th>
-                                <th>In use</th>
-                                <th>Reference</th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr>
                                 <td>{row.original.business_rule}</td>
+                                <td>
+                                  <i className="fa fa-cloud blue" title="Repository"></i>
+                                  {
+                                    ((in_use) => {
+                                      if (in_use == 'Y') {
+                                        return (
+                                          <Label bsStyle="success">In Use</Label>
+                                        );
+                                      } else {
+                                        return (<Label bsStyle="warning">Not Being Used</Label>);
+                                      }
+                                    })(row.original.in_use)
+                                  }
+                                  # {row.original.id}
+                                </td>
                                 <td>{row.original.rule_description}</td>
+                                <td></td>
+                              </tr>
+                              <tr>
+                                <td>{row.original.business_rule}</td>
+                                <td>
+                                  <i className="fa fa-user dark" title="Tenant"></i>
+                                  {
+                                    ((tenant_in_use) => {
+                                      if (tenant_in_use == 'Y') {
+                                        return (
+                                          <Label bsStyle="success">In Use</Label>
+                                        );
+                                      } else {
+                                        return (<Label bsStyle="warning">Not Being Used</Label>);
+                                      }
+                                    })(row.original.in_use_tenant)
+                                  }
+                                  # {row.original.id_tenant}
+                                </td>
+                                <td>{row.original.rule_description_tenant}</td>
                                 <td>{row.original.logical_condition}</td>
-                                <td>
-                                  <div>
-                                    <span>Repo.: </span>
-                                    {
-                                      ((in_use) => {
-                                        if (in_use == 'Y') {
-                                          return (
-                                            <Label bsStyle="success">In Use</Label>
-                                          );
-                                        } else {
-                                          return (<Label bsStyle="warning">Not Being Used</Label>);
-                                        }
-                                      })(row.original.in_use)
-                                    }
-                                  </div>
-                                  <div>
-                                    <span>Tenant: </span>
-                                    {
-                                      ((tenant_in_use) => {
-                                        if (tenant_in_use == 'Y') {
-                                          return (
-                                            <Label bsStyle="success">In Use</Label>
-                                          );
-                                        } else {
-                                          return (<Label bsStyle="warning">Not Being Used</Label>);
-                                        }
-                                      })(row.original.in_use_tenant)
-                                    }
-                                  </div>
-                                </td>
-                                <td>
-                                  <div>
-                                    <span>{"Repo.: "+ row.original.id}</span>
-                                  </div>
-                                  <div>
-                                    <span>{"Tenant.: "+ row.original.id_tenant}</span>
-                                  </div>
-                                </td>
                               </tr>
                             </tbody>
                           </table>

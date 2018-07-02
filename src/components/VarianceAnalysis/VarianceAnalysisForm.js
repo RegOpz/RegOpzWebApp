@@ -150,7 +150,7 @@ class VarianceAnalysisForm extends Component{
                           this.props.date_list_subsequent.map((item,index)=>{
                             return(
                               <option key={index} value={item.reporting_date}>
-                                  {item.reporting_date} - {item.as_of_reporting_date}
+                                  {item.reporting_date} - as of {item.as_of_reporting_date}
                              </option>
                             );
 

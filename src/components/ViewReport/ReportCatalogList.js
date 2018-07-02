@@ -252,17 +252,7 @@ class ReportCatalogList extends Component {
                           className="btn btn-circle btn-link btn-xs"
                           onClick={
                             (event) => {
-                              let report_info = {
-                                report_id: item.report_id,
-                                report_parameters: item.report_parameters,
-                                reporting_date: item.reporting_date,
-                                ref_date_rate:item.ref_date_rate,
-                                rate_type: item.rate_type,
-                                reporting_currency: item.reporting_currency,
-                                report_create_date: moment().format("DD-MMM-YYYY h:mm:ss a"),
-                                report_type: item.report_type,
-                                as_of_reporting_date: item.as_of_reporting_date,
-                              }
+                              let report_info = JSON.parse(item.report_parameters);
                               //console.log(report_info);
                               this.props.generateReport(report_info);
                             }

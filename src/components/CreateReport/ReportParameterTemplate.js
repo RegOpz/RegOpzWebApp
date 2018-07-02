@@ -102,11 +102,11 @@ import './CreateReport.css';
     let newState = {...this.state};
     let reportParameters={}
     if (this.props.createReport){
-      reportParameters=JSON.parse("{"+this.reportParameters.report_parameters.replace(/'/g,'"')+"}");
+      reportParameters=JSON.parse(this.reportParameters.report_parameters);
     }
     else {
-      reportParameters=this.props.report_parameters?this.props.report_parameters:"";
-      reportParameters=JSON.parse("{"+reportParameters.replace(/'/g,'"')+"}");
+      reportParameters=this.props.report_parameters?this.props.report_parameters:"{}";
+      reportParameters=JSON.parse(reportParameters);
       newState.reportId=this.props.report_id;
       newState.country=this.props.country;
       newState.reportCreateStatus=this.props.report_create_status;
@@ -141,6 +141,8 @@ import './CreateReport.css';
           break;
         case "rate_type":
           newState.rateType=reportParameters.rate_type;
+          break;
+        case "reporting_date": case "report_create_status": case "report_create_date": case "report_type":
           break;
         default:
           newState.additionalParameters.push({
@@ -207,19 +209,12 @@ import './CreateReport.css';
       as_of_reporting_date:this.props.maintainReportParameter? undefined : this.state.asOfReportingDate.format("YYYYMMDD"),
       ref_date_rate:this.state.refDateRate,
       rate_type:this.state.rateType,
-      report_parameters:null,
       report_create_status:this.state.reportCreateStatus,
       report_create_date:this.todayDate,
-      report_type: this.props.report_type ? this.props.report_type : this.props.report_def_catalog[0].report[0].report_type,
-      report_event: 'CREATEREPORT'
+      report_type: this.props.report_type ? this.props.report_type : this.props.report_def_catalog[0].report[0].report_type
     };
-    report_info.report_parameters='"business_date_from":"' + report_info.business_date_from + '",' +
-                                '"business_date_to":"' + report_info.business_date_to + '",' +
-                                '"reporting_currency":"' + report_info.reporting_currency + '",' +
-                                '"ref_date_rate":"' + report_info.ref_date_rate + '",' +
-                                '"rate_type":"' + report_info.rate_type +'"'
     this.state.additionalParameters.map((item,index)=>{
-        report_info.report_parameters=report_info.report_parameters+',"'+item.parameterTag+'":"'+item.keyValue+'"'
+        report_info[item.parameterTag]=item.keyValue;
     })
     // console.log(report_info);
     this.props.handleSubmit(report_info);

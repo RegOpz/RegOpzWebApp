@@ -94,7 +94,7 @@ class OperationLogList extends Component{
         >
           <td>{item.operation_type}</td>
           <td>{item.operation_start_time}</td>
-          <td>{item.operation_start_time}</td>
+          <td>{item.operation_end_time}</td>
           <td>{item.operation_narration}</td>
           <td>{item.operation_maker}</td>
           <td>{item.operation_status}</td>

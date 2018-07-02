@@ -48,6 +48,7 @@ import ViewData from '../ViewData/ViewDataComponentV2';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 import CreateReport from '../CreateReport/CreateReport';
 import OperationLogList from '../OperationLog/OperationLogList';
+import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
 
 class ViewReport extends Component {
@@ -78,6 +79,7 @@ class ViewReport extends Component {
     this.dataSource = null;
     this.gridDataViewReport=undefined;
     this.changeHistory=undefined;
+    this.reportBusinessRules=undefined;
     this.operationLogs=undefined;
     this.gridData=undefined;
     this.calcRuleFilter = {};
@@ -95,6 +97,7 @@ class ViewReport extends Component {
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
     ];
@@ -115,6 +118,7 @@ class ViewReport extends Component {
     this.submitGenerateReport = this.submitGenerateReport.bind(this);
     this.viewOperationLog = this.viewOperationLog.bind(this);
     this.refreshOperationLog = this.refreshOperationLog.bind(this);
+    this.handleReportBusinessRulesClick = this.handleReportBusinessRulesClick.bind(this);
 
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
@@ -142,6 +146,7 @@ class ViewReport extends Component {
     this.gridData=nextProps.gridData;
     this.changeHistory=nextProps.change_history;
     this.operationLogs=nextProps.operation_log;
+    this.reportBusinessRules=nextProps.cell_rules;
     console.log("nextProps",this.props.leftmenu);
     if(this.props.leftmenu){
       this.setState({
@@ -428,6 +433,22 @@ class ViewReport extends Component {
     }
   }
 
+  handleReportBusinessRulesClick() {
+    let isOpen = this.state.display === "showReportBusinessRules";
+    this.reportBusinessRules=undefined;
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      });
+    } else {
+      this.setState({
+        display: "showReportBusinessRules"
+        },
+        ()=>{this.props.drillDown(this.state.reportId,undefined,undefined,this.state.selectedRecord.report_snapshot)}
+      );
+    }
+  }
+
   handleExportCSV(event) {
     let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
     this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
@@ -627,6 +648,14 @@ class ViewReport extends Component {
                   />
             );
             break;
+          case "showReportBusinessRules":
+              return(
+                  <ReportBusinessRules
+                    data={ this.reportBusinessRules }
+                    handleClose={this.handleReportBusinessRulesClick}
+                    />
+              );
+              break;
           default:
               return(
                   <ReportCatalogList
@@ -663,7 +692,7 @@ class ViewReport extends Component {
                             return(
                                 <h2>View Report <small>{' Report '}</small>
                                   <small><i className="fa fa-file-text"></i></small>
-                                  <small>{this.state.reportId }</small>
+                                  <small>{this.state.reportId + ' [Version: ' + this.state.selectedRecord.version + ' @' + this.state.selectedRecord.report_create_date + ']'}</small>
                                   <small>{' as on Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                                 </h2>
                             );

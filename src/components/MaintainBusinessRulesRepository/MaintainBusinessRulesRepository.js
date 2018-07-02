@@ -606,6 +606,7 @@ class MaintainBusinessRulesRepository extends Component {
    this.setState({showAuditModal:false},
                   this.handleTenantCopyResultClick()
                 );
+  this.operationName=null;
 
   }
 

@@ -393,8 +393,11 @@ class MaintainBusinessRules extends Component {
       this.selectedKeys = '';
     } else {
       if(this.selectedItems.length < 1){
-        this.modalAlert.isDiscardToBeShown = false;
-        this.modalAlert.open("Please select atleast one record");
+        // this.modalAlert.isDiscardToBeShown = false;
+        // this.modalAlert.open("Please select atleast one record");
+        this.props.fetchReportLinkage(this.state.sourceId);
+        //console.log("Repot Linkage",this.props.report_linkage);
+        this.setState({ display: "showReportLinkage" });
       } else {
         let selectedKeys='';
         console.log("Inside handleReportLinkClick .. items", this.selectedItems);

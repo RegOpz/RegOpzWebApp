@@ -43,6 +43,7 @@ import AddReportAggRules from './AddReportAggRules';
 import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
+import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainFixedFormatReportRules extends Component {
@@ -79,6 +80,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.dataSource = null;
     this.gridDataViewReport=undefined;
     this.changeHistory=undefined;
+    this.reportBusinessRules=undefined;
     this.calcRuleFilter = {};
     this.businessRuleFilterParam = {};
     this.selectedCell=[];
@@ -105,6 +107,7 @@ class MaintainFixedFormatReportRules extends Component {
         { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
         { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
         { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+        { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
         { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
         { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
         { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
@@ -140,6 +143,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
     this.handleCopyReportClick = this.handleCopyReportClick.bind(this);
     this.handleCopySelectedClick = this.handleCopySelectedClick.bind(this);
+    this.handleReportBusinessRulesClick = this.handleReportBusinessRulesClick.bind(this);
 
     this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
@@ -354,6 +358,22 @@ class MaintainFixedFormatReportRules extends Component {
         selectedAuditSheet: 0,
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+      );
+    }
+  }
+
+  handleReportBusinessRulesClick() {
+    let isOpen = this.state.display === "showReportBusinessRules";
+    this.reportBusinessRules=undefined;
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      });
+    } else {
+      this.setState({
+        display: "showReportBusinessRules"
+        },
+        ()=>{this.props.fetchReportChangeHistory(this.state.reportId)}
       );
     }
   }
@@ -581,6 +601,14 @@ class MaintainFixedFormatReportRules extends Component {
                         handleSubmit={this.handleSaveParameterClick}
                       />
                     );
+              break;
+          case "showReportBusinessRules":
+              return(
+                  <ReportBusinessRules
+                    data={ this.reportBusinessRules }
+                    handleClose={this.handleReportBusinessRulesClick}
+                    />
+              );
               break;
           default:
               return(
