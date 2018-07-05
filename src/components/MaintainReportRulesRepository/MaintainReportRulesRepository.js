@@ -32,6 +32,7 @@ class MaintainReportRulesRepository extends Component {
                     this.props.groupId
                     :
                     this.props.user + this.props.tenant_id + "RRR" + moment.utc();
+    this.tenant_report_details = this.props.tenant_report_details;//Done Changes here
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules Repository" }) ? true : false;

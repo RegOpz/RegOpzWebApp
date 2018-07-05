@@ -591,6 +591,7 @@ class MaintainFixedFormatReportRules extends Component {
                         country={this.props.login_details.domainInfo.country}
                         handleCancel={this.handleReportRepositoryClick}
                         groupId={this.props.groupId}
+                        tenant_report_details={this.state.selectedReport}
                         />
                     );
               break;

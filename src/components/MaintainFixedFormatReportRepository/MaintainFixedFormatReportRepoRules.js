@@ -44,6 +44,7 @@ import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
+import CopyReportTemplate from '../MaintainFixedFormatReport/CopyReportRules';//Done By Me...
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainFixedFormatReportRules extends Component {
@@ -75,6 +76,7 @@ class MaintainFixedFormatReportRules extends Component {
                     null);
     this.tenantRenderType = this.props.tenantRenderType;
     this.domainInfo = this.props.login_details.domainInfo;
+    this.tenant_report_details= this.props.tenant_report_details;//Done by me
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -89,6 +91,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.form_data={};
     this.selectedViewColumns=[];
     this.operationName=null;
+    this.copyType=null;//Added By Me.
     this.aggRuleData = null;
     if (this.tenantRenderType=="copyRule"){
       this.buttons=[
@@ -421,13 +424,27 @@ class MaintainFixedFormatReportRules extends Component {
     this.props.updateReportParameter(this.state.reportId,report_info)
     this.handleEditParameterClick();
   }
-
+//Made By Me..
   handleCopyReportClick(){
-    this.operationName = "INSERTTENANT";
+    let isOpen = this.state.display === "copyTenant";
+    console.log("I reachedd Here")
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      })
+    } else {
+      this.setState({
+        display: "copyTenant"
+        },
+      );
+      this.operationName = "INSERTTENANT";
+      this.copyType = "CopyAll";
+    }
   }
 
   handleCopySelectedClick(){
     this.operationName = "INSERTTENANT";
+    this.copyType = "CopySelected";
   }
 
   handleModalOkayClick(event){
@@ -610,6 +627,22 @@ class MaintainFixedFormatReportRules extends Component {
                     />
               );
               break;
+         case "copyTenant":
+          if(this.copyType == "CopyAll"){
+            console.log("I am here,,,",this.country,this.tenant_report_details,this.state.selectedReport);
+            return(
+              <CopyReportTemplate
+                master_report_details={this.state.selectedReport}
+                handleCancel={this.handleCopyReportClick}
+                handleOnSubmit={this.props.handleCancel}
+                groupId={this.props.groupId}
+                report_type={"Fixed Format"}
+                country={this.country}
+                tenant_report_details={this.tenant_report_details}
+              />
+            );
+          }
+          break;
           default:
               return(
                   <ReportCatalogList

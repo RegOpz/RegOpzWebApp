@@ -240,7 +240,7 @@ class SubscriberReportTemplate extends Component {
     }
 
     handleFormSubmit(data) {
-        // console.log("inside handleFormSubmit",data,$("#uploadForm")[0],data.fileInput[0]);
+        //console.log("inside handleFormSubmit",data,$("#uploadForm")[0],data.fileInput[0]);
         const { reset } = this.props;
         var newData = new FormData($("#uploadForm")[0]);
         newData.append('domain_type', this.domainInfo.tenant_id=='regopz' ? 'master': '')
