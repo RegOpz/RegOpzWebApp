@@ -94,9 +94,8 @@ class Signup extends Component {
           <div className="row">
             <div className="col col-lg-12">
               <div className='x_panel'>
-
-              <div className="x_content">
-                <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit) } >
+                <div className="x_content">
+                  <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit) } >
                     <Field
                       name="name"
                       type="text"
@@ -111,49 +110,49 @@ class Signup extends Component {
                         label="First name"
                       />
 
-                      <Field
-                        name="last_name"
-                        type="text"
-                        component={renderField}
-                        label="Last name"
-                      />
+                    <Field
+                      name="last_name"
+                      type="text"
+                      component={renderField}
+                      label="Last name"
+                    />
 
-                      <Field
-                        name="contact_number"
-                        type="text"
-                        component={renderField}
-                        label="Contact number"
-                        normalize={normaliseContactNumber}
-                      />
+                    <Field
+                      name="contact_number"
+                      type="text"
+                      component={renderField}
+                      label="Contact number"
+                      normalize={normaliseContactNumber}
+                    />
 
-                      <Field
-                        name="email"
-                        type="email"
-                        component={renderField}
-                        label="Email"
-                      />
+                    <Field
+                      name="email"
+                      type="email"
+                      component={renderField}
+                      label="Email"
+                    />
 
 
-                      <Field
-                        name="password"
-                        type="password"
-                        component={renderField}
-                        label="Password"
-                      />
+                    <Field
+                      name="password"
+                      type="password"
+                      component={renderField}
+                      label="Password"
+                    />
 
-                      <Field
-                        name="passwordConfirm"
-                        type="password"
-                        component={renderField}
-                        label="Password Confirmation"
-                      />
+                    <Field
+                      name="passwordConfirm"
+                      type="password"
+                      component={renderField}
+                      label="Password Confirmation"
+                    />
 
-                      <div className="form-group">
-                        <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                          <button type="button" className="btn btn-primary" onClick={ reset } disabled={ pristine || submitting }>Reset</button>
-                          <button type="submit" className="btn btn-success" disabled={ pristine || submitting }>Submit</button>
-                        </div>
-                     </div>
+                    <div className="form-group">
+                      <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                        <button type="button" className="btn btn-primary" onClick={ reset } disabled={ pristine || submitting }>Reset</button>
+                        <button type="submit" className="btn btn-success" disabled={ pristine || submitting }>Submit</button>
+                      </div>
+                    </div>
                   </form>
                 </div>
               </div>

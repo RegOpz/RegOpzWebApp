@@ -2,7 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from '../Constant/constant';
 import promiseMiddleware from 'redux-promise';
 
-export let CHECK_TENANT_ACTION  = 'CHECK_USER_ACTION';
+export let CHECK_TENANT_ACTION  = 'CHECK_TENANT_ACTION';
 export let FETCH_TENANT_ACTION  = 'FETCH_TENANT_ACTION';
 export let ADD_TENANT_ACTION  = 'ADD_TENANT_ACTION';
 export let UPDATE_TENANT_ACTION  = 'UPDATE_TENANT_ACTION';

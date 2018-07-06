@@ -2,6 +2,7 @@ import axios from 'axios';
 import { BASE_URL } from '../Constant/constant';
 
 export const LOAD_REPORT_TEMPLATE = 'LOAD_REPORT_TEMPLATE';
+export const CHECK_REPORT_TEMPLATE = 'CHECK_REPORT_TEMPLATE';
 
 export function actionLoadTemplateFile(formElement,reportType) {
     //let form = new FormData(formElement);
@@ -31,4 +32,15 @@ export function actionLoadTemplateFile(formElement,reportType) {
         type: LOAD_REPORT_TEMPLATE,
         payload: request
     };
+}
+
+export function actionCheckReportId(report_id,country,domain_type){
+
+  let url = BASE_URL + "document/"+ encodeURI(report_id) + "?country="+country+"&domain_type="+domain_type ;
+  const request = axios.get(url);
+  return {
+      type: CHECK_REPORT_TEMPLATE,
+      payload: request
+  };
+
 }

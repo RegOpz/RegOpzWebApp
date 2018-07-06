@@ -4,7 +4,8 @@ import { Field, reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import {
-  actionLoadTemplateFile
+  actionLoadTemplateFile,
+  actionCheckReportId
 } from '../../actions/CaptureReportTemplateAction';
 import {
   actionFetchCountries
@@ -72,17 +73,17 @@ const renderField = ({ input, label, type, accept, readOnly, selectList, meta: {
   );
 }
 
-// const asyncValidate = (values, dispatch) => {
-//   return dispatch(actionFetchTenant(values.report_id,'Y'))
-//     .then((action) => {
-//         console.log("Inside asyncValidate, promise resolved");
-//         let error = action.payload.data;
-//         if (Object.getOwnPropertyNames(error).length > 0) {
-//             console.log("Inside asyncValidate", error);
-//             throw { report_id: "Subscriber ID exists, please try a different ID!" , donotUseMiddleWare: true };
-//         }
-//      });
-// }
+const asyncValidate = (values, dispatch) => {
+  return dispatch(actionCheckReportId(values.report_id,values.country,'master'))
+    .then((action) => {
+        console.log("Inside asyncValidate, promise resolved");
+        let error = action.payload.data;
+        if (Object.getOwnPropertyNames(error).length > 0) {
+            console.log("Inside asyncValidate", error);
+            throw { report_id: "Report ID exists, please try a different Report ID!" , donotUseMiddleWare: true };
+        }
+     });
+}
 
 const normaliseContactNumber = value => value && value.replace(/[^\d]/g, '')
 
@@ -285,6 +286,6 @@ const VisibleRepositoryReportTemplate = connect(
 export default reduxForm({
     form: 'RepositoryTemplate',
     validate,
-    // asyncValidate,
-    // asyncBlurFields: ['report_id']
+    asyncValidate,
+    asyncBlurFields: ['report_id']
 })(VisibleRepositoryReportTemplate);

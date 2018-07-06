@@ -23,12 +23,18 @@ export function actionAddUser(data) {
 }
 
 // TODO: Fetch User Details from API
-export function actionFetchUsers(user,userCheck) {
+export function actionFetchUsers(user,userCheck,labelList) {
     let curl = url;
     let actionType = FETCH_USER_ACTION;
     if (typeof user !== 'undefined') {
-        curl += `/${user}` + (userCheck ? '?userCheck=Y' : '');
+        curl += `/${user}?`;
         actionType = CHECK_USER_ACTION;
+    }
+    if (typeof labelList !== 'undefined') {
+        curl += '&labelList=True';
+    }
+    if (typeof userCheck !== 'undefined') {
+        curl += '&userCheck=Y';
     }
     console.log("Fetching users from API.");
     const request = axios.get(curl);

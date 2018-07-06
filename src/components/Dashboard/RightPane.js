@@ -35,61 +35,18 @@ class RightPane extends Component {
     render() {
         return (
             <div className="row tile_count">
-                <CountTile
-                    iconName="user"
-                    titleText="Number of reports"
-                    countValue="2500"
-                    changeColor="green"
-                    sortOrder="asc"
-                    changePercentage="4"
-                    descText="From Last Week"
-                />
-                <CountTile
-                    iconName="clock-o"
-                    titleText="Average Time"
-                    countValue="123.50"
-                    changeColor="green"
-                    sortOrder="asc"
-                    changePercentage="34"
-                    descText="From Last Week"
-                />
-                <CountTile
-                    iconName="user"
-                    titleText="Data Feeds"
-                    countValue="2,500"
-                    countColor="green"
-                    changeColor="green"
-                    sortOrder="asc"
-                    changePercentage="34"
-                    descText="From Last Week"
-                />
-                <CountTile
-                    iconName="user"
-                    titleText="Number of Errors"
-                    countValue="4,567"
-                    changeColor="red"
-                    sortOrder="desc"
-                    changePercentage="12"
-                    descText="From Last Week"
-                />
-                <CountTile
-                    iconName="user"
-                    titleText="Adjustments"
-                    countValue="2,315"
-                    changeColor="green"
-                    sortOrder="asc"
-                    changePercentage="34"
-                    descText="From Last Week"
-                />
-                <CountTile
-                    iconName="user"
-                    titleText="Business Rules"
-                    countValue="7,325"
-                    changeColor="green"
-                    sortOrder="asc"
-                    changePercentage="34"
-                    descText="From Last Week"
-                />
+              {
+                  this.props.user_CountTiles &&
+                  <CountTile
+                      iconName="user"
+                      titleText="Number of reports"
+                      countValue="2500"
+                      changeColor="green"
+                      sortOrder="asc"
+                      changePercentage="4"
+                      descText="From Last Week"
+                  />
+                }
                 {
                     this.props.user_services.map(element => {
                         var chartData = element.apiData;
@@ -122,6 +79,25 @@ class RightPane extends Component {
                             />
                         )
                     })
+                }
+                {
+                  !this.props.user_CountTiles &&
+                  (!this.props.user_services ||
+                    this.props.user_services.length == 0) &&
+                    <div className="col-md-12 form-container">
+                      <div className="col-middle">
+                        <div className="text-center text-center">
+                          <h1 className="error-number">{""}</h1>
+                          <h2>Welcome to RegOpz</h2>
+                          <p>You can customise the dashboard with the contents by subscribing to the services available under profile management option.
+                          </p>
+                          <div className="mid_center">
+                            <h5>Manage Profile</h5>
+                            <h1><a className="user-profile" href="#/dashboard/profile"><img src="images/user.png" alt="..." /></a></h1>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                 }
             </div>
         )

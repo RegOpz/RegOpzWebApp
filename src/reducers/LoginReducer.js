@@ -53,7 +53,7 @@ export default function(state = {}, action) {
             // Lets keep token and login_details store data separate. Also ensure that
             // tenant and master connection details are always encrypted and not available in store.
             const { token, subscriptionInfo } = action.payload.data;
-            // const { domainInfo } = helperLogin(token);
+            setAuthorization(token);
             sessionStorage.setItem('RegOpzToken', token);
             return {domainInfo: subscriptionInfo, error:null};
         } else {

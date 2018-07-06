@@ -209,7 +209,7 @@ class ModifyUser extends Component {
     renderFields(inputList, roleList) {
         let fieldArray = [];
         let localValues = {};
-        inputList.map((item, index) => {
+        typeof inputList != 'undefined' && inputList.map((item, index) => {
             if (item.title == "Status") {
                 if (item.value != "Active") {
                   this.userStatus = "Activate";
