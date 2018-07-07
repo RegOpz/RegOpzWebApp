@@ -41,6 +41,7 @@
     "file-loader": "^0.11.2",
     "jwt-decode": "^2.2.0",
     "lodash": "^3.10.1",
+    "npm": "^6.1.0",
     "promise": "^7.1.1",
     "react": "^0.14.3",
     "react-bootstrap": "^0.30.8",
@@ -50,21 +51,21 @@
     "react-datagrid": "^2.1.2",
     "react-datepicker": "^0.46.0",
     "react-dom": "^0.14.3",
+    "react-favicon": "^0.0.14",
     "react-loading": "0.0.9",
     "react-modal": "^1.7.6",
     "react-notification-system": "^0.2.16",
     "react-redux": "^4.0.0",
     "react-responsive-accordion": "^1.0.0",
     "react-router": "^2.8.1",
-    "react-tabs": "^0.8.3",
     "react-table": "^6.8.0",
+    "react-tabs": "^0.8.3",
     "react-tag-input": "^4.7.2",
     "recharts": "^1.0.0-alpha.1",
     "recompose": "^0.24.0",
     "redux": "^3.0.4",
     "redux-form": "^7.0.1",
     "redux-promise": "^0.5.3",
-    "sorty": "^1.2.2",
-    "react-favicon":"^0.0.14"
+    "sorty": "^1.2.2"
   }
 }

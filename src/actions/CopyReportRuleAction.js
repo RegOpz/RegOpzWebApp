@@ -6,8 +6,8 @@ export const COPY_REPORT_TEMPLATE = 'COPY_REPORT_TEMPLATE';
 export const CHECK_REPORT_ID = 'CHECK_REPORT_ID';
 
 export function actionCopyReportTemplate(formElement) {
-    console.log("inside action copyReportTemplate....",reportType);
-    let url = BASE_URL+ "copy-Report-Template" ;
+    console.log("inside action copyReportTemplate....",formElement);
+    let url = BASE_URL+ "report-rules-repo/copy-report-template" ;
     const request = axios.post(url, formElement);
     return {
         type: COPY_REPORT_TEMPLATE,

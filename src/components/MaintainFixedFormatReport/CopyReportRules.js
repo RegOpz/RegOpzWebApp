@@ -47,7 +47,7 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
     );
   }
 
-  const asyncValidate = (values, dispatch) => {
+  /*const asyncValidate = (values, dispatch) => {
       return dispatch(actionFetchReportId(values.report_id,this.props.country))
         .then((action) => {
             console.log("Inside asyncValidate, promise resolved");
@@ -57,7 +57,7 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
                 throw { report_id: "Report ID exists, Please try a different ID!" , donotUseMiddleWare: true };
             }
          });
-  }
+  }*/
   const validate = (values) => {
     const errors = {};
     console.log("validate starts..");
@@ -108,7 +108,7 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
                             type="text"
                             component={renderField}
                             label="Report ID"
-                            readOnly={asyncValidating}
+                            readOnly={false}
                             placeholder="Enter Report Id"
                           />
                           <Field
@@ -132,39 +132,38 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
             );
         }
         handleFormSubmit(data) {
-
            let newData= {country:this.props.master_report_details.country,
                           report_type:this.props.master_report_details.report_type,
                           ref_report_id: this.props.master_report_details.report_id,
                           target_report_id: data.report_id,
-                          ref_name:"master",
-                          target_name:"tenant",
+                          report_description: this.props.master_report_details.report_description,
+                          ref_domain:"MASTER",
+                          target_domain:"TENANT",
                           target_groupId:this.props.groupId};
+
             console.log("Data Submitted.....",newData);
-            //this.props.copyReportTemplate(newData);
+            this.props.copyReportTemplate(newData);
             this.props.handleOnSubmit();
         }
 }
 
 
-//function mapStateToProps(state) {}
+const mapDispatchToProps = (dispatch) => {
+    return {
+        copyReportTemplate : (newData) => {
+            dispatch(actionCopyReportTemplate(newData));
+        },
+    };
+}
 
-//const mapDispatchToProps = (dispatch) => {
-//    return {
-//        copyReportTemplate: (formElement) => {
-//            dispatch(actionCopyReportTemplate(formElement));
-//        },
-//    };
-//}
-
-//const VisibleCopyReportTemplate = connect(
-//    mapStateToProps,
-//    mapDispatchToProps
-//)(CopyReportTemplate);
+const VisibleCopyReportTemplate = connect(
+    null,
+    mapDispatchToProps
+)(CopyReportTemplate);
 
 export default reduxForm({
     form: 'CopyAllTemplate',
     validate,
-//     asyncValidate,
-//     asyncBlurFields: ['report_id']
-})(CopyReportTemplate);
+  //asyncValidate,
+  //asyncBlurFields: ['report_id']
+})(VisibleCopyReportTemplate);

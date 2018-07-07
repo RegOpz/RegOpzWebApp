@@ -44,7 +44,7 @@ import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
-import CopyReportTemplate from '../MaintainFixedFormatReport/CopyReportRules';//Done By Me...
+import CopyReportTemplate from '../MaintainFixedFormatReport/CopyReportRules';
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainFixedFormatReportRules extends Component {
@@ -76,7 +76,7 @@ class MaintainFixedFormatReportRules extends Component {
                     null);
     this.tenantRenderType = this.props.tenantRenderType;
     this.domainInfo = this.props.login_details.domainInfo;
-    this.tenant_report_details= this.props.tenant_report_details;//Done by me
+    this.tenant_report_details= this.props.tenant_report_details;
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -91,7 +91,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.form_data={};
     this.selectedViewColumns=[];
     this.operationName=null;
-    this.copyType=null;//Added By Me.
+    this.copyType=null;
     this.aggRuleData = null;
     if (this.tenantRenderType=="copyRule"){
       this.buttons=[
@@ -629,7 +629,7 @@ class MaintainFixedFormatReportRules extends Component {
               break;
          case "copyTenant":
           if(this.copyType == "CopyAll"){
-            console.log("I am here,,,",this.country,this.tenant_report_details,this.state.selectedReport);
+            console.log("Inside Copy Report,,,",this.country,this.tenant_report_details,this.state.selectedReport);
             return(
               <CopyReportTemplate
                 master_report_details={this.state.selectedReport}
