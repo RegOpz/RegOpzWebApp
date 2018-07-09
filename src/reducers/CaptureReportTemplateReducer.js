@@ -15,10 +15,9 @@ export default function (state = {}, action) {
 
     switch (action.type) {
         case LOAD_REPORT_TEMPLATE:
-            return {
-                loadReportTemplateMsg: action.payload.data
-            };
-
+            return  Object.assign({}, state, {
+              loadReportTemplateMsg: action.payload.data
+            });
         default:
             return state;
     }

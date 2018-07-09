@@ -56,7 +56,9 @@ export default function(state=[], action) {
     window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
     return state;
   case COPY_REPORT_TEMPLATE:
-      return {copyReportTemplate: action.payload.data};
+      return Object.assign({}, state, {
+        copyReportTemplate: action.payload.data
+      });
   default:
   	return state;
   }
