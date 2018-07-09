@@ -102,9 +102,9 @@ class SourceCatalogList extends Component {
                     key={index}
                     header={item.country}
                     collapsible
-                    expanded={ this.state.open === item.country }
+                    expanded={ linkageData.length ==1 || (this.state.open === item.country) }
                     onClick={ () => {
-                        let flag = this.state.open === item.country ? false : item.country;
+                        let flag = linkageData.length ==1 || (this.state.open === item.country) ? false : item.country;
                         this.setState({ open: flag })
                     }}
                   >

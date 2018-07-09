@@ -44,7 +44,7 @@ class MaintainSources extends Component {
   }
 
   componentWillMount() {
-      this.props.fetchSources();
+      this.props.fetchSources('ALL',this.props.login_details.domainInfo.country);
   }
 
   componentDidUpdate() {
@@ -191,7 +191,7 @@ class MaintainSources extends Component {
                               title="Refresh List"
                               onClick={
                                   (event) => {
-                                    this.props.fetchSources();
+                                    this.props.fetchSources('ALL',this.props.login_details.domainInfo.country);
                                   }
                                 }
                               >

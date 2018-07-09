@@ -7,7 +7,9 @@ import moment from 'moment';
 class DrillDownTransRules extends Component {
   constructor(props){
     super(props);
+    this.secDetails = this.props.cellRules;
     this.cellRules = this.props.cellRules.secRules;
+    this.secOrders = this.props.cellRules.secOrders;
     this.section = this.props.cellRules.section;
     this.sectionColumns = this.props.cellRules.secColumns;
     this.readOnly = this.props.readOnly;
@@ -25,7 +27,9 @@ class DrillDownTransRules extends Component {
 
   componentWillReceiveProps(nextProps){
       //TODO
+      this.secDetails = nextProps.cellRules;
       this.cellRules = nextProps.cellRules.secRules;
+      this.secOrders = nextProps.cellRules.secOrders;
       this.readOnly = nextProps.readOnly;
       this.selectedCell = nextProps.selectedCell;
       this.section = nextProps.cellRules.section;
@@ -92,7 +96,7 @@ class DrillDownTransRules extends Component {
                       <div className="clearfix"></div>
                     </div>
                     <div className="x_content">
-                    { this.renderOrderBy(this.cellRules)}
+                    { this.renderOrderBy(this.secDetails)}
                     </div>
                   </div>
                 </div>
@@ -114,9 +118,9 @@ class DrillDownTransRules extends Component {
     );
   }
 
-  renderOrderBy(cellRules) {
-    console.log("Modal linkage data", cellRules);
-    if (cellRules.length == 0 )
+  renderOrderBy(secDetails) {
+    console.log("Modal linkage data", secDetails);
+    if (secDetails && secDetails.secOrders.length == 0 )
       return (
         <div>
           <h5>No Ordering Details defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
@@ -130,21 +134,7 @@ class DrillDownTransRules extends Component {
                             className="btn btn-primary btn-sm"
                             onClick={
                               (event)=>{
-                                let item = {
-                                    id: null,
-                                    comp_agg_ref: cellRules.comp_agg_ref,
-                                    comp_agg_rule: null,
-                                    reporting_scale: null,
-                                    rounding_option: null,
-                                    valid_from: null,
-                                    valid_to: null,
-                                    last_updated_by: null,
-                                    report_id: this.selectedCell.reportId,
-                                    cell_id: this.selectedCell.cell,
-                                    sheet_id: this.selectedCell.sheetName,
-                                    dml_allowed: 'Y'
-                                };
-                                this.props.handleAggeRuleClicked(event, item);
+                                this.props.handleAggeRuleClicked(event, secDetails);
                                 this.showRulesPanel=!this.showRulesPanel;
                               }
                             }

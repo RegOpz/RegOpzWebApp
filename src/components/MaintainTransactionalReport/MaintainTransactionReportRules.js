@@ -547,7 +547,7 @@ class MaintainTransactionReportRules extends Component {
                           <AddTransReportSectionOrder
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
-                            aggRuleData = { this.aggRuleData }
+                            secDetails = { this.aggRuleData }
                             dml_allowed = { this.aggRuleData.dml_allowed }
                             gridData={this.props.gridDataViewReport}
                           />

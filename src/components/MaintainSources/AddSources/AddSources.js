@@ -62,8 +62,10 @@ class AddSources extends Component {
     }
 
     componentWillMount() {
+      let form = this.props.formData;
+      form.country = this.props.login_details.domainInfo.country;
       this.setState({
-            form: this.props.formData,
+            form: form,
             additionalSourceFields: []
           },
             ()=>{this.props.fetchSourceFeedColumnList(this.state.form.source_table_name)}
@@ -349,16 +351,16 @@ class AddSources extends Component {
                                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Country <span className="required">*</span></label>
                                     <div className="col-md-1 col-sm-12 col-xs-12">
                                         <input
-                                            value={this.state.form.country}
+                                            value={this.props.login_details.domainInfo.country}
                                             className="form-control col-md-7 col-xs-6"
                                             type="text"
-                                            readOnly={this.state.readOnly || this.state.requestType == "edit" }
+                                            readOnly={ true }
                                             placeholder="Country"
                                             maxLength="2"
                                             onChange={
                                                 (event) => {
                                                     let form = this.state.form;
-                                                    form.country = event.target.value.toLocaleUpperCase();
+                                                    form.country = this.props.login_details.domainInfo.country;
                                                     this.setState({
                                                         form: form
                                                     });
@@ -524,6 +526,8 @@ function mapStateToProps(state) {
     console.log("On map state of Add report rule", state);
     return {
         source_table_columns: state.source_feeds.source_table_columns,
+        login_details:state.login_store,
+        leftmenu: state.leftmenu_store.leftmenuclick,
     }
 }
 const mapDispatchToProps = (dispatch) => {

@@ -33,7 +33,7 @@ class LoadData extends Component {
     }
 
     componentWillMount() {
-        this.props.fetchSources();
+        this.props.fetchSources('ALL',this.props.login_details.domainInfo.country);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -148,7 +148,7 @@ class LoadData extends Component {
                                                 title="Refresh List"
                                                 onClick={
                                                     (event) => {
-                                                      this.props.fetchSources();
+                                                      this.props.fetchSources('ALL',this.props.login_details.domainInfo.country);
                                                     }
                                                   }
                                                 >
