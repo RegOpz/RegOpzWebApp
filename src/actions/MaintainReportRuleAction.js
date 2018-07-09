@@ -13,6 +13,8 @@ export const DELETE_MAINTAIN_RULE_DATA = 'DELETE_MAINTAIN_RULE_DATA';
 export const EXPORT_REPORT_XLSX = "EXPORT_REPORT_XLSX";
 export const EXPORT_REPORT_RULE_XLSX = "EXPORT_REPORT_RULE_XLSX";
 export const FETCH_REPORT_CHANGE_HISTORY = "FETCH_REPORT_CHANGE_HISTORY";
+export const COPY_REPORT_TEMPLATE = 'COPY_REPORT_TEMPLATE';
+export const CHECK_REPORT_ID = 'CHECK_REPORT_ID';
 
 // TODO:
 export function actionFetchReportTemplate(reports, country) {
@@ -128,4 +130,14 @@ export function actionFetchReportChangeHistory(report_id, sheet_id, cell_id) {
     type: FETCH_REPORT_CHANGE_HISTORY,
     payload: axios.get(url)
   }
+}
+
+export function actionCopyReportTemplate(formElement) {
+    console.log("inside action copyReportTemplate....",formElement);
+    let url = BASE_URL+ "report-rules-repo/copy-report-template" ;
+    const request = axios.post(url, formElement);
+    return {
+        type: COPY_REPORT_TEMPLATE,
+        payload: request
+    };
 }

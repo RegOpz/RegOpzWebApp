@@ -427,7 +427,6 @@ class MaintainFixedFormatReportRules extends Component {
 //Made By Me..
   handleCopyReportClick(){
     let isOpen = this.state.display === "copyTenant";
-    console.log("I reachedd Here")
     if(isOpen) {
       this.setState({
         display: "showReportGrid"

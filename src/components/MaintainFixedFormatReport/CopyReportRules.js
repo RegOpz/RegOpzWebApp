@@ -3,8 +3,8 @@ import {connect} from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import { Field, reduxForm } from 'redux-form';
 import { bindActionCreators, dispatch } from 'redux';
-import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/CopyReportRuleAction';
-
+import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/MaintainReportRuleAction';
+import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
 
   const renderField = ({ input, label, type, accept, readOnly, placeholder, meta: { touched, error }}) => {
 
@@ -47,17 +47,17 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
     );
   }
 
-  /*const asyncValidate = (values, dispatch) => {
-      return dispatch(actionFetchReportId(values.report_id,this.props.country))
-        .then((action) => {
-            console.log("Inside asyncValidate, promise resolved");
-            let error = action.payload.data;
-            if (Object.getOwnPropertyNames(error).length > 0) {
-                console.log("Inside asyncValidate", error);
-                throw { report_id: "Report ID exists, Please try a different ID!" , donotUseMiddleWare: true };
-            }
-         });
-  }*/
+  const asyncValidate = (values, dispatch) => {
+    return dispatch(actionCheckReportId(values.report_id,values.country,'tenant'))
+      .then((action) => {
+          console.log("Inside asyncValidate, promise resolved");
+          let error = action.payload.data;
+          if (Object.getOwnPropertyNames(error).length > 0) {
+              console.log("Inside asyncValidate", error);
+              throw { report_id: "Report ID exists, please try a different Report ID!" , donotUseMiddleWare: true };
+          }
+       });
+  }
   const validate = (values) => {
     const errors = {};
     console.log("validate starts..");
@@ -108,7 +108,7 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
                             type="text"
                             component={renderField}
                             label="Report ID"
-                            readOnly={false}
+                            readOnly={asyncValidating}
                             placeholder="Enter Report Id"
                           />
                           <Field
@@ -120,7 +120,7 @@ import { actionCopyReportTemplate,actionFetchReportId } from '../../actions/Copy
                           />
                           <div className="form-group">
                             <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                              <button type="button" className="btn btn-danger" onClick={ this.props.handleCancel }>Cancel</button>
+                              <button type="button" className="btn btn-primary" onClick={ this.props.handleCancel }>Cancel</button>
                               <button type="submit" className="btn btn-success" disabled={ pristine }>Submit</button>
                             </div>
                          </div>
@@ -156,14 +156,21 @@ const mapDispatchToProps = (dispatch) => {
     };
 }
 
+function mapStateToProps(state) {
+    console.log("Inside mapStateToProps",state.login_store.domainInfo.country);
+    return {
+        initialValues:{country:state.login_store.domainInfo.country}
+    };
+}
+
 const VisibleCopyReportTemplate = connect(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(CopyReportTemplate);
 
 export default reduxForm({
     form: 'CopyAllTemplate',
     validate,
-  //asyncValidate,
-  //asyncBlurFields: ['report_id']
+    asyncValidate,
+    asyncBlurFields: ['report_id']
 })(VisibleCopyReportTemplate);

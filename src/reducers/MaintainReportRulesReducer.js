@@ -9,12 +9,19 @@ import {
   DELETE_MAINTAIN_RULE_DATA,
   EXPORT_REPORT_XLSX,
   EXPORT_REPORT_RULE_XLSX,
-  FETCH_REPORT_CHANGE_HISTORY
+  FETCH_REPORT_CHANGE_HISTORY,
+  COPY_REPORT_TEMPLATE
 } from '../actions/MaintainReportRuleAction';
 
 // TODO:
 export default function(state=[], action) {
   console.log("Action received in maintain report rules reducer: ", action);
+  //if (action.error) {
+  //    return {
+  //      error: action.payload.response,
+  //      message: action.payload.message
+  //    };
+  //}
   switch(action.type){
     case FETCH_REPORT_TEMPLATE_LIST:
     return Object.assign({}, state, {
@@ -48,6 +55,8 @@ export default function(state=[], action) {
   case EXPORT_REPORT_XLSX:
     window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
     return state;
+  case COPY_REPORT_TEMPLATE:
+      return {copyReportTemplate: action.payload.data};
   default:
   	return state;
   }
