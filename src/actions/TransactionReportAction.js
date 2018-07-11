@@ -9,6 +9,7 @@ export let UPDATE_TRANS_REPORT_CALC_RULE ='UPDATE_TRANS_REPORT_CALC_RULE';
 export let INSERT_TRANS_REPORT_CALC_RULE ='INSERT_TRANS_REPORT_CALC_RULE';
 export let CREATE_TRANS_REPORT ='CREATE_TRANS_REPORT';
 export let FETCH_TRANS_REPORT ='FETCH_TRANS_REPORT';
+export let POST_TRANS_ORDER_TEMPLATE='POST_TRANS_ORDER_TEMPLATE';
 
 
 // TODO:
@@ -91,6 +92,16 @@ export function actionFetchTransReportSecRules(reportId,sheetId,cellId) {
 
   return {
     type: FETCH_TRANS_REPORT_CALC_RULES,
+    payload: request
+  }
+}
+
+export function actionPostTransOrderTemplate(Data){
+  let url=  BASE_URL+ "transactionalReportOrder/";
+  console.log("Inside action PostTransOrder",Data);
+  const request = axios.post(url,Data);
+  return{
+    type: POST_TRANS_ORDER_TEMPLATE,
     payload: request
   }
 }

@@ -2,8 +2,10 @@ import React, { Component } from 'react';
 import { Field, reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
+import moment from 'moment';
+import { actionPostTransOrderTemplate } from '../../actions/TransactionReportAction';
 
-const renderField = ({ input, label, handleDelete, type, optionList, readOnly, meta: { touched, error }}) => (
+const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formSecElements, type, optionList, readOnly, meta: { touched, error }}) => (
     <div className="form-group">
       <label className="control-label col-md-2 col-sm-2 col-xs-2">
         { label }
@@ -35,9 +37,20 @@ const renderField = ({ input, label, handleDelete, type, optionList, readOnly, m
              </div>))
         }
       </div>
-      <div className="col-md-3 col-sm-3 col-xs-12">
-        <button onClick={()=>{handleDelete(input.name)}}><i className="fa fa-close"></i></button>
+      {
+        input.name !=="ranktype" && input.name !=="rankvalue" &&
+        <div className="col-md-3 col-sm-3 col-xs-12">
+        {
+            formSecElements.indexOf(index) !== 0 &&
+            <button type="button" onClick={() => { moveRow(index, 'UP') }}><i className="fa fa-arrow-up"></i></button>
+        }
+        {
+            formSecElements.indexOf(index) !== maxIndex &&
+            <button type="button" onClick={() => { moveRow(index, 'DOWN') }}><i className="fa fa-arrow-down"></i></button>
+        }
+        <button type="button" onClick={()=>{handleDelete(index)}}><i className="fa fa-close"></i></button>
       </div>
+      }
     </div>
 );
 
@@ -59,40 +72,45 @@ class AddTransReportSectionOrder extends Component {
     constructor(props) {
         super(props);
         this.toInitialise = true;
-        this.secDetails = this.props.secDetails;
-        this.secSort = {sortorder:[{D:"ASC"},{E:"DSC"}]}; //this.secDetails.secOrders.sortOrder;
-
+        this.secColumns= this.props.secDetails.secColumns;
+        console.log("Dynamic Columns ",this.secColumns);
+        //this.secSort = {sortorder:this.props.secDetails.secColumns}; //this.secDetails.secOrders.sortOrder;
         this.state={
           // TODO : Refine based on the structure for columns of the Ordering
           // {ranktype: , rankvalue: , sortorder: [{},{},...]}
-          formSecElements: this.secSort.sortorder ? Object.keys(this.secSort.sortorder):[]
+          formSecElements: [],
+          showColumns: this.secColumns,
         }
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
         this.renderColumns = this.renderColumns.bind(this);
         this.getSecElement = this.getSecElement.bind(this);
+        this.renderbuttons = this.renderbuttons.bind(this);
+        this.addFormElement = this.addFormElement.bind(this);
+        this.moveRow = this.moveRow.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
     }
     // react life cycles
     componentWillReceiveProps(nextProps){
         // TODO
+        this.secColumns= nextprops.secDetails.secColumns;
     }
 
     componentDidUpdate(){
       // To initialise the redux form values
       if (this.toInitialise) {
         // TODO: Initialise will be based on the new structure to be formed
-          this.props.initialize(this.secSort);
+          //this.props.initialize(this.secSort);
           this.toInitialise = false;
       }
     }
 
     componentDidMount(){
       // To initialise the redux form values
-      console.log("initialise sec order...", this.secDetails.secOrders.sortOrder)
+      //console.log("initialise sec order...", this.secDetails.secOrders.sortOrder)
       if (this.toInitialise) {
         // TODO: Initialise will be based on the new structure to be formed
-          this.props.initialize(this.secSort);
+          //this.props.initialize(this.secSort);
           this.toInitialise = false;
       }
     }
@@ -111,12 +129,15 @@ class AddTransReportSectionOrder extends Component {
             </div>
             <div className="x_content">
               <div className="col-md-offset-3">
+                {this.renderbuttons()}
+              </div>
+              <div className="col-md-offset-3">
               <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit) } >
                 { this.renderColumns()}
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
-                    <button type="button" className="btn btn-primary" onClick={ this.handleCancel }>Cancel</button>
-                    <button type="submit" className="btn btn-success" disabled={ pristine || submitting }>Submit</button>
+                    <button type="button" className="btn btn-primary" onClick={ this.props.handleClose }>Cancel</button>
+                    <button type="submit" className="btn btn-success" >Submit</button>
                   </div>
                 </div>
               </form>
@@ -129,12 +150,20 @@ class AddTransReportSectionOrder extends Component {
 
     handleFormSubmit(data) {
         console.log("inside handleFormSubmit",data, JSON.stringify(data));
-        // Call your function here
+        let content=[];
+        this.state.formSecElements.map((col)=>{content.push({column:col.col_id,order:data.hasOwnProperty(col.col_id)?data[col.col_id]:"ASC"})})
+        let groupId=this.props.login_store.user+this.props.login_store.domainInfo.tenant_id+"RR"+moment.utc();
+        let newData={ranktype:data.ranktype?data.ranktype:null,
+                     rankvalue:data.rankvalue?data.rankvalue:null,
+                    sortorder:content,
+                   groupId:groupId};
+        console.log("newData to be submitted",newData);
+        this.props.postTransOrder(newData);
+        this.props.handleClose();
     }
 
     handleDelete(element) {
         console.log("inside handleDelete",element);
-        // Call your function here
         let secColumns = this.state.formSecElements;
         var index = secColumns.indexOf(element);
         if (index > -1) {
@@ -143,26 +172,68 @@ class AddTransReportSectionOrder extends Component {
         this.setState({formSecElements:secColumns});
     }
 
-    renderColumns(){
-      // Code to be added
-      let columns=[];
-      let formSecElements = this.state.formSecElements;
-      let secColumns = ["ranktype","rankvalue"].concat(
-                          this.secDetails.secColumns.map(col=>(col.col_id)));
-      formSecElements.map((col, index)=>{
-        columns.push(this.getSecElement(col));
-        var index = secColumns.indexOf(col);
-        if (index > -1) {
-          secColumns.splice(index, 1);
+    renderbuttons(){
+        let columns=[];
+        let secColumns=[].concat(this.state.showColumns.map(col=>(col)));
+        let formSecElements= this.state.formSecElements;
+        console.log("secColumns::",secColumns);
+        console.log("formSecColumns::",formSecElements);
+        formSecElements.map((col)=>{
+          var index = secColumns.indexOf(col);
+          if (index > -1) {
+            secColumns.splice(index, 1);
+          }
+        })
+        console.log("secColumns after change::",secColumns);
+        secColumns.map((col)=>{
+        columns.push(<button onClick={() => { this.addFormElement(col) }}>{col.col_id}</button>);
+        });
+        return columns;
+      }
+
+      addFormElement(col)
+      {
+        let formSecElements= this.state.formSecElements;
+        console.log("On adding, ",col);
+        formSecElements.push(col);
+        this.setState({formSecElements: formSecElements,});
+        console.log("On adding,formSecElements: ",this.state.formSecElements);
+      }
+
+     renderColumns(){
+        let columns=[];
+        let formSecElements = this.state.formSecElements;
+        columns.push(this.getSecElement("ranktype"));
+        columns.push(this.getSecElement("rankvalue"));
+        formSecElements.map((col)=>{columns.push(this.getSecElement(col));
+        })
+        return columns;
+    }
+
+    moveRow(element,direction)
+    {
+        var currentIndex = this.state.formSecElements.indexOf(element);
+        if (currentIndex === 0 && direction === 'UP')
+            return;
+        if (currentIndex === this.state.formSecElements.length - 1 && direction === 'DOWN')
+            return;
+
+        if (direction === 'UP') {
+            let currentValue = this.state.formSecElements[currentIndex];
+            let intendedValue = this.state.formSecElements[currentIndex - 1];
+            let changedformSecElements = [...this.state.formSecElements];
+            changedformSecElements[currentIndex] = intendedValue;
+            changedformSecElements[currentIndex - 1] = currentValue;
+            this.setState({ formSecElements: changedformSecElements });
         }
-      })
-      secColumns.map((col, index)=>{
-        // columns.push(
-        // );
-      })
-
-      return columns;
-
+        else {
+            let currentValue = this.state.formSecElements[currentIndex];
+            let intendedValue = this.state.formSecElements[currentIndex + 1];
+            let changedformSecElements = [...this.state.formSecElements];
+            changedformSecElements[currentIndex] = intendedValue;
+            changedformSecElements[currentIndex + 1] = currentValue;
+            this.setState({ formSecElements: changedformSecElements });
+        }
     }
 
     getSecElement(col){
@@ -189,11 +260,15 @@ class AddTransReportSectionOrder extends Component {
       } else{
         return(
           <Field
-              label={<div><i className="fa fa-columns"></i><span>{'  ' + col}</span></div>}
-              name={col}
+              label={<div><i className="fa fa-columns"></i><span>{' '+col.col_id}</span></div>}
+              name={col.col_id}
+              index={col}
               type="select"
-              optionList={[{value:"ASC",description:"Ascending"},{value:"DSC",description:"Decending"}]}
+              optionList={[{value:"ASC",description:"Ascending"},{value:"DSC",description:"Descending"}]}
               component={renderField}
+              formSecElements={this.state.formSecElements}
+              maxIndex={this.state.formSecElements.length - 1}
+              moveRow={this.moveRow}
               handleDelete={this.handleDelete}
             />
         )
@@ -202,15 +277,18 @@ class AddTransReportSectionOrder extends Component {
 }
 
 function mapStateToProps(state) {
+  console.log("Inside mapStateToProps AddTransReportSectionOrder",state.login_store);
     return {
-      login_details: state.login_store,
+      login_store: state.login_store,
       leftmenu: state.leftmenu_store.leftmenuclick,
     };
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        // Nothing to add at this stage
+      postTransOrder: (newData) => {
+          dispatch(actionPostTransOrderTemplate(newData));
+      },
     };
 }
 
