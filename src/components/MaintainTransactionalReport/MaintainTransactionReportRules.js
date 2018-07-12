@@ -550,6 +550,7 @@ class MaintainTransactionReportRules extends Component {
                             secDetails = { this.aggRuleData }
                             dml_allowed = { this.aggRuleData.dml_allowed }
                             gridData={this.props.gridDataViewReport}
+                            selectedCell={this.selectedCell[0]}
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {

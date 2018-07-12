@@ -97,7 +97,7 @@ export function actionFetchTransReportSecRules(reportId,sheetId,cellId) {
 }
 
 export function actionPostTransOrderTemplate(Data){
-  let url=  BASE_URL+ "transactionalReportOrder/";
+  let url=  BASE_URL+ "insert-into-dyn-tables/";
   console.log("Inside action PostTransOrder",Data);
   const request = axios.post(url,Data);
   return{

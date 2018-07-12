@@ -11,6 +11,11 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         { label }
       </label>
       <div className="col-md-3 col-sm-3 col-xs-12">
+        { type=="textarea" &&
+          <textarea {...input}
+           placeholder={label}
+           className="form-control col-md-4 col-xs-12"/>
+        }
         {
           type=="input" &&
           <input {...input}
@@ -38,7 +43,7 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         }
       </div>
       {
-        input.name !=="ranktype" && input.name !=="rankvalue" &&
+        input.name !=="ranktype" && input.name !=="rankvalue" && input.name !=="cell_agg_ref" && input.name !=="maker_comment" &&
         <div className="col-md-3 col-sm-3 col-xs-12">
         {
             formSecElements.indexOf(index) !== 0 &&
@@ -48,8 +53,8 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
             formSecElements.indexOf(index) !== maxIndex &&
             <button type="button" onClick={() => { moveRow(index, 'DOWN') }}><i className="fa fa-arrow-down"></i></button>
         }
-        <button type="button" onClick={()=>{handleDelete(index)}}><i className="fa fa-close"></i></button>
-      </div>
+         <button type="button" onClick={()=>{handleDelete(index)}}><i className="fa fa-close"></i></button>
+       </div>
       }
     </div>
 );
@@ -65,6 +70,12 @@ const validate = (values) => {
     if(!values.ranktype && values.rankvalue ){
       errors.ranktype = "Select a valid Ranking type";
     }
+    if (!values.cell_agg_ref) {
+        errors.cell_agg_ref = "Cell Aggregation Reference  can not be empty.";
+    }
+    if (!values.maker_comment) {
+        errors.maker_comment = "Comment can not be empty.";
+    }
     return errors;
 }
 
@@ -74,6 +85,8 @@ class AddTransReportSectionOrder extends Component {
         this.toInitialise = true;
         this.secColumns= this.props.secDetails.secColumns;
         console.log("Dynamic Columns ",this.secColumns);
+        console.log("All available data are::",this.props.secDetails,this.props.gridData);
+        console.log("All available data2 are::",this.props.selectedCell);
         //this.secSort = {sortorder:this.props.secDetails.secColumns}; //this.secDetails.secOrders.sortOrder;
         this.state={
           // TODO : Refine based on the structure for columns of the Ordering
@@ -93,7 +106,7 @@ class AddTransReportSectionOrder extends Component {
     // react life cycles
     componentWillReceiveProps(nextProps){
         // TODO
-        this.secColumns= nextprops.secDetails.secColumns;
+        this.secColumns= (nextprops.secDetails.secColumns)?nextprops.secDetails.secColumns:this.props.secDetails.secColumns;
     }
 
     componentDidUpdate(){
@@ -153,12 +166,29 @@ class AddTransReportSectionOrder extends Component {
         let content=[];
         this.state.formSecElements.map((col)=>{content.push({column:col.col_id,order:data.hasOwnProperty(col.col_id)?data[col.col_id]:"ASC"})})
         let groupId=this.props.login_store.user+this.props.login_store.domainInfo.tenant_id+"RR"+moment.utc();
-        let newData={ranktype:data.ranktype?data.ranktype:null,
-                     rankvalue:data.rankvalue?data.rankvalue:null,
-                    sortorder:content,
-                   groupId:groupId};
-        console.log("newData to be submitted",newData);
-        this.props.postTransOrder(newData);
+        let cell_agg_render_ref={ranktype:data.ranktype?data.ranktype:null,
+                                rankvalue:data.rankvalue?data.rankvalue:null,
+                                sortorder:content};
+        let update_info={id:null,
+                         report_id:this.props.selectedCell.reportId,
+                         sheet_id:this.props.selectedCell.sheetName,
+                         section_id:this.props.secDetails.section,
+                         cell_agg_ref:data.cell_agg_ref,
+                         cell_agg_render_ref:cell_agg_render_ref};
+        let audit_info={id:null,
+                        prev_id:null,
+                        origin_id:null,
+                        table_name:"report_dyn_trans_agg_def",
+                        change_summary:null,
+                        change_type:"INSERT",
+                        maker:this.props.login_store.user,
+                        maker_tenant_id:this.props.login_store.domainInfo.tenant_id,
+                        maker_comment:data.maker_comment,
+                        group_id:groupId
+                        };
+        let form_submitted={update_info:update_info,audit_info:audit_info};
+        console.log("newData to be submitted",form_submitted);
+        this.props.postTransOrder(form_submitted);
         this.props.handleClose();
     }
 
@@ -203,10 +233,12 @@ class AddTransReportSectionOrder extends Component {
      renderColumns(){
         let columns=[];
         let formSecElements = this.state.formSecElements;
+        columns.push(this.getSecElement("Cell_Agg_Ref"));
         columns.push(this.getSecElement("ranktype"));
         columns.push(this.getSecElement("rankvalue"));
         formSecElements.map((col)=>{columns.push(this.getSecElement(col));
         })
+        columns.push(this.getSecElement("Comment"));
         return columns;
     }
 
@@ -257,7 +289,26 @@ class AddTransReportSectionOrder extends Component {
               component={renderField}
             />
         )
-      } else{
+      }else if (col=="Cell_Agg_Ref") {
+        return(
+          <Field
+              label={"Cell_Agg_Ref "}
+              name={"cell_agg_ref"}
+              type="input"
+              component={renderField}
+            />
+        )
+      }else if (col=="Comment") {
+        return(
+          <Field
+              label={"Description"}
+              name={"maker_comment"}
+              type="textarea"
+              component={renderField}
+            />
+        )
+      }
+       else{
         return(
           <Field
               label={<div><i className="fa fa-columns"></i><span>{' '+col.col_id}</span></div>}
@@ -286,8 +337,8 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-      postTransOrder: (newData) => {
-          dispatch(actionPostTransOrderTemplate(newData));
+      postTransOrder: (form_submitted) => {
+          dispatch(actionPostTransOrderTemplate(form_submitted));
       },
     };
 }
