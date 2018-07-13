@@ -26,9 +26,9 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         }
         {
           type=="select" &&
-          !readOnly &&
           <select {...input}
            readOnly={readOnly}
+           disabled={readOnly}
            className="form-control col-md-4 col-xs-12">
            {
              optionList.map((opt,index)=>{
@@ -36,14 +36,6 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
              })
            }
           </select>
-        }
-        {
-          type=="select" &&
-          readOnly &&
-          <input {...input}
-           readOnly={readOnly}
-           className="form-control col-md-4 col-xs-12">
-         </input>
         }
         {
             touched &&

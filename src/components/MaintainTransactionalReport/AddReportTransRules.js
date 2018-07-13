@@ -555,12 +555,6 @@ class AddReportTransRules extends Component {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Last Updated by <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <input value="John Doe"  type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
-                  </div>
-                </div>
 
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">

@@ -337,17 +337,6 @@ class AddTransReportSection extends Component {
                       />
                     </div>
                   </div>
-                  <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="last-update-by">Last Updated By<span className="required">*</span></label>
-                    <div className="col-md-3 col-sm-3 col-xs-12">
-                      <input
-                        value={this.state.form.last_updated_by}
-                        type="text"
-                        readOnly="true"
-                        className="form-control col-md-7 col-xs-12"
-                      />
-                    </div>
-                  </div>
 
                   <div className="form-group">
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">

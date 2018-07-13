@@ -89,6 +89,7 @@ class MaintainTransactionReportRules extends Component {
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
+      { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
       { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
@@ -123,6 +124,7 @@ class MaintainTransactionReportRules extends Component {
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
     this.handleReportRepositoryClick = this.handleReportRepositoryClick.bind(this);
+    this.handleReportBusinessRulesClick = this.handleReportBusinessRulesClick.bind(this);
 
     this.handleDefineSection = this.handleDefineSection.bind(this);
 
@@ -383,6 +385,22 @@ class MaintainTransactionReportRules extends Component {
         display: "showHistory"
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+      );
+    }
+  }
+
+  handleReportBusinessRulesClick() {
+    let isOpen = this.state.display === "showReportBusinessRules";
+    this.reportBusinessRules=undefined;
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      });
+    } else {
+      this.setState({
+        display: "showReportBusinessRules"
+        },
+        ()=>{this.props.drillDown(this.state.reportId)}
       );
     }
   }
@@ -654,6 +672,15 @@ class MaintainTransactionReportRules extends Component {
                         handleCancel={this.handleReportRepositoryClick}
                         />
                     );
+              break;
+          case "showReportBusinessRules":
+              return(
+                <div>To be defined</div>
+                  // <ReportBusinessRules
+                  //   data={ this.reportBusinessRules }
+                  //   handleClose={this.handleReportBusinessRulesClick}
+                  //   />
+              );
               break;
           default:
               return(

@@ -14,25 +14,19 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
           { label }
         </label>
         <div className="col-md-6 col-sm-6 col-xs-12">
-          { input.name=="report_id" &&
-            <input {...input}
+          { type=="textarea" &&
+            <textarea {...input}
              id={input.name}
              placeholder={placeholder}
-             type={type}
-             readOnly={readOnly}
-             accept={accept}
-             disabled={false}
-             className="form-control col-md-3 col-sm-3 col-xs-12"
-             />
+             className="form-control col-md-4 col-xs-12"/>
           }
-          {
-            input.name!="report_id" &&
+          { type=="input" &&
             <input {...input}
              id={input.name}
              placeholder={placeholder}
-             type={type}
-             disabled={true}
-             className="form-control col-md-4 col-xs-12"
+             readOnly={readOnly}
+             disabled={readOnly}
+             className="form-control col-md-3 col-sm-3 col-xs-12"
              />
           }
           {
@@ -71,10 +65,24 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
   class CopyReportTemplate extends Component {
       constructor(props) {
           super(props);
+          this.toInitialise = true;
           this.handleFormSubmit = this.handleFormSubmit.bind(this);
+      }
+      componentDidUpdate(){
+        // To initialise the redux form values
+        if (this.toInitialise) {
+          // TODO: Initialise will be based on the new structure to be formed
+            this.props.initialize(this.props.master_report_details);
+            this.toInitialise = false;
+        }
       }
       componentDidMount() {
          document.title = "Copy Report Template";
+         if (this.toInitialise) {
+           // TODO: Initialise will be based on the new structure to be formed
+             this.props.initialize(this.props.master_report_details);
+             this.toInitialise = false;
+         }
       }
 
       render() {
@@ -91,21 +99,23 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
                       <form id="uploadForm" className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit) } >
                           <Field
                             name="report_type"
-                            type="text"
+                            type="input"
                             component={renderField}
                             label="Report Type"
+                            readOnly={true}
                             placeholder={this.props.report_type}
                           />
                           <Field
                               name="country"
-                              type="text"
+                              type="input"
                               component={renderField}
                               label="Country"
+                              readOnly={true}
                               placeholder={this.props.country}
                             />
                           <Field
                             name="report_id"
-                            type="text"
+                            type="input"
                             component={renderField}
                             label="Report ID"
                             readOnly={asyncValidating}
@@ -116,7 +126,7 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
                             type="textarea"
                             component={renderField}
                             label="Report Description"
-                            placeholder={this.props.master_report_details.report_description}
+                            placeholder="Report Description"
                           />
                           <div className="form-group">
                             <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
@@ -132,11 +142,11 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
             );
         }
         handleFormSubmit(data) {
-           let newData= {country:this.props.master_report_details.country,
-                          report_type:this.props.master_report_details.report_type,
+           let newData= {country:data.country,
+                          report_type:data.report_type,
                           ref_report_id: this.props.master_report_details.report_id,
                           target_report_id: data.report_id,
-                          report_description: this.props.master_report_details.report_description,
+                          report_description: data.report_description,
                           ref_domain:"MASTER",
                           target_domain:"TENANT",
                           target_groupId:this.props.groupId};

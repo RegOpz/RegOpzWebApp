@@ -351,7 +351,15 @@ class DrillDownRules extends Component {
                     }
                   </div>
                   </td>
-                  <td><Label>{item.aggregation_func}</Label> <b>of</b> <small>{item.aggregation_ref.replace(/,/g,', ')}</small></td>
+                  <td>
+                    {
+                      item.aggregation_ref &&
+                      <span>
+                      <Label>{item.aggregation_func}</Label> <b>of</b>
+                      <small>{item.aggregation_ref.replace(/,/g,', ')}</small>
+                      </span>
+                    }
+                  </td>
                   <td>
                     <small>{item.cell_business_rules.replace(/,/g,' ')}</small>
                     {

@@ -197,7 +197,7 @@ class DrillDownTransRules extends Component {
                                   Object.keys(orderDetails).map((element,index)=>{
                                     if (element == "sortorder"){
                                       orderDetails.sortorder.map((col,index)=>{
-                                        elements.push(<div>{col.column + " : " + col.order}</div>)
+                                        elements.push(<div>{col.column + " : " + (col.order=="ASC"? "Ascending":"Descending")}</div>)
                                       })
                                     } else {
                                       elements.push(<div>{element + " : " + orderDetails[element]}</div>)
