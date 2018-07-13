@@ -106,7 +106,8 @@ class DefChangeList extends Component{
         </div>
       )
     }
-    if (group.group_tables.match(RegExp(`report_calc_def|report_comp_agg_def`))){
+    if (group.group_tables.match(RegExp(`report_calc_def|report_comp_agg_def`
+                                       +`|report_dyn_trans_agg_def|report_dyn_trans_calc_def`))){
       return(
         <div>
           <div className="left">

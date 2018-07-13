@@ -3,14 +3,16 @@ import { Field, reduxForm } from 'redux-form';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import moment from 'moment';
-import { actionPostTransOrderTemplate } from '../../actions/TransactionReportAction';
+import {
+  actionTransReportInsertRule,
+  actionTransReportUpdateRule } from '../../actions/TransactionReportAction';
 
 const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formSecElements, type, optionList, readOnly, meta: { touched, error }}) => (
     <div className="form-group">
       <label className="control-label col-md-2 col-sm-2 col-xs-2">
         { label }
       </label>
-      <div className="col-md-3 col-sm-3 col-xs-12">
+      <div className={type=="textarea" ? "col-md-6 col-sm-6 col-xs-12" : "col-md-3 col-sm-3 col-xs-12"}>
         { type=="textarea" &&
           <textarea {...input}
            placeholder={label}
@@ -24,6 +26,7 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         }
         {
           type=="select" &&
+          !readOnly &&
           <select {...input}
            readOnly={readOnly}
            className="form-control col-md-4 col-xs-12">
@@ -35,6 +38,14 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
           </select>
         }
         {
+          type=="select" &&
+          readOnly &&
+          <input {...input}
+           readOnly={readOnly}
+           className="form-control col-md-4 col-xs-12">
+         </input>
+        }
+        {
             touched &&
             ((error &&
              <div className="red">
@@ -43,17 +54,19 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         }
       </div>
       {
-        input.name !=="ranktype" && input.name !=="rankvalue" && input.name !=="cell_agg_ref" && input.name !=="maker_comment" &&
+        input.name !=="ranktype" && input.name !=="rankvalue" &&
+        input.name !=="cell_agg_ref" && input.name !=="comment" &&
+        !readOnly &&
         <div className="col-md-3 col-sm-3 col-xs-12">
         {
             formSecElements.indexOf(index) !== 0 &&
-            <button type="button" onClick={() => { moveRow(index, 'UP') }}><i className="fa fa-arrow-up"></i></button>
+            <button type="button" className="btn btn-xs btn-link" title="Move Up" onClick={() => { moveRow(index, 'UP') }}><i className="fa fa-caret-up"></i></button>
         }
         {
             formSecElements.indexOf(index) !== maxIndex &&
-            <button type="button" onClick={() => { moveRow(index, 'DOWN') }}><i className="fa fa-arrow-down"></i></button>
+            <button type="button" className="btn btn-xs btn-link" title="Move Down" onClick={() => { moveRow(index, 'DOWN') }}><i className="fa fa-caret-down"></i></button>
         }
-         <button type="button" onClick={()=>{handleDelete(index)}}><i className="fa fa-close"></i></button>
+         <button type="button" className="btn btn-xs btn-link amber"  title="Remove" onClick={()=>{handleDelete(index)}}><i className="fa fa-close"></i></button>
        </div>
       }
     </div>
@@ -73,8 +86,8 @@ const validate = (values) => {
     if (!values.cell_agg_ref) {
         errors.cell_agg_ref = "Cell Aggregation Reference  can not be empty.";
     }
-    if (!values.maker_comment) {
-        errors.maker_comment = "Comment can not be empty.";
+    if (!values.comment || values.comment.length <= 20 ) {
+        errors.comment = "Comment can not be less than 20 characters.";
     }
     return errors;
 }
@@ -84,16 +97,27 @@ class AddTransReportSectionOrder extends Component {
         super(props);
         this.toInitialise = true;
         this.secColumns= this.props.secDetails.secColumns;
+        console.log("Props....",this.props.secDetails);
         console.log("Dynamic Columns ",this.secColumns);
         console.log("All available data are::",this.props.secDetails,this.props.gridData);
         console.log("All available data2 are::",this.props.selectedCell);
-        //this.secSort = {sortorder:this.props.secDetails.secColumns}; //this.secDetails.secOrders.sortOrder;
+        this.change_type = this.props.secDetails && this.props.secDetails.secOrders.cell_agg_ref ?
+                           "UPDATE" : "INSERT";
+        this.secSort={cell_agg_ref: this.props.secDetails && this.props.secDetails.secOrders.cell_agg_ref ?
+                                    this.props.secDetails.secOrders.cell_agg_ref
+                                    :
+                                    this.props.secDetails.section + ".01"}
         this.state={
           // TODO : Refine based on the structure for columns of the Ordering
           // {ranktype: , rankvalue: , sortorder: [{},{},...]}
           formSecElements: [],
           showColumns: this.secColumns,
         }
+
+        this.dml_allowed = this.props.secDetails.secOrders.dml_allowed === 'Y' ||
+                           typeof this.props.secDetails.secOrders.dml_allowed == 'undefined'
+                           ? true : false;
+        this.writeOnly = this.props.writeOnly;
 
         this.handleFormSubmit = this.handleFormSubmit.bind(this);
         this.renderColumns = this.renderColumns.bind(this);
@@ -104,16 +128,37 @@ class AddTransReportSectionOrder extends Component {
         this.handleDelete = this.handleDelete.bind(this);
     }
     // react life cycles
+    componentWillMount(){
+      // TODO : Add required data calls
+      // Lets rebuild the form element initialisation values from the secDetails received through props
+      let formSecElements = this.state.formSecElements;
+      if(this.props.secDetails.secOrders){
+        let orderCols = this.props.secDetails.secOrders.cell_agg_render_ref;
+        orderCols = orderCols ? JSON.parse(orderCols) : {sortorder:[]};
+        this.secSort["ranktype"] = orderCols.ranktype;
+        this.secSort["rankvalue"] = orderCols.rankvalue;
+        orderCols.sortorder.map((col,index)=>{
+          this.secSort[col.column] = col.order;
+          formSecElements.push(col.column);
+        })
+        console.log("this.secSort...", this.secSort);
+      }
+      this.setState({formSecElements});
+    }
+
     componentWillReceiveProps(nextProps){
         // TODO
-        this.secColumns= (nextprops.secDetails.secColumns)?nextprops.secDetails.secColumns:this.props.secDetails.secColumns;
+        // this.secColumns=  nextprops.secDetails.secColumns ?
+        //                   nextprops.secDetails.secColumns
+        //                   :
+        //                   this.props.secDetails.secColumns;
     }
 
     componentDidUpdate(){
       // To initialise the redux form values
       if (this.toInitialise) {
         // TODO: Initialise will be based on the new structure to be formed
-          //this.props.initialize(this.secSort);
+          this.props.initialize(this.secSort);
           this.toInitialise = false;
       }
     }
@@ -123,13 +168,14 @@ class AddTransReportSectionOrder extends Component {
       //console.log("initialise sec order...", this.secDetails.secOrders.sortOrder)
       if (this.toInitialise) {
         // TODO: Initialise will be based on the new structure to be formed
-          //this.props.initialize(this.secSort);
+          this.props.initialize(this.secSort);
           this.toInitialise = false;
       }
     }
 
     render() {
       const { handleSubmit, asyncValidating, pristine, reset, submitting, message } = this.props;
+      this.viewOnly = !(this.writeOnly && this.dml_allowed);
       if (message) {
           return(<div>{ message.msg }</div>);
       }
@@ -141,8 +187,16 @@ class AddTransReportSectionOrder extends Component {
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
-              <div className="col-md-offset-3">
-                {this.renderbuttons()}
+              <div className="x_panel">
+                <div className="x_title">
+                  <h2>Available columns<small>for sorting order</small></h2>
+                  <div className="clearfix"></div>
+                </div>
+                <div clasName="x_content">
+                  <div className="col-md-offset-3">
+                    {!this.viewOnly && this.renderbuttons()}
+                  </div>
+                </div>
               </div>
               <div className="col-md-offset-3">
               <form className="form-horizontal form-label-left" onSubmit={ handleSubmit(this.handleFormSubmit) } >
@@ -150,7 +204,10 @@ class AddTransReportSectionOrder extends Component {
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-2">
                     <button type="button" className="btn btn-primary" onClick={ this.props.handleClose }>Cancel</button>
-                    <button type="submit" className="btn btn-success" >Submit</button>
+                    {
+                      !this.viewOnly &&
+                      <button type="submit" className="btn btn-success" >Submit</button>
+                    }
                   </div>
                 </div>
               </form>
@@ -164,8 +221,7 @@ class AddTransReportSectionOrder extends Component {
     handleFormSubmit(data) {
         console.log("inside handleFormSubmit",data, JSON.stringify(data));
         let content=[];
-        this.state.formSecElements.map((col)=>{content.push({column:col.col_id,order:data.hasOwnProperty(col.col_id)?data[col.col_id]:"ASC"})})
-        let groupId=this.props.login_store.user+this.props.login_store.domainInfo.tenant_id+"RR"+moment.utc();
+        this.state.formSecElements.map((col)=>{content.push({column:col,order:data.hasOwnProperty(col)?data[col]:"ASC"})})
         let cell_agg_render_ref={ranktype:data.ranktype?data.ranktype:null,
                                 rankvalue:data.rankvalue?data.rankvalue:null,
                                 sortorder:content};
@@ -174,21 +230,32 @@ class AddTransReportSectionOrder extends Component {
                          sheet_id:this.props.selectedCell.sheetName,
                          section_id:this.props.secDetails.section,
                          cell_agg_ref:data.cell_agg_ref,
-                         cell_agg_render_ref:cell_agg_render_ref};
+                         cell_agg_render_ref:JSON.stringify(cell_agg_render_ref)
+                       };
         let audit_info={id:null,
-                        prev_id:null,
-                        origin_id:null,
                         table_name:"report_dyn_trans_agg_def",
-                        change_summary:null,
-                        change_type:"INSERT",
+                        change_reference: 'Transaction Section Order for ' + update_info.report_id +
+                                          '->' + update_info.sheet_id + '->' + data.cell_agg_ref,
+                        change_type: this.change_type,
                         maker:this.props.login_store.user,
                         maker_tenant_id:this.props.login_store.domainInfo.tenant_id,
-                        maker_comment:data.maker_comment,
-                        group_id:groupId
+                        comment:data.comment,
+                        group_id:this.props.groupId
                         };
-        let form_submitted={update_info:update_info,audit_info:audit_info};
-        console.log("newData to be submitted",form_submitted);
-        this.props.postTransOrder(form_submitted);
+        let form_submitted={
+                            table_name: "report_dyn_trans_agg_def",
+                            change_type: this.change_type,
+                            update_info:update_info,
+                            audit_info:audit_info
+                          };
+        console.log("newData to be submitted for ",this.change_type,form_submitted);
+        if (this.change_type == "INSERT"){
+          this.props.insertTransOrder(form_submitted);
+        }
+        else {
+          let id = this.props.secDetails.secOrders.id;
+          this.props.updateTransOrder(id,form_submitted);
+        }
         this.props.handleClose();
     }
 
@@ -204,7 +271,7 @@ class AddTransReportSectionOrder extends Component {
 
     renderbuttons(){
         let columns=[];
-        let secColumns=[].concat(this.state.showColumns.map(col=>(col)));
+        let secColumns=[].concat(this.state.showColumns.map(col=>(col.col_id)));
         let formSecElements= this.state.formSecElements;
         console.log("secColumns::",secColumns);
         console.log("formSecColumns::",formSecElements);
@@ -216,7 +283,14 @@ class AddTransReportSectionOrder extends Component {
         })
         console.log("secColumns after change::",secColumns);
         secColumns.map((col)=>{
-        columns.push(<button onClick={() => { this.addFormElement(col) }}>{col.col_id}</button>);
+        columns.push(
+                      <button type="button"
+                        className="btn btn-sm btn-default"
+                        title={"Column: " + col}
+                        onClick={() => { this.addFormElement(col) }}>
+                        {col}
+                      </button>
+                    );
         });
         return columns;
       }
@@ -233,12 +307,12 @@ class AddTransReportSectionOrder extends Component {
      renderColumns(){
         let columns=[];
         let formSecElements = this.state.formSecElements;
-        columns.push(this.getSecElement("Cell_Agg_Ref"));
+        columns.push(this.getSecElement("cell_agg_ref"));
         columns.push(this.getSecElement("ranktype"));
         columns.push(this.getSecElement("rankvalue"));
         formSecElements.map((col)=>{columns.push(this.getSecElement(col));
         })
-        columns.push(this.getSecElement("Comment"));
+        !this.viewOnly && columns.push(this.getSecElement("Comment"));
         return columns;
     }
 
@@ -277,6 +351,7 @@ class AddTransReportSectionOrder extends Component {
               type="select"
               optionList={[{value:"",description:"Select"},{value:"TOP",description:"Top"},{value:"BOTTOM",description:"Bottom"}]}
               component={renderField}
+              readOnly={this.viewOnly}
             />
         )
       } else if (col=="rankvalue") {
@@ -287,22 +362,24 @@ class AddTransReportSectionOrder extends Component {
               type="input"
               normalize={normaliseNumber}
               component={renderField}
+              readOnly={this.viewOnly}
             />
         )
-      }else if (col=="Cell_Agg_Ref") {
+      }else if (col=="cell_agg_ref") {
         return(
           <Field
-              label={"Cell_Agg_Ref "}
+              label={"Sec Order Ref"}
               name={"cell_agg_ref"}
               type="input"
               component={renderField}
+              readOnly={true}
             />
         )
-      }else if (col=="Comment") {
+      }else if (col=="Comment" && !this.viewOnly) {
         return(
           <Field
-              label={"Description"}
-              name={"maker_comment"}
+              label={"Comment"}
+              name={"comment"}
               type="textarea"
               component={renderField}
             />
@@ -311,8 +388,8 @@ class AddTransReportSectionOrder extends Component {
        else{
         return(
           <Field
-              label={<div><i className="fa fa-columns"></i><span>{' '+col.col_id}</span></div>}
-              name={col.col_id}
+              label={<div><i className="fa fa-columns"></i><span>{' '+col}</span></div>}
+              name={col}
               index={col}
               type="select"
               optionList={[{value:"ASC",description:"Ascending"},{value:"DSC",description:"Descending"}]}
@@ -321,6 +398,7 @@ class AddTransReportSectionOrder extends Component {
               maxIndex={this.state.formSecElements.length - 1}
               moveRow={this.moveRow}
               handleDelete={this.handleDelete}
+              readOnly={this.viewOnly}
             />
         )
       }
@@ -337,8 +415,11 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-      postTransOrder: (form_submitted) => {
-          dispatch(actionPostTransOrderTemplate(form_submitted));
+      insertTransOrder: (data) => {
+          dispatch(actionTransReportInsertRule(data));
+      },
+      updateTransOrder: (id,data) => {
+          dispatch(actionTransReportUpdateRule(id,data));
       },
     };
 }

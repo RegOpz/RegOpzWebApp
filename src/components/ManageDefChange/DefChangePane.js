@@ -73,7 +73,8 @@ class DefChangePane extends Component{
     if (this.item.group_tables.match(RegExp(`report_def`))){
       return(this.reportTemplatesList(changeItem));
     }
-    if (this.item.group_tables.match(RegExp(`report_calc_def|report_comp_agg_def`))){
+    if (this.item.group_tables.match(RegExp(`report_calc_def|report_comp_agg_def`
+                                           +`|report_dyn_trans_agg_def|report_dyn_trans_calc_def`))){
       return(this.reportRulesList(changeItem));
     }
     if (this.item.group_tables.match(RegExp(`permissions`))){

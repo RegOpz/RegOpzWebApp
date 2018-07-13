@@ -527,6 +527,7 @@ class MaintainTransactionReportRules extends Component {
                           <AddReportTransRules
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
+                            groupId={this.props.groupId}
                             {...this.calcRuleFilter}
                           />
                       );
@@ -549,6 +550,7 @@ class MaintainTransactionReportRules extends Component {
                             handleClose={this.handleDetails.bind(this)}
                             secDetails = { this.aggRuleData }
                             dml_allowed = { this.aggRuleData.dml_allowed }
+                            groupId={this.props.groupId}
                             gridData={this.props.gridDataViewReport}
                             selectedCell={this.selectedCell[0]}
                           />

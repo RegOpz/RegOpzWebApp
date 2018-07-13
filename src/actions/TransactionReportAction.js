@@ -5,11 +5,10 @@ export let FETCH_TRANS_REPORT_TEMPLATE = 'FETCH_TRANS_REPORT_TEMPLATE';
 export let DEFINE_TRANS_REPORT_SEC = 'DEFINE_TRANS_REPORT_SEC';
 export let FETCH_TRANS_REPORT_SEC = 'FETCH_TRANS_REPORT_SEC';
 export let FETCH_TRANS_REPORT_CALC_RULES = 'FETCH_TRANS_REPORT_CALC_RULES';
-export let UPDATE_TRANS_REPORT_CALC_RULE ='UPDATE_TRANS_REPORT_CALC_RULE';
-export let INSERT_TRANS_REPORT_CALC_RULE ='INSERT_TRANS_REPORT_CALC_RULE';
+export let UPDATE_TRANS_REPORT_RULE ='UPDATE_TRANS_REPORT_RULE';
+export let INSERT_TRANS_REPORT_RULE ='INSERT_TRANS_REPORT_RULE';
 export let CREATE_TRANS_REPORT ='CREATE_TRANS_REPORT';
 export let FETCH_TRANS_REPORT ='FETCH_TRANS_REPORT';
-export let POST_TRANS_ORDER_TEMPLATE='POST_TRANS_ORDER_TEMPLATE';
 
 
 // TODO:
@@ -53,24 +52,24 @@ export function actionCreateTransReport(Data) {
   }
 }
 
-export function actionTransReportUpdateRule(calcRef,Data) {
-  let url = BASE_URL + "transactionalReport/defineCalcRule/"+calcRef;
-  console.log("actionTransReportDefineSec...",Data);
+export function actionTransReportUpdateRule(id,Data) {
+  let url = BASE_URL + "transactionalReport/trans-report-rule/"+id;
+  console.log("actionTransReportUpdateRule...",Data);
   const request = axios.put(url, Data);
 
   return {
-    type: UPDATE_TRANS_REPORT_CALC_RULE,
+    type: UPDATE_TRANS_REPORT_RULE,
     payload: request
   }
 }
 
-export function actionTransReportInsertRule(calcRef,Data) {
-  let url = BASE_URL + "transactionalReport/defineCalcRule/"+calcRef;
-  console.log("actionTransReportDefineSec...",Data);
+export function actionTransReportInsertRule(Data) {
+  let url = BASE_URL + "transactionalReport/trans-report-rule";
+  console.log("actionTransReportInsertRule...",Data);
   const request = axios.post(url, Data);
 
   return {
-    type: INSERT_TRANS_REPORT_CALC_RULE,
+    type: INSERT_TRANS_REPORT_RULE,
     payload: request
   }
 }
@@ -92,16 +91,6 @@ export function actionFetchTransReportSecRules(reportId,sheetId,cellId) {
 
   return {
     type: FETCH_TRANS_REPORT_CALC_RULES,
-    payload: request
-  }
-}
-
-export function actionPostTransOrderTemplate(Data){
-  let url=  BASE_URL+ "insert-into-dyn-tables/";
-  console.log("Inside action PostTransOrder",Data);
-  const request = axios.post(url,Data);
-  return{
-    type: POST_TRANS_ORDER_TEMPLATE,
     payload: request
   }
 }

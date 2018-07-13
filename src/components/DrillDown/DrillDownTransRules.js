@@ -149,6 +149,78 @@ class DrillDownTransRules extends Component {
       )
     else {
       // TODO
+      let secOrders = secDetails.secOrders;
+      return (
+              <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                <div className="row">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>SL#</th>
+                      <th>Order Ref</th>
+                      <th>Order Logic</th>
+                      <th>In Use</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      secOrders.length > 0 && secOrders.map((item,index)=>{
+                        return(
+                          item.in_use !="X" &&
+                          <tr>
+                            <td><strong>{index+1}</strong></td>
+                            <td>
+                              <small>{item.cell_agg_ref}</small>
+                              <div>
+                                <button
+                                  type="button"
+                                  className="btn btn-link btn-xs"
+                                  onClick={
+                                      (event)=>{
+                                        let secDetailsRule = secDetails;
+                                        secDetailsRule.secOrders = item;
+                                        this.props.handleAggeRuleClicked(event, secDetailsRule);
+                                        this.showRulesPanel=!this.showRulesPanel;
+                                      }
+                                    }
+                                  >
+                                  <i className="fa fa-cube" data-toggle="tooltip" title="Order Details"></i>
+                                </button>
+                              </div>
+                            </td>
+                            <td>
+                              <small>
+                              {
+                                ((cell_agg_render_ref)=>{
+                                  let orderDetails = JSON.parse(cell_agg_render_ref);
+                                  let elements=[];
+                                  Object.keys(orderDetails).map((element,index)=>{
+                                    if (element == "sortorder"){
+                                      orderDetails.sortorder.map((col,index)=>{
+                                        elements.push(<div>{col.column + " : " + col.order}</div>)
+                                      })
+                                    } else {
+                                      elements.push(<div>{element + " : " + orderDetails[element]}</div>)
+                                    }
+                                  })
+                                  return elements;
+                                })(item.cell_agg_render_ref)
+                              }
+                              </small>
+                            </td>
+                            <td>
+                              <Label bsStyle={item.in_use == "Y" ? "success": "warning"}>{item.in_use}</Label>
+                            </td>
+                          </tr>
+                        )
+                      })
+                    }
+                  </tbody>
+                </table>
+                </div>
+              </div>
+          );
+
     }
   }
 

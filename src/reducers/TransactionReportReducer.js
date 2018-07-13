@@ -4,11 +4,10 @@ import {
     DEFINE_TRANS_REPORT_SEC,
     FETCH_TRANS_REPORT_SEC,
     FETCH_TRANS_REPORT_CALC_RULES,
-    UPDATE_TRANS_REPORT_CALC_RULE,
+    UPDATE_TRANS_REPORT_RULE,
     CREATE_TRANS_REPORT,
     FETCH_TRANS_REPORT,
-    INSERT_TRANS_REPORT_CALC_RULE,
-    POST_TRANS_ORDER_TEMPLATE
+    INSERT_TRANS_REPORT_RULE,
 } from '../actions/TransactionReportAction';
 
 
@@ -40,14 +39,12 @@ export default function (state = {}, action) {
             });
         case DEFINE_TRANS_REPORT_SEC:
             return state;
-        case UPDATE_TRANS_REPORT_CALC_RULE:
+        case UPDATE_TRANS_REPORT_RULE:
             return state;
-        case INSERT_TRANS_REPORT_CALC_RULE:
+        case INSERT_TRANS_REPORT_RULE:
             return state;
         case CREATE_TRANS_REPORT:
             return state;
-        case POST_TRANS_ORDER_TEMPLATE:
-            return{state,postTransOrder: action.payload.data};
         default:
             return state;
     }
