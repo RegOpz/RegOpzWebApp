@@ -448,7 +448,6 @@ class MaintainFixedFormatReportRules extends Component {
 
   handleModalOkayClick(event){
     // TODO
-    this.handleCopyReportClick()
   }
 
   handleAuditOkayClick(auditInfo){
