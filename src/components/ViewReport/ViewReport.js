@@ -297,13 +297,14 @@ class ViewReport extends Component {
   handleRefreshGrid(event){
     //this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
+    this.gridDataViewReport=undefined;
     this.setState({itemEditable:true});
     this.fetchDataToGrid(event);
   }
 
 
   fetchDataToGrid(event){
-    if (item.report_type=="TRANSACTION"){
+    if (this.state.selectedRecord.report_type=="TRANSACTION"){
       this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
     } else {
       this.props.fetchReportData(this.state.reportId,this.state.reportingDate,

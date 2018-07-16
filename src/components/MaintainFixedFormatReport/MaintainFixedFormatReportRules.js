@@ -199,6 +199,7 @@ class MaintainFixedFormatReportRules extends Component {
   handleRefreshGrid(event){
     //this.selectedItems = this.flatGrid.deSelectAll();
     //this.currentPage = 0;
+    this.gridDataViewReport=undefined;
     this.setState({itemEditable:true});
     this.fetchDataToGrid(event);
   }
