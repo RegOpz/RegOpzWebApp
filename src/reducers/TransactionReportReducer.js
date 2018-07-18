@@ -8,6 +8,7 @@ import {
     CREATE_TRANS_REPORT,
     FETCH_TRANS_REPORT,
     INSERT_TRANS_REPORT_RULE,
+    DELETE_TRANS_REPORT_RULE,
 } from '../actions/TransactionReportAction';
 
 
@@ -44,6 +45,8 @@ export default function (state = {}, action) {
         case INSERT_TRANS_REPORT_RULE:
             return state;
         case CREATE_TRANS_REPORT:
+            return state;
+        case DELETE_TRANS_REPORT_RULE:
             return state;
         default:
             return state;

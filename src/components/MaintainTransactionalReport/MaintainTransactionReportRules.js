@@ -234,9 +234,10 @@ class MaintainTransactionReportRules extends Component {
       else if (this.selectedCell[0].item.sectionType!="DYNDATA"){
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select a dynamic data section for details. Dynamic Data cells will appear as DYNDATA(<dynamic Section id>).");
-      } else {
+      }
+      else {
         //this.buttons=this.dataButtons;
-        let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"")
+        let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"");
         this.setState({
           display: "showDrillDownRules",
           showDrillDownData: false,
@@ -277,7 +278,7 @@ class MaintainTransactionReportRules extends Component {
                                 section_id: null,
                                 }
           }
-
+          let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"")
           this.setState({
             display: "defineSection",
             showDrillDownData: false,
@@ -285,7 +286,7 @@ class MaintainTransactionReportRules extends Component {
             showAggRuleDetails: false,
             showCellChangeHistory: false,
             },
-            //this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,this.selectedCell[0].cell)
+              this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId)
           );
         }
       }
@@ -535,6 +536,7 @@ class MaintainTransactionReportRules extends Component {
                         selectedCell = {this.selectedCell[0]}
                         handleClose={ this.handleDetails.bind(this) }
                         reportingDate={this.state.reportingDate}
+                        showOnlyData={false}
                         handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }
                         handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
                         handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
@@ -660,7 +662,9 @@ class MaintainTransactionReportRules extends Component {
                         dml_allowed = { "Y" }
                         gridData={this.props.gridDataViewReport}
                         renderStyle={this.state.renderStyle}
-                        />
+                        groupId={this.props.groupId}
+                        selectedCell = {this.selectedCell[0]}
+                        reportingDate={this.state.reportingDate}/>
                   );
               break;
           case "showReportRepository":

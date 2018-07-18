@@ -9,6 +9,7 @@ export let UPDATE_TRANS_REPORT_RULE ='UPDATE_TRANS_REPORT_RULE';
 export let INSERT_TRANS_REPORT_RULE ='INSERT_TRANS_REPORT_RULE';
 export let CREATE_TRANS_REPORT ='CREATE_TRANS_REPORT';
 export let FETCH_TRANS_REPORT ='FETCH_TRANS_REPORT';
+export let DELETE_TRANS_REPORT_RULE='DELETE_TRANS_REPORT_RULE';
 
 
 // TODO:
@@ -91,6 +92,18 @@ export function actionFetchTransReportSecRules(reportId,sheetId,cellId) {
 
   return {
     type: FETCH_TRANS_REPORT_CALC_RULES,
+    payload: request
+  }
+}
+
+export function actionDeleteTransReportRules(data){
+  let url = BASE_URL + "transactionalReport/trans-report-rule/bulk-process";
+  console.log("actionDeleteTransReportRules...",data);
+  const request = axios.post(url, data);
+  console.log("I am here",request);
+
+  return {
+    type: DELETE_TRANS_REPORT_RULE,
     payload: request
   }
 }
