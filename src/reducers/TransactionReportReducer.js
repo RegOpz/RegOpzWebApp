@@ -9,6 +9,7 @@ import {
     FETCH_TRANS_REPORT,
     INSERT_TRANS_REPORT_RULE,
     DELETE_TRANS_REPORT_RULE,
+    FETCH_TRANS_REPORT_CHANGE_HISTORY,
 } from '../actions/TransactionReportAction';
 
 
@@ -37,6 +38,10 @@ export default function (state = {}, action) {
         case FETCH_TRANS_REPORT_CALC_RULES:
             return Object.assign({}, state, {
               secRules: action.payload.data
+            });
+        case FETCH_TRANS_REPORT_CHANGE_HISTORY:
+            return Object.assign({}, state, {
+              change_history: action.payload.data
             });
         case DEFINE_TRANS_REPORT_SEC:
             return state;

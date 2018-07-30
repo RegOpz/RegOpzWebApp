@@ -180,6 +180,11 @@ class AddTransReportSection extends Component {
         <div className="x_panel">
           <div className="x_title">
             <h2>Maintain report rule <small>Add/Edit section definition</small></h2>
+              <ul className="nav navbar-right panel_toolbox">
+              <li>
+                <a className="close-link" title="Close" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
+              </li>
+            </ul>
             <div className="clearfix"></div>
           </div>
 
@@ -474,7 +479,7 @@ class AddTransReportSection extends Component {
                           change_type: "DELETE",
                           maker:user,
                           maker_tenant_id:tenant_id,
-                          comment:"Delete of Section Order",
+                          comment:"Intiated removal of existing definition of Section Order to facilitate undefine section " + item.cell_agg_ref,
                           group_id:group_id};
           let data={id:item.id,
                     change_type:"DELETE",
@@ -501,7 +506,7 @@ class AddTransReportSection extends Component {
                           change_type: "DELETE",
                           maker:user,
                           maker_tenant_id:tenant_id,
-                          comment:"Delete of Section Rule",
+                          comment:"Intiated removal of existing definition of Section Rule to facilitate undefine section " + item.cell_calc_ref,
                           group_id:group_id};
           let data={id:item.id,
                     change_type:"DELETE",

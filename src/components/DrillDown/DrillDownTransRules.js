@@ -8,8 +8,8 @@ class DrillDownTransRules extends Component {
   constructor(props){
     super(props);
     this.secDetails = this.props.cellRules;
-    //this.cellRules = this.props.cellRules.secRules;
-    //this.secOrders = this.props.cellRules.secOrders;
+    this.cellRules = this.props.cellRules.secRules;
+    this.secOrders = this.props.cellRules.secOrders;
     this.section = this.props.cellRules.section;
     this.sectionColumns = this.props.cellRules.secColumns;
     this.readOnly = this.props.readOnly;
@@ -22,25 +22,11 @@ class DrillDownTransRules extends Component {
     this.renderCalcRules = this.renderCalcRules.bind(this);
     this.renderCalcRulesBtn = this.renderCalcRulesBtn.bind(this);
     this.handleCollapse = this.handleCollapse.bind(this);
-    let content=[];
-    this.disabledelete=false;
-    this.props.cellRules.secOrders.map((item,index)=>{
-      if(item.dml_allowed!='X')
-        content.push(item);
-      if ((item.dml_allowed=='N'))
-        this.disabledelete=true;
-      });
-    this.secOrders=content;
-    content=[];
-    this.props.cellRules.secRules.map((item,index)=>{
-      if(item.dml_allowed!='X')
-        content.push(item);
-      if ((item.dml_allowed=='N'))
-        this.disabledelete=true;
-      });
-    this.cellRules=content;
-    content=[];
-    this.disabledelete=(this.secOrders.length == 0 && this.cellRules.length ==0)?true:this.disabledelete;
+    this.disabledelete=(this.secOrders.length == 0 && this.cellRules.length ==0)||
+                        (this.secOrders.length > 0 && this.secOrders.findIndex(x=>x.dml_allowed=='N')!=-1)||
+                        (this.cellRules.length > 0 && this.cellRules.findIndex(x=>x.dml_allowed=='N')!=-1)
+                        ?
+                        true:false;
   }
 
   componentWillReceiveProps(nextProps){
@@ -54,25 +40,13 @@ class DrillDownTransRules extends Component {
       if(nextProps.cellRules)
       {
         this.sectionColumns = nextProps.cellRules.secColumns;
-        let content=[];
-        this.disabledelete=false;
-        nextProps.cellRules.secOrders.map((item,index)=>{
-          if(item.dml_allowed!='X')
-            content.push(item);
-          if ((item.dml_allowed=='N'))
-            this.disabledelete=true;
-          });
-        this.secOrders=content;
-        content=[];
-        nextProps.cellRules.secRules.map((item,index)=>{
-          if(item.dml_allowed!='X')
-            content.push(item);
-          if ((item.dml_allowed=='N'))
-            this.disabledelete=true;
-          });
-        this.cellRules=content;
-        content=[];
-        this.disabledelete=(this.secOrders.length == 0 && this.cellRules.length ==0)?true:this.disabledelete;
+        this.secOrders = nextProps.cellRules.secOrders;
+        this.cellRules = nextProps.cellRules.secRules;
+        this.disabledelete=(this.secOrders.length == 0 && this.cellRules.length ==0)||
+                            (this.secOrders.length > 0 && this.secOrders.findIndex(x=>x.dml_allowed=='N')!=-1)||
+                            (this.cellRules.length > 0 && this.cellRules.findIndex(x=>x.dml_allowed=='N')!=-1)
+                            ?
+                            true:false;
       }
   }
 
@@ -90,6 +64,7 @@ class DrillDownTransRules extends Component {
 
   render(){
     return(
+          (this.secOrders.length != 0 || this.cellRules.length !=0 || !this.props.showOnlyData) &&
           <div className="x_panel">
             <div className="x_title">
               <h2>Report Cell Rules
@@ -117,7 +92,7 @@ class DrillDownTransRules extends Component {
                     <div>
                       <h5 className="">
                         <i className="fa fa-warning"></i>
-                        There are existing rules! The section can only be reset after deleting all existing rules for the section selected!
+                        There are existing rules! The section can only be reset after deleting all existing rules for the selected section!
                       </h5>
                       <button type ="button"
                         className="btn btn-danger btn-sm"
@@ -135,7 +110,7 @@ class DrillDownTransRules extends Component {
                     <div>
                       <h5 className="amber">
                         <i className="fa fa-warning"></i>
-                        There are section rules pending review! Can not reset the section selected!
+                        There are section rules pending review! Can not reset the selected section!
                       </h5>
                     </div>
                   }
@@ -148,7 +123,7 @@ class DrillDownTransRules extends Component {
                         (event)=>{
                           let item = {
                               report_id: this.selectedCell.reportId,
-                              cell_id: this.selectedCell.cell,
+                              section_id: this.section,
                               sheet_name: this.selectedCell.sheetName,
                           };
                           this.props.handleCellHistoryClicked(event, item);
@@ -239,7 +214,7 @@ class DrillDownTransRules extends Component {
                     {
                       secOrders.length > 0 && secOrders.map((item,index)=>{
                         return(
-                          item.in_use !="X" &&
+                          item.in_use !="X" && item.dml_allowed != 'X' &&
                           <tr>
                             <td><strong>{index+1}</strong></td>
                             <td>
@@ -334,6 +309,7 @@ class DrillDownTransRules extends Component {
               let cellCalc = JSON.parse(item.cell_calc_render_ref)
               console.log("After parsing JSON string...", cellCalc);
               return(
+                item.in_use !="X" && item.dml_allowed != 'X' &&
                 <tr>
                   <td>{item.source_id}</td>
                   <td>

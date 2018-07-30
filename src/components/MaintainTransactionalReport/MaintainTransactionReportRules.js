@@ -9,7 +9,7 @@ import {
   actionFetchReportTemplate,
   actionExportXlsx,
   actionExportRulesXlsx,
-  actionFetchReportChangeHistory,
+  // actionFetchReportChangeHistory,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
@@ -27,6 +27,7 @@ import {
 import {
   actionFetchTransReportTemplateData,
   actionFetchTransReportSecRules,
+  actionFetchTransReportChangeHistory,
 } from '../../actions/TransactionReportAction';
 import {
   actionLeftMenuClick,
@@ -89,8 +90,8 @@ class MaintainTransactionReportRules extends Component {
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
-      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      // { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
+      // { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
       { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
     ];
@@ -366,7 +367,7 @@ class MaintainTransactionReportRules extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: true
         },
-        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.cell_id)}
+        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.section_id)}
       );
     }
 
@@ -817,7 +818,7 @@ function mapStateToProps(state){
     gridDataViewReport: state.transreport.reportGridData,
     gridData: state.view_data_store.gridData,
     cell_rules: state.transreport.secRules,
-    change_history:state.maintain_report_rules_store.change_history,
+    change_history:state.transreport.change_history,
     login_details: state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,
   }
@@ -837,8 +838,8 @@ const mapDispatchToProps = (dispatch) => {
     drillDown:(report_id,sheet,cell) => {
       dispatch(actionFetchTransReportSecRules(report_id,sheet,cell));
     },
-    fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
-      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
+    fetchReportChangeHistory:(report_id,sheet_id,section_id) => {
+      dispatch(actionFetchTransReportChangeHistory(report_id,sheet_id,section_id));
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));

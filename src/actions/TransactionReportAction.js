@@ -10,6 +10,7 @@ export let INSERT_TRANS_REPORT_RULE ='INSERT_TRANS_REPORT_RULE';
 export let CREATE_TRANS_REPORT ='CREATE_TRANS_REPORT';
 export let FETCH_TRANS_REPORT ='FETCH_TRANS_REPORT';
 export let DELETE_TRANS_REPORT_RULE='DELETE_TRANS_REPORT_RULE';
+export let FETCH_TRANS_REPORT_CHANGE_HISTORY='FETCH_TRANS_REPORT_CHANGE_HISTORY';
 
 
 // TODO:
@@ -105,5 +106,15 @@ export function actionDeleteTransReportRules(data){
   return {
     type: DELETE_TRANS_REPORT_RULE,
     payload: request
+  }
+}
+
+export function actionFetchTransReportChangeHistory(report_id, sheet_id, section_id) {
+  let url = BASE_URL + "transactionalReport/audit-list?report_id=" + report_id;
+  url = url + (sheet_id ? "&sheet_id=" + sheet_id : "");
+  url = url + (section_id ? "&section_id=" + section_id : "");
+  return {
+    type: FETCH_TRANS_REPORT_CHANGE_HISTORY,
+    payload: axios.get(url)
   }
 }
