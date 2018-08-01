@@ -59,8 +59,8 @@ export function actionFetchSources(sourceId) {
 }
 
 // TODO:
-export function actionFetchSourceColumnList(table_name) {
-  let url = BASE_URL + `report-rule/get-agg-function-column-suggestion-list?table_name=${table_name}`;
+export function actionFetchSourceColumnList(table_name,source_id) {
+  let url = BASE_URL + `report-rule/get-agg-function-column-suggestion-list?table_name=${table_name}&source_id=${source_id}`;
   const request = axios.get(url);
   return {
     type:FETCH_TABLE_COLUMNS_LIST,

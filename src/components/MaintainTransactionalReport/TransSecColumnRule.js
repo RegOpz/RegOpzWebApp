@@ -20,35 +20,56 @@ class TransSecColumnRule extends Component {
         return (
             <tr>
                 <td>
-                    <FormControl
-                        type="text"
-                        required="required"
-                        readOnly={true}
-                        maxLength="30"
-                        placeholder="Column"
-                        bsSize="small"
-                        value={this.props.col_id}
-                        disabled={true}
-                    />
+                    <strong>{this.props.col_id}</strong>
+                </td>
+                <td className="wrap-text">
+                  <p className={this.props.mapped_column? "": "aero"}>
+                    {
+                      this.props.mapped_column ?
+                      this.props.mapped_column
+                      :
+                      "No mapping available"
+                    }
+                  </p>
                 </td>
                 <td>
-                  <FormControl
-                      componentClass="select"
-                      className={this.props.mapped_column=="" ? "blue":""}
-                      placeholder="Select Source Column"
-                      value={this.props.mapped_column}
-                      onChange={(event) => { this.props.handleChange(event, 'mappedColumn', this.props.index) }}
-                      disabled={this.props.disabled}
-                  >
-                  <option value="">Choose option</option>
                   {
-                    this.props.sourceColumns.map(function(item,index){
-                      return(
-                        <option key={index} target={item.Field} value={item.Field}>{item.Field}</option>
-                      )
-                    })
+                    !this.props.disabled &&
+                    this.props.sourceId &&
+                    <button
+                      type="button"
+                      className="btn btn-link btn-xs"
+                      title="Edit field"
+                      onClick={(event)=>{
+                        //TODO
+                        let selectedColumn = {
+                          index: this.props.index,
+                          mapped_column: this.props.mapped_column,
+                          col_id: this.props.col_id,
+                          sourceColumns: this.props.sourceColumns
+                        };
+                        this.props.handleEditColMapping(selectedColumn);
+                      }}
+                      >
+                      <i className="fa fa-edit green"></i>
+                    </button>
                   }
-                  </FormControl>
+                  {
+                    !this.props.disabled &&
+                    this.props.mapped_column &&
+                    this.props.sourceId &&
+                    <button
+                      type="button"
+                      className="btn btn-link btn-xs"
+                      title="Clear field"
+                      onClick={(event) => {
+                          event.target.value="";
+                          this.props.handleChange(event, 'mappedColumn', this.props.index)
+                        }}
+                      >
+                      <i className="fa fa-close amber"></i>
+                    </button>
+                  }
                 </td>
             </tr>
         );
