@@ -87,20 +87,13 @@ export function actionUpdateRuleData(id, data) {
 }
 
 // TODO:
-export function actionDeleteRuleData(id, table_name, at,audit_info) {
-  console.log('in action delete maintain rule',audit_info);
-  let data={};
-  data['audit_info']=audit_info;
-  data['table_name']=table_name;
-  data['change_type']=audit_info['change_type'];
-  console.log(data);
-  const payload=axios.put(BASE_URL + `report-rule/${id}`,data);
+export function actionDeleteRuleData(id,data) {
+  const url = BASE_URL + `report-rule/${id}`;
+  const payload=axios.put(url,data);
 
   return {
     type: DELETE_MAINTAIN_RULE_DATA,
-    payload: payload,
-    //payload:axios.delete(BASE_URL + `report-rule/99999999999?table_name=${table_name}`),
-    meta: { at:at }
+    payload: payload
   }
 }
 

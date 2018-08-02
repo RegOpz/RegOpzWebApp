@@ -317,20 +317,21 @@ class DrillDownTransRules extends Component {
                   <td>
                     <small>{item.cell_calc_ref}</small>
                     <div>
-                      {!this.props.showOnlyData&&
+                      {
+                        !this.props.showOnlyData &&
                         <button
-                        type="button"
-                        className="btn btn-link btn-xs "
-                        onClick={
-                          (event)=>{
-                            this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "edit");
-                            //this.showRulesPanel=!this.showRulesPanel;
-                            this.handleCollapse(event);
-                          }
-                        }>
-                        <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
-                      </button>
-                    }
+                          type="button"
+                          className="btn btn-link btn-xs "
+                          onClick={
+                            (event)=>{
+                              this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "edit");
+                              //this.showRulesPanel=!this.showRulesPanel;
+                              this.handleCollapse(event);
+                            }
+                          }>
+                          <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
+                        </button>
+                      }
                       {
                         this.props.addRulesBtn &&
                         <button
@@ -349,18 +350,25 @@ class DrillDownTransRules extends Component {
                         </button>
                       }
                       {
-                        this.props.addRulesBtn && item.in_use == 'Y' &&
+                        this.props.addRulesBtn &&
+                        item.dml_allowed == 'Y' &&
+                        item.in_use == 'Y' &&
                         <button
                           type="button"
                           className="btn btn-link amber btn-xs"
                           onClick={
                             (event)=>{
-                              let newItem = item;
-                              newItem.cell_calc_ref = moment().format('YYYYMMDDHHMMSS');
+                              // let newItem = item;
+                              // newItem.cell_calc_ref = moment().format('YYYYMMDDHHMMSS');
                               // this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "copy");
                               //this.showRulesPanel=!this.showRulesPanel;
                               // TODO Delete rule to be added later
-                              this.handleCollapse(event);
+                              let toDeleteItem = {
+                                rule: item,
+                                table_name: "report_dyn_trans_calc_def"
+                              }
+                              this.props.handleDeleteClick(toDeleteItem);
+                              // this.handleCollapse(event);
                             }
                           }>
                           <i className="fa fa-close" data-toggle="tooltip" title="Delete Rule"></i>
@@ -368,36 +376,42 @@ class DrillDownTransRules extends Component {
                       }
                     </div>
                   </td>
-                  <td><small>{Object.keys(cellCalc.calc).map(col=>{
-                      return(
-                        <p>{col} : {cellCalc.calc[col].column}</p>)
-                    })}</small></td>
+                  <td>
+                    <small>
+                      {
+                        Object.keys(cellCalc.calc).map(col=>{
+                          return(cellCalc.calc[col].column && <p>{col} : {cellCalc.calc[col].column}</p>)
+                        })
+                      }
+                    </small>
+                  </td>
                   <td>
                     <small>{cellCalc.rule}</small>
-                    {!this.props.showOnlyData&&
+                    {
+                      !this.props.showOnlyData&&
                       <button
-                      type="button"
-                      className="btn btn-link btn-xs"
-                      onClick={
-                        (event)=>{
-                          let calcBusinessRuleFilter = {
-                                  report_id: item.report_id,
-                                  sheet_id: item.sheet_id,
-                                  cell_id: item.cell_id,
-                                  reporting_date: this.reportingDate,
-                                  source_id: item.source_id,
-                                  cell_calc_ref: item.cell_calc_ref,
-                                  rules: cellCalc.rule,
-                                  page: 0
-                                }
-                          this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
-                          //this.showRulesPanel=!this.showRulesPanel;
-                          this.handleCollapse(event);
-                        }
-                      }>
-                      <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
-                    </button>
-                  }
+                        type="button"
+                        className="btn btn-link btn-xs"
+                        onClick={
+                          (event)=>{
+                            let calcBusinessRuleFilter = {
+                                    report_id: item.report_id,
+                                    sheet_id: item.sheet_id,
+                                    cell_id: item.cell_id,
+                                    reporting_date: this.reportingDate,
+                                    source_id: item.source_id,
+                                    cell_calc_ref: item.cell_calc_ref,
+                                    rules: cellCalc.rule,
+                                    page: 0
+                                  }
+                            this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
+                            //this.showRulesPanel=!this.showRulesPanel;
+                            this.handleCollapse(event);
+                          }
+                        }>
+                        <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
+                      </button>
+                    }
                   </td>
                   <td>
                     {

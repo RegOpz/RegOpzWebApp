@@ -97,11 +97,19 @@ export function actionFetchTransReportSecRules(reportId,sheetId,cellId) {
   }
 }
 
-export function actionDeleteTransReportRules(data){
-  let url = BASE_URL + "transactionalReport/trans-report-rule/bulk-process";
-  console.log("actionDeleteTransReportRules...",data);
-  const request = axios.post(url, data);
-  console.log("I am here",request);
+export function actionDeleteTransReportRules(data,id){
+  let url = BASE_URL + "transactionalReport/trans-report-rule/";
+  let request = null;
+  if (id){
+    url += id;
+    console.log("actionDeleteTransReportRules delete only one rule ...",id,data);
+    request = axios.put(url, data);
+  }
+  else{
+    url += "bulk-process";
+    console.log("actionDeleteTransReportRules delete bulk rules ...",data);
+    request = axios.post(url, data);
+  }
 
   return {
     type: DELETE_TRANS_REPORT_RULE,

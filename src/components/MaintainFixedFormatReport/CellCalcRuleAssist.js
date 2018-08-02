@@ -213,7 +213,7 @@ class CellCalcRuleAssist extends Component {
     checkColumnInMapping(currentFormula){
       console.log(currentFormula);
       let mappingColumns = this.props.sourceColumns.filter(item =>
-          currentFormula.includes(item.Field.toString())
+          currentFormula && currentFormula.includes(item.Field.toString())
       );
       return mappingColumns;
     }

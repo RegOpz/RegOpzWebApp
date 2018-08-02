@@ -10,7 +10,8 @@ import {
   actionExportXlsx,
   actionExportRulesXlsx,
   actionFetchReportChangeHistory,
-  actionUpdateRuleData
+  actionUpdateRuleData,
+  actionDeleteRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
   //actionFetchDates,
@@ -82,6 +83,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.selectedViewColumns=[];
     this.operationName=null;
     this.aggRuleData = null;
+    this.itemToDelete = null;
     this.buttons=[
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
@@ -124,6 +126,7 @@ class MaintainFixedFormatReportRules extends Component {
 
     this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
@@ -415,12 +418,54 @@ class MaintainFixedFormatReportRules extends Component {
     }
   }
 
+  handleDeleteClick(rule){
+      this.modalAlert.isDiscardToBeShown = true;
+      this.operationName = "DELETE";
+      this.itemToDelete = rule;
+      this.modalAlert.open(`Do you really want to delete this rule (Rule ID: ${this.itemToDelete.rule.cell_calc_ref}) ?`)
+  }
+
   handleModalOkayClick(event){
     // TODO
+    this.modalAlert.isDiscardToBeShown = false;
+    if(this.operationName=='DELETE'){
+      this.setState({showAuditModal:true},
+          ()=>{console.log("showAuditModal",this.state.showAuditModal);});
+    }
+
   }
 
   handleAuditOkayClick(auditInfo){
     //TODO
+    let data={};
+    data["change_type"]=this.operationName;
+    data["table_name"]=this.itemToDelete.table_name;
+    let rule = this.itemToDelete.rule;
+    if (this.operationName=='DELETE'){
+      this.auditInfo={
+        table_name:data["table_name"],
+        change_type:this.operationName,
+        change_reference:`Delete Rule of ${rule.cell_calc_ref} : Report: ${rule.report_id} -> Sheet: ${rule.sheet_id} -> Cell: ${rule.cell_id}`,
+        maker:this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.props.groupId,
+      };
+      Object.assign(this.auditInfo,auditInfo);
+      data["audit_info"]=this.auditInfo;
+      data["id"] = rule.id;
+      // data["update_info"]=rule;
+
+      console.log("delete call...", data, rule.id);
+
+      this.props.deleteRuleData(rule.id,data);
+      // this.setState({showAuditModal:false});
+    }
+    this.setState({showAuditModal:false, display: "showReportGrid"},
+        ()=>{
+          this.itemToDelete = null;
+          // this.handleRefreshGrid(event);
+        }
+      );
   }
 
   renderDynamic(displayOption) {
@@ -481,6 +526,7 @@ class MaintainFixedFormatReportRules extends Component {
                         handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
                         handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
                         handleCellHistoryClicked={ this.handleCellHistoryClicked.bind(this) }
+                        handleDeleteClick = { this.handleDeleteClick }
                       />
                   ];
                   if (this.state.showDrillDownData) {
@@ -772,6 +818,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     updateReportParameter:(id, data) => {
       dispatch(actionUpdateRuleData(id, data));
+    },
+    deleteRuleData:(id, data) => {
+      dispatch(actionDeleteRuleData(id, data));
     },
   }
 }

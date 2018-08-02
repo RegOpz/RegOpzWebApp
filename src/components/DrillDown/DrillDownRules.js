@@ -155,7 +155,7 @@ class DrillDownRules extends Component {
         </div>
       )
     else {
-      let item = cellRules.comp_agg_rules[0];
+      // let item = cellRules.comp_agg_rules[0];
       return (
       <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
         <div className="row">
@@ -170,41 +170,47 @@ class DrillDownRules extends Component {
             </tr>
           </thead>
           <tbody>
-
-            <tr>
-              <td>1</td>
-              <td>
-                <small>{item.comp_agg_ref}</small>
-                  <button
-                    type="button"
-                    className="btn btn-link btn-xs"
-                    onClick={
-                      (event)=>{
-                        this.props.handleAggeRuleClicked(event, {...item});
-                        //this.showRulesPanel = !this.showRulesPanel;
-                        this.handleCollapse(event);
+            {
+              cellRules.comp_agg_rules.map((item,index)=>{
+                return(
+                  (item.in_use =="Y" ||
+                  (item.in_use !="X" && item.dml_allowed != 'X')) &&
+                  <tr>
+                    <td>{index}</td>
+                    <td>
+                      <small>{item.comp_agg_ref}</small>
+                        <button
+                          type="button"
+                          className="btn btn-link btn-xs"
+                          onClick={
+                            (event)=>{
+                              this.props.handleAggeRuleClicked(event, {...item});
+                              //this.showRulesPanel = !this.showRulesPanel;
+                              this.handleCollapse(event);
+                            }
+                          }>
+                          <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
+                        </button>
+                    </td>
+                    <td>{item.rounding_option}</td>
+                    <td>{item.reporting_scale}</td>
+                    <td>
+                      {
+                        ((in_use) => {
+                          if (in_use == 'Y') {
+                            return (
+                              <Label bsStyle="success">{in_use}</Label>
+                            );
+                          } else {
+                            return (<Label bsStyle="warning">{in_use}</Label>);
+                          }
+                        })(item.in_use)
                       }
-                    }>
-                    <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
-                  </button>
-              </td>
-              <td>{item.rounding_option}</td>
-              <td>{item.reporting_scale}</td>
-              <td>
-                {
-                  ((in_use) => {
-                    if (in_use == 'Y') {
-                      return (
-                        <Label bsStyle="success">{in_use}</Label>
-                      );
-                    } else {
-                      return (<Label bsStyle="warning">{in_use}</Label>);
-                    }
-                  })(item.in_use)
-                }
-              </td>
-            </tr>
-
+                    </td>
+                  </tr>
+                )
+              })
+            }
           </tbody>
         </table>
         </div>
@@ -247,6 +253,8 @@ class DrillDownRules extends Component {
           {
             item.map((item,index)=>{
               return(
+                (item.in_use =="Y" ||
+                (item.in_use !="X" && item.dml_allowed != 'X')) &&
                 <tr>
                   <td>{item.source_id}</td>
                   <td>
@@ -315,35 +323,20 @@ class DrillDownRules extends Component {
                       </button>
                     }
                     {
-                      this.props.addRulesBtn && item.in_use == 'Y' &&
+                      this.props.addRulesBtn &&
+                      item.dml_allowed == 'Y' &&
+                      item.in_use == 'Y' &&
                       <button
                         type="button"
                         className="btn btn-link amber btn-xs"
                         onClick={
                           (event)=>{
-                            let cellCalcRef=this.getCellCalcRef();
-                            let copyItem = item;
-                            copyItem.cell_calc_ref = cellCalcRef;
-                            let calcRuleFilter = {
-                                    form: copyItem,
-                                    params:{
-                                      drill_kwargs: {
-                                          index: -2, // index value -2 indicates copy, -1 is for a new rule to created fresh
-                                          report_id: this.selectedCell.reportId,
-                                          sheet: this.selectedCell.sheetName,
-                                          cell: this.selectedCell.cell,
-                                          cell_calc_ref:cellCalcRef,
-                                          reporting_date: this.reportingDate,
-                                          in_use: 'N',
-                                          dml_allowed: 'Y',
-                                          page: 0
-                                      }
-                                    }
-                                  }
-                            // this.props.handleCalcRuleClicked(event, calcRuleFilter);
-                            //this.showRulesPanel=!this.showRulesPanel;
                             // TODO handledelete to be implemented later
-                            this.handleCollapse(event);
+                            let toDeleteItem = {
+                              rule: item,
+                              table_name: "report_calc_def"
+                            }
+                            this.props.handleDeleteClick(toDeleteItem);
                           }
                         }>
                         <i className="fa fa-remove" data-toggle="tooltip" title="Delete Rule"></i>
