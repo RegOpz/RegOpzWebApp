@@ -5,12 +5,12 @@ import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import { actionValidateExp } from './../../actions/RuleAssistAction';
 
-class TransColMapAssist extends Component {
+class CellCalcRuleAssist extends Component {
     constructor(props) {
         super(props);
         this.state={
           filterText: null,
-          currentFormula: this.props.mapped_column,
+          currentFormula: this.props.aggregation_ref,
           validationState: false,
           mappingColumns: null,
           businessDate: moment(),
@@ -115,7 +115,7 @@ class TransColMapAssist extends Component {
               <button
                 type="button"
                 className="btn btn-warning btn-xs"
-                onClick={this.props.handleEditColMapping}
+                onClick={this.props.handleEditCalcRule}
                 >
                 Validate
               </button>
@@ -211,6 +211,7 @@ class TransColMapAssist extends Component {
     }
 
     checkColumnInMapping(currentFormula){
+      console.log(currentFormula);
       let mappingColumns = this.props.sourceColumns.filter(item =>
           currentFormula.includes(item.Field.toString())
       );
@@ -238,12 +239,12 @@ class TransColMapAssist extends Component {
             <div className="col-md-12 col-sm-12 col-xs-12">
               <div className="x_panel">
               <div className="x_title">
-                <h2>Edit Mapping<small> for the column </small><small><strong>{this.props.col_id}</strong></small></h2>
+                <h2>Edit Calculation Logic<small> for the rule </small><small><strong>{this.props.cell_calc_ref + " [ " + this.props.cell_id + " ]"}</strong></small></h2>
                   <ul className="nav navbar-right panel_toolbox">
                     <li>
                       <a
                         className="close-link"
-                        onClick={this.props.handleEditColMapping}
+                        onClick={this.props.handleEditCalcRule}
                         title="To mapping list">
                         <i className="fa fa-close"></i>
                       </a>
@@ -255,9 +256,9 @@ class TransColMapAssist extends Component {
                 <div className="x_panel">
                     <div className="x_title">
                         <h4>
-                          <strong>Existing Mapping </strong>
+                          <strong>Existing Logic </strong>
                           <i className="fa fa-leaf"></i>
-                          <small>{" " + this.props.mapped_column}</small>
+                          <small>{" " + this.props.aggregation_ref}</small>
                         </h4>
                         <div className="clearfix"></div>
                     </div>
@@ -278,9 +279,8 @@ class TransColMapAssist extends Component {
                           type="button"
                           className="btn btn-success btn-xs"
                           onClick={(event)=>{
-                            event.target.value=this.state.currentFormula;
-                            this.props.handleChange(event, 'mappedColumn', this.props.index);
-                            this.props.handleEditColMapping();
+                            this.props.handleChangeRule(this.state.currentFormula);
+                            this.props.handleEditCalcRule();
                           }}
                           >
                           Save
@@ -288,7 +288,7 @@ class TransColMapAssist extends Component {
                         <button
                           type="button"
                           className="btn btn-default btn-xs"
-                          onClick={this.props.handleEditColMapping}
+                          onClick={this.props.handleEditCalcRule}
                           >
                           Cancel
                         </button>
@@ -339,4 +339,4 @@ const matchDispatchToProps = (dispatch) => {
     };
 }
 
-export default connect(mapStateToProps, matchDispatchToProps)(TransColMapAssist);
+export default connect(mapStateToProps, matchDispatchToProps)(CellCalcRuleAssist);

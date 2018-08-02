@@ -15,15 +15,16 @@ import {
   actionInsertRuleData,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
+import CellCalcRuleAssist from './CellCalcRuleAssist';
 
 class AddReportRules extends Component {
   constructor(props) {
     super(props);
     this.state = {
+        display: null,
+        selectedCellRule: {},
         rulesTags: [],
-        aggRefTags:[],
         rulesSuggestions: [],
-        fieldsSuggestions:[],
         form:{
           cell_calc_ref:null,
           report_id: this.props.report_id,
@@ -45,11 +46,9 @@ class AddReportRules extends Component {
     this.handleAddition = this.handleAddition.bind(this);
     this.handleDrag = this.handleDrag.bind(this);
 
-    this.handleAggRefDelete = this.handleAggRefDelete.bind(this);
-    this.handleAggRefAddition = this.handleAggRefAddition.bind(this);
-    this.handleAggRefDrag = this.handleAggRefDrag.bind(this);
-
     this.searchAnywhere = this.searchAnywhere.bind(this);
+    this.handleEditCalcRule = this.handleEditCalcRule.bind(this);
+    this.handleChangeRule = this.handleChangeRule.bind(this);
 
     this.ruleIndex = typeof this.props.index !== 'undefined' ? this.props.index : -1;
     this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
@@ -68,9 +67,10 @@ class AddReportRules extends Component {
     if (this.ruleIndex !== -1) {
       this.setState({form: this.props.formData,
                       rulesTags: [],
-                      aggRefTags: []},
+                    },
                   ()=>{
                     if(this.state.form.source_id){
+                      this.props.fetchSourceColumnList(null, this.state.form.source_id);
                       this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                     }
                     this.initialiseFormFields();
@@ -90,7 +90,6 @@ class AddReportRules extends Component {
       };
       this.setState({form: formData,
                       rulesTags: [],
-                      aggRefTags: []
                     });
     }
   }
@@ -101,8 +100,9 @@ class AddReportRules extends Component {
           if (this.ruleIndex !== -1) {
             this.setState({form: nextProps.formData,
                             rulesTags: [],
-                            aggRefTags: []},
+                          },
                         ()=>{
+                          this.props.fetchSourceColumnList(null, this.state.form.source_id);
                           this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                           this.initialiseFormFields();
                         });
@@ -121,10 +121,7 @@ class AddReportRules extends Component {
             };
             this.setState({form: formData,
                             rulesTags: [],
-                            aggRefTags: []
                           });
-            // Object.assign(this.state.rulesTags,[]);
-            // Object.assign(this.state.aggRefTags,[]);
           }
 
           this.dml_allowed = nextProps.dml_allowed === 'Y' ? true : false;
@@ -172,70 +169,52 @@ class AddReportRules extends Component {
         // re-render
         this.setState({ rulesTags: rulesTags });
     }
-    handleAggRefDelete(i) {
-          let aggRefTags = this.state.aggRefTags;
-          aggRefTags.splice(i, 1);
-          this.setState({aggRefTags: aggRefTags});
+
+  flatenTags(){
+
+    this.state.form.cell_business_rules = '';
+    console.log('inside process',this.state);
+    this.state.rulesTags.map(function(item,index){
+        this.state.form.cell_business_rules += `${item.text},`;
+      }.bind(this));
+
+    console.log('inside process form check',this.state.form);
+  }
+
+  initialiseFormFields(){
+    console.log("inside initialiseFormFields function",this.state.form.cell_business_rules);
+    Object.assign(this.state.rulesTags,[]);
+
+    const {cell_business_rules}=this.state.form;
+    if (typeof cell_business_rules === 'undefined' || cell_business_rules === null) {
+        return;
+    }
+    let rulesTagsArray=cell_business_rules.split(',');
+    rulesTagsArray.map((item,index)=>{
+      if(item!=''){
+        this.state.rulesTags.push({id:index+1,text:item});
       }
+    })
+    console.log("Rules Tags........:",this.state.rulesTags);
 
-      handleAggRefAddition(tag) {
-          let aggRefTags = this.state.aggRefTags;
-          aggRefTags.push({
-              id: aggRefTags.length + 1,
-              text: tag
-          });
-          this.setState({aggRefTags: aggRefTags});
-      }
+  }
 
-      handleAggRefDrag(tag, currPos, newPos) {
-          let aggRefTags = this.state.aggRefTags;
+  handleEditCalcRule(selectedRule){
+    console.log("handleEditCalcRule parameters...",selectedRule);
+    let isOpen = (this.state.display == "editCellRule");
+    if(isOpen){
+        this.setState({display: null, selectedRule: null});
+    }
+    else{
+      this.setState({display: "editCellRule", selectedRule: selectedRule});
+    }
+  }
 
-          // mutate array
-          aggRefTags.splice(currPos, 1);
-          aggRefTags.splice(newPos, 0, tag);
-
-          // re-render
-          this.setState({ aggRefTags: aggRefTags });
-      }
-      flatenTags(){
-
-        this.state.form.cell_business_rules = '';
-        this.state.form.aggregation_ref = '';
-        console.log('inside process',this.state);
-        this.state.rulesTags.map(function(item,index){
-            this.state.form.cell_business_rules += `${item.text},`;
-          }.bind(this));
-
-        this.state.aggRefTags.map(function(item,index){
-            this.state.form.aggregation_ref += `${item.text}`;
-          }.bind(this));
-
-        console.log('inside process form check',this.state.form);
-      }
-      initialiseFormFields(){
-        //this.setState({form: this.props.drill_down_result.cell_rules[this.state.ruleIndex]});
-        //this.state.form = this.props.drill_down_result.cell_rules[this.state.ruleIndex];
-        console.log("inside initialiseFormFields function",this.state.form.cell_business_rules);
-        Object.assign(this.state.rulesTags,[]);
-        Object.assign(this.state.aggRefTags,[]);
-        //if(this.state.rulesTags.length == 0){
-          const {cell_business_rules}=this.state.form;
-          if (typeof cell_business_rules === 'undefined' || cell_business_rules === null) {
-              return;
-          }
-          let rulesTagsArray=cell_business_rules.split(',');
-          rulesTagsArray.map((item,index)=>{
-            if(item!=''){
-              this.state.rulesTags.push({id:index+1,text:item});
-            }
-          })
-          console.log("Rules Tags........:",this.state.rulesTags);
-          //this.state.rulesTags = [{id:1,text: this.state.form.cell_business_rules}];
-        //}
-        //if(this.state.aggRefTags.length == 0){
-          this.state.aggRefTags.push({id:1,text: this.state.form.aggregation_ref});
-        //}
-      }
+  handleChangeRule(newRule){
+    let form = this.state.form;
+    form.aggregation_ref = newRule;
+    this.setState({form});
+  }
 
   render(){
 
@@ -243,8 +222,7 @@ class AddReportRules extends Component {
     console.log("this.writeOnly , this.dml_allowed", this.writeOnly , this.dml_allowed,this.viewOnly);
 
     this.state.rulesSuggestions = [];
-    this.state.fieldsSuggestions = [];
-    const { rulesTags, rulesSuggestions,aggRefTags, fieldsSuggestions } = this.state;
+    const { rulesTags, rulesSuggestions } = this.state;
     if(typeof(this.props.business_rule) != 'undefined'){
       if(this.props.business_rule.source_suggestion[0].rules_suggestion.length){
         const rules_suggestion = this.props.business_rule.source_suggestion[0].rules_suggestion;
@@ -254,14 +232,6 @@ class AddReportRules extends Component {
       }
     }
 
-    if(typeof(this.props.source_table_columns) != 'undefined'){
-      if(this.props.source_table_columns.length){
-        const columns_suggestion = this.props.source_table_columns;
-        columns_suggestion.map(function(item,index){
-          this.state.fieldsSuggestions.push(item.Field);
-        }.bind(this));
-      }
-    }
     if(typeof(this.props.sources) == 'undefined'){
       return(
         <h1>Loading...</h1>
@@ -339,11 +309,11 @@ class AddReportRules extends Component {
                                   let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
                                   let form=this.state.form;
                                   form.source_id = event.target.value;
-                                  this.setState({form:form});
+                                  this.setState({display: false, form:form});
                                   console.log('Source ID............',this.state.form.source_id);
                                   this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                                   console.log('table name in change event',table_name);
-                                  this.props.fetchSourceColumnList(table_name);
+                                  this.props.fetchSourceColumnList(table_name,null);
                                 }
                               }
                             >
@@ -388,28 +358,41 @@ class AddReportRules extends Component {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Aggregation Logic <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <ReactTags tags={aggRefTags}
-                        suggestions={fieldsSuggestions}
-                        readOnly={this.viewOnly}
-                        handleDelete={this.handleAggRefDelete}
-                        handleAddition={this.handleAggRefAddition}
-                        handleDrag={this.handleAggRefDrag}
-                        handleFilterSuggestions={this.searchAnywhere}
-                        allowDeleteFromEmptyInput={false}
-                        autocomplete={true}
-                        minQueryLength={1}
-                        classNames={{
-                          tagInput: 'tagInputClass',
-                          tagInputField: 'tagInputFieldClass form-control',
-                          suggestions: 'suggestionsClass',
-                        }}
+                {
+                  !this.state.display &&
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Aggregation Logic <span className="required">*</span></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <textarea
+                        type="text"
+                        className="form-control col-md-6 col-sm-6 col-xs-12"
                         placeholder="Enter Aggregation Definition"
-                      />
+                        value={this.state.form.aggregation_ref}
+                        readonly={true}
+                        disabled={this.viewOnly}
+                        />
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-xs"
+                      disabled={!this.state.form.source_id || this.viewOnly}
+                      onClick={(event)=>{
+                        this.handleEditCalcRule();
+                      }}
+                      >
+                      Edit
+                    </button>
                   </div>
-                </div>
+                }
+                {
+                  this.state.display=="editCellRule" &&
+                  <CellCalcRuleAssist
+                    {...this.state.form}
+                    sourceColumns={this.props.source_table_columns}
+                    handleEditCalcRule={this.handleEditCalcRule}
+                    handleChangeRule={this.handleChangeRule}
+                    />
+                }
 
                 <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Aggregation Funciton <span className="required">*</span></label>
@@ -530,8 +513,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchSources:(sourceId) => {
       dispatch(actionFetchSources(sourceId));
     },
-    fetchSourceColumnList:(table_name) => {
-      dispatch(actionFetchSourceColumnList(table_name));
+    fetchSourceColumnList:(table_name,source_id) => {
+      dispatch(actionFetchSourceColumnList(table_name,source_id));
     },
     insertRuleData:(data) => {
       dispatch(actionInsertRuleData(data));
