@@ -183,9 +183,9 @@ class ViewDataComponentV2 extends Component {
         sourceFileName: item.data_file_name,
         sourceDescription: item.source_description,
         rowIndex: [],
-        selectedRecord: null,
+        selectedRecord: item.version ? item : null,
      },
-      this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage,null,item.version)
+      this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage,null,item.version,null)
     );
   }
 
@@ -319,7 +319,7 @@ class ViewDataComponentV2 extends Component {
                     console.log("Inside setState reactTablePages ....", this.state.page,this.state.pageSize,this.state.pages,this.state.currentPage, fetchedFirstRow, fetchedLastRow, pageStartRow, isFetched,offsetPage);
                     if (!isFetched){
                       console.log("Inside isFetched reactTablePages ....", this.gridData);
-                      this.fetchDataToGrid();
+                      this.fetchDataToGrid(event);
                     }
 
                   });
@@ -433,8 +433,10 @@ class ViewDataComponentV2 extends Component {
     } else {
       let page=requestType=="Filter" ? 0 : (this.state.isFilterChanged? 0: this.state.currentPage);
       this.props.fetchReportFromDate(this.state.sourceId,this.state.businessDate,page,
-                                    JSON.stringify(this.state.filtered,
-                                    this.state.selectedRecord ? this.state.selectedRecord.version : null));
+                                    JSON.stringify(this.state.filtered),
+                                    this.state.selectedRecord ? this.state.selectedRecord.version : null,
+                                    this.state.selectedRecord ? this.props.gridData.count : null
+                                  );
       console.log("this.props.fetchReportFromDate gridData ...", this.props.gridData);
     }
   }
@@ -991,8 +993,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchSource:(startDate,endDate, catalog_type)=>{
       dispatch(actionFetchSource(startDate,endDate,catalog_type))
     },
-    fetchReportFromDate:(source_id,business_date,page,filter,version)=>{
-      dispatch(actionFetchReportFromDate(source_id,business_date,page,filter,version))
+    fetchReportFromDate:(source_id,business_date,page,filter,version, gridCount)=>{
+      dispatch(actionFetchReportFromDate(source_id,business_date,page,filter,version,gridCount))
     },
     fetchDrillDownReport:(drill_info)=>{
       dispatch(actionFetchDrillDownReport(drill_info))

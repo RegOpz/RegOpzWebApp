@@ -204,7 +204,7 @@ class MaintainTransactionReportRules extends Component {
         businessDate: item.as_of_reporting_date,
         selectedReport: item,
      },
-      ()=>{ this.props.fetchReportData(this.state.reportId) }
+      ()=>{ this.props.fetchReportData(this.state.reportId,this.state.selectedReport.country,"master") }
     );
   }
 
@@ -233,7 +233,7 @@ class MaintainTransactionReportRules extends Component {
 
 
   fetchDataToGrid(event){
-    this.props.fetchReportData(this.state.reportId);
+    this.props.fetchReportData(this.state.reportId,this.state.selectedReport.country,"master");
   }
 
   handleDetails(event){
@@ -783,8 +783,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportCatalog:(startDate,endDate)=>{
       dispatch(actionFetchReportCatalog(startDate,endDate))
     },
-    fetchReportData:(report_id)=>{
-      dispatch(actionFetchTransReportTemplateData(report_id))
+    fetchReportData:(report_id, country, db_obj_suffix)=>{
+      dispatch(actionFetchTransReportTemplateData(report_id, country, db_obj_suffix))
     },
     drillDown:(report_id,sheet,cell) => {
       dispatch(actionFetchTransReportSecRules(report_id,sheet,cell));

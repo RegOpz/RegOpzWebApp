@@ -17,17 +17,17 @@ class TenantLeftMenu extends Component {
               <ul className="nav side-menu">
                   <li>
                       <a>
-                          <i className="fa fa-cube"></i> Meta Data Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-cube"></i> Meta Data<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
                               <a href="#/dashboard/capture-report-template"> Capture Report Template</a>
                           </li>
                           <li>
-                              <a href="#/dashboard/maintain-business-rules" onClick={this.handleLeftMenuClick}>Maintain Business Rules</a>
+                              <a href="#/dashboard/maintain-business-rules" onClick={this.handleLeftMenuClick}>Business Rules</a>
                           </li>
                           <li>
-                              <a href="#/dashboard/maintain-report-rules" onClick={this.handleLeftMenuClick}>Maintain Report Rules</a>
+                              <a href="#/dashboard/maintain-report-rules" onClick={this.handleLeftMenuClick}>Report Rules</a>
                           </li>
                           <li>
                               <a href="#">Data Reteintion</a>
@@ -36,11 +36,11 @@ class TenantLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-rss"></i> Data Feed Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-rss"></i> Data Feed<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <a href="#/dashboard/maintain-sources" onClick={this.handleLeftMenuClick}>Maintain Sources</a>
+                              <a href="#/dashboard/maintain-sources" onClick={this.handleLeftMenuClick}>Sources</a>
                           </li>
                           <li>
                               <a href="#/dashboard/view-data" onClick={this.handleLeftMenuClick}>View Data</a>
@@ -52,7 +52,7 @@ class TenantLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-file-excel-o"></i> Reports Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-file-excel-o"></i> Reports<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
@@ -65,7 +65,7 @@ class TenantLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-pencil-square-o"></i> Content Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-pencil-square-o"></i> Contents<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                         <li>
@@ -85,14 +85,14 @@ class TenantLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-code-fork"></i> Work Flow Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-code-fork"></i> Work Flow<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <a href="#/dashboard/workflow/manage-def-change"> Manage Definition Change</a>
+                              <a href="#/dashboard/workflow/manage-def-change"> Definition Change</a>
                           </li>
                           <li>
-                             <a href="#/dashboard/workflow/manage-data-change"> Manage Data Change</a>
+                             <a href="#/dashboard/workflow/manage-data-change"> Data Change</a>
                           </li>
                       </ul>
                   </li>
@@ -108,14 +108,14 @@ class TenantLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-users"></i> Access Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-users"></i> Access<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <Link to="/dashboard/manage-users">Manage Users</Link>
+                              <Link to="/dashboard/manage-users">Users</Link>
                           </li>
                           <li>
-                              <Link to="/dashboard/manage-roles" onClick={this.handleLeftMenuClick}>Manage Roles</Link>
+                              <Link to="/dashboard/manage-roles" onClick={this.handleLeftMenuClick}>Roles</Link>
                           </li>
                       </ul>
                   </li>

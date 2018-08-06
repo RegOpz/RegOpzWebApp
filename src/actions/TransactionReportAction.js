@@ -14,8 +14,9 @@ export let FETCH_TRANS_REPORT_CHANGE_HISTORY='FETCH_TRANS_REPORT_CHANGE_HISTORY'
 
 
 // TODO:
-export function actionFetchTransReportTemplateData(report_id) {
-  let url = BASE_URL + "transactionalReport/" + report_id;
+export function actionFetchTransReportTemplateData(report_id, country, db_obj_suffix) {
+  let url = BASE_URL + "transactionalReport/" + encodeURI(report_id);
+  url = url + "?country=" + country + "&domain_type=" + db_obj_suffix;
   const request = axios.get(url);
   return {
     type: FETCH_TRANS_REPORT_TEMPLATE,

@@ -17,7 +17,7 @@ class MasterLeftMenu extends Component {
               <ul className="nav side-menu">
                   <li>
                       <a>
-                          <i className="fa fa-cube"></i> Meta Data Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-cube"></i> Meta Data<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
@@ -27,14 +27,14 @@ class MasterLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-pencil-square-o"></i> Content Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-pencil-square-o"></i> Contents<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                         <li>
-                            <a href="#/dashboard/maintain-business-rules-repo" onClick={this.handleLeftMenuClick}>Maintain Business Rules Repository</a>
+                            <a href="#/dashboard/maintain-business-rules-repo" onClick={this.handleLeftMenuClick}>Business Rules Repository</a>
                         </li>
                         <li>
-                            <a href="#/dashboard/maintain-report-rules-repo" onClick={this.handleLeftMenuClick}>Maintain Report Rules Repository</a>
+                            <a href="#/dashboard/maintain-report-rules-repo" onClick={this.handleLeftMenuClick}>Report Rules Repository</a>
                         </li>
                       </ul>
                   </li>
@@ -47,11 +47,11 @@ class MasterLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-code-fork"></i> Work Flow Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-code-fork"></i> Work Flow<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <Link to="/dashboard/workflow/manage-def-change"> Manage Definition Change</Link>
+                              <Link to="/dashboard/workflow/manage-def-change">Definition Change</Link>
                           </li>
                       </ul>
                   </li>
@@ -62,17 +62,17 @@ class MasterLeftMenu extends Component {
                   </li>
                   <li>
                       <a>
-                          <i className="fa fa-users"></i> Access Management<span className="fa fa-chevron-down"></span>
+                          <i className="fa fa-users"></i> Access<span className="fa fa-chevron-down"></span>
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <Link to="/dashboard/manage-subscribers" onClick={this.handleLeftMenuClick}>Manage Subscribers</Link>
+                              <Link to="/dashboard/manage-subscribers" onClick={this.handleLeftMenuClick}>Subscribers</Link>
                           </li>
                           <li>
-                              <Link to="/dashboard/manage-users">Manage Users</Link>
+                              <Link to="/dashboard/manage-users">Users</Link>
                           </li>
                           <li>
-                              <Link to="/dashboard/manage-roles" onClick={this.handleLeftMenuClick}>Manage Roles</Link>
+                              <Link to="/dashboard/manage-roles" onClick={this.handleLeftMenuClick}>Roles</Link>
                           </li>
                       </ul>
                   </li>

@@ -33,9 +33,10 @@ export function actionFetchDates(startDate='19000101',endDate='39991231', table_
 }
 
 // TODO:
-export function actionFetchReportFromDate(source_id, business_date, page,filter,version) {
+export function actionFetchReportFromDate(source_id, business_date, page,filter,version, gridCount) {
   let url = BASE_URL + `view-data/report?source_id=${source_id}&business_date=${business_date}&page=${page}&filter=`+encodeURIComponent(filter)
   url += "&version=" + version;
+  url += "&gridCount=" + gridCount;
   return {
     type: FETCH_REPORT_BY_DATE,
     payload: axios.get(url)

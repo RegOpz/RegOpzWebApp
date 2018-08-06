@@ -382,7 +382,7 @@ class AddReportAggRules extends Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    console.log(this.state.form);
+    console.log("compAggRule handleSubmit.....",this.state.form);
     let data = {
       table_name: "report_comp_agg_def",
       update_info: this.state.form

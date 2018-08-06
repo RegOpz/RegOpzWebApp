@@ -60,10 +60,10 @@ class AddTransReportSection extends Component {
       if(this.props.cell_rules)
       {
         let content=[];
-        this.props.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+        this.props.cell_rules.secOrders.length > 0 && this.props.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
         this.secOrders=content;
         content=[];
-        this.props.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+        this.props.cell_rules.secRules.length > 0 && this.props.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
         this.secRules=content;
         this.undefineSection=(this.secOrders.length == 0 && this.secRules.length ==0)?false:true;
       }
@@ -93,10 +93,10 @@ class AddTransReportSection extends Component {
           console.log("Inside componentWillReceiveProps nextprops2",nextProps.cellRules);
           if(nextProps.cell_rules){
             let content=[];
-            nextProps.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+            nextProps.cell_rules.secOrders.length > 0 && nextProps.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
             this.secOrders=content;
             content=[];
-            nextProps.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+            nextProps.cell_rules.secRules.length > 0 && nextProps.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
             this.secRules=content;
             this.undefineSection = this.secOrders.length == 0 && this.secRules.length == 0?false:true;
           }

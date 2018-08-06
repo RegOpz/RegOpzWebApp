@@ -36,7 +36,7 @@ export function actionLoadTemplateFile(formElement,reportType) {
 
 export function actionCheckReportId(report_id,country,domain_type){
 
-  let url = BASE_URL + "document/"+ encodeURI(report_id) + "?country="+country+"&domain_type="+domain_type ;
+  let url = BASE_URL + "document/"+ encodeURI(report_id) + "?domain_type="+domain_type ;
   const request = axios.get(url);
   return {
       type: CHECK_REPORT_TEMPLATE,
