@@ -9,7 +9,7 @@ import {
   actionFetchReportTemplate,
   actionExportXlsx,
   actionExportRulesXlsx,
-  actionFetchReportChangeHistory,
+  // actionFetchReportChangeHistory,
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
@@ -27,6 +27,8 @@ import {
 import {
   actionFetchTransReportTemplateData,
   actionFetchTransReportSecRules,
+  actionFetchTransReportChangeHistory,
+  actionDeleteTransReportRules,
 } from '../../actions/TransactionReportAction';
 import {
   actionLeftMenuClick,
@@ -35,7 +37,7 @@ import DatePicker from 'react-datepicker';
 import moment from 'moment';
 import RegOpzReportGrid from '../RegOpzDataGrid/RegOpzReportGrid';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
-import ReportCatalogList from '../MaintainReportRulesRepository/ReportRuleRepositoryCatalog';
+import ReportCatalogList from '../MaintainReportRules/ReportRuleCatalog';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
@@ -45,6 +47,7 @@ import AddTransReportSectionOrder from './AddTransReportSectionOrder';
 import AddTransReportSection from './AddTransReportSection';
 import AddReportTransRules from './AddReportTransRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 require('react-datepicker/dist/react-datepicker.css');
 
@@ -92,12 +95,13 @@ class MaintainTransactionReportRules extends Component {
     this.operationName=null;
     this.aggRuleData = null;
     this.sectionData = null;
+    this.itemToDelete = null;
     if (this.tenantRenderType=="copyRule"){
       this.buttons=[
         { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
         { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
         { title: 'Copy Report', iconClass: 'fa-rocket', checkDisabled: 'Yes', className: "btn-success", onClick: this.handleDetails.bind(this) },
-        { title: 'Copy Selected', iconClass: 'fa-crop', checkDisabled: 'Yes', className: "btn-warning", onClick: this.handleDetails.bind(this) },
+        // { title: 'Copy Selected', iconClass: 'fa-crop', checkDisabled: 'Yes', className: "btn-warning", onClick: this.handleDetails.bind(this) },
         { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
         { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
         { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
@@ -131,6 +135,7 @@ class MaintainTransactionReportRules extends Component {
         { title: 'Save', iconClass: 'fa-save', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       ];
     }
+
     this.buttonClassOverride = "None";
 
     this.renderDynamic = this.renderDynamic.bind(this);
@@ -143,16 +148,20 @@ class MaintainTransactionReportRules extends Component {
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
+    this.handleReportBusinessRulesClick = this.handleReportBusinessRulesClick.bind(this);
 
     this.handleDefineSection = this.handleDefineSection.bind(this);
 
     this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
+    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
+    this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"}) : null;
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
-    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules Repository" }) ? true : false;
   }
 
   componentWillMount() {
@@ -257,9 +266,10 @@ class MaintainTransactionReportRules extends Component {
       else if (this.selectedCell[0].item.sectionType!="DYNDATA"){
         this.modalAlert.isDiscardToBeShown = false;
         this.modalAlert.open("Please select a dynamic data section for details. Dynamic Data cells will appear as DYNDATA(<dynamic Section id>).");
-      } else {
+      }
+      else {
         //this.buttons=this.dataButtons;
-        let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"")
+        let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"");
         this.setState({
           display: "showDrillDownRules",
           showDrillDownData: false,
@@ -300,7 +310,7 @@ class MaintainTransactionReportRules extends Component {
                                 section_id: null,
                                 }
           }
-
+          let cellId = this.selectedCell[0].cell + (this.selectedCell[0].item.merged ? ":"+this.selectedCell[0].item.merged:"")
           this.setState({
             display: "defineSection",
             showDrillDownData: false,
@@ -308,7 +318,7 @@ class MaintainTransactionReportRules extends Component {
             showAggRuleDetails: false,
             showCellChangeHistory: false,
             },
-            //this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,this.selectedCell[0].cell)
+              // this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId)
           );
         }
       }
@@ -388,7 +398,7 @@ class MaintainTransactionReportRules extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: true
         },
-        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.cell_id)}
+        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.section_id)}
       );
     }
 
@@ -409,6 +419,22 @@ class MaintainTransactionReportRules extends Component {
         display: "showHistory"
         },
         ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+      );
+    }
+  }
+
+  handleReportBusinessRulesClick() {
+    let isOpen = this.state.display === "showReportBusinessRules";
+    this.reportBusinessRules=undefined;
+    if(isOpen) {
+      this.setState({
+        display: "showReportGrid"
+      });
+    } else {
+      this.setState({
+        display: "showReportBusinessRules"
+        },
+        ()=>{this.props.drillDown(this.state.reportId)}
       );
     }
   }
@@ -457,12 +483,54 @@ class MaintainTransactionReportRules extends Component {
     this.handleEditParameterClick();
   }
 
+  handleDeleteClick(rule){
+      this.modalAlert.isDiscardToBeShown = true;
+      this.operationName = "DELETE";
+      this.itemToDelete = rule;
+      this.modalAlert.open(`Do you really want to delete this rule (Rule ID: ${this.itemToDelete.rule.cell_calc_ref}) ?`)
+  }
+
   handleModalOkayClick(event){
     // TODO
+    this.modalAlert.isDiscardToBeShown = false;
+    if(this.operationName=='DELETE'){
+      this.setState({showAuditModal:true},
+          ()=>{console.log("showAuditModal",this.state.showAuditModal);});
+    }
+
   }
 
   handleAuditOkayClick(auditInfo){
     //TODO
+    let data={};
+    data["change_type"]=this.operationName;
+    data["table_name"]=this.itemToDelete.table_name;
+    let rule = this.itemToDelete.rule;
+    if (this.operationName=='DELETE'){
+      this.auditInfo={
+        table_name:data["table_name"],
+        change_type:this.operationName,
+        change_reference:`Delete Rule of ${rule.cell_calc_ref} : Report: ${rule.report_id} -> Sheet: ${rule.sheet_id} -> Section: ${rule.section_id}`,
+        maker:this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.props.groupId,
+      };
+      Object.assign(this.auditInfo,auditInfo);
+      data["audit_info"]=this.auditInfo;
+      data["id"] = rule.id;
+      // data["update_info"]=rule;
+
+      console.log("delete call...", data, rule.id);
+
+      this.props.deleteTransReportRules(data, rule.id);
+      // this.setState({showAuditModal:false});
+    }
+    this.setState({showAuditModal:false, display: "showReportGrid"},
+        ()=>{
+          this.itemToDelete = null;
+          // this.handleRefreshGrid(event);
+        }
+      );
   }
 
   renderDynamic(displayOption) {
@@ -514,15 +582,17 @@ class MaintainTransactionReportRules extends Component {
                   let content = [
                       <DrillDownTransRules
                         cellRules = {this.props.cell_rules}
-                        readOnly = {this.tenantRenderType=="copyRule" ? true : this.readOnly}
-                        addRulesBtn = {this.tenantRenderType=="copyRule" ? false : this.writeOnly}
+                        readOnly = {this.readOnly}
+                        addRulesBtn = {this.writeOnly}
                         selectedCell = {this.selectedCell[0]}
                         handleClose={ this.handleDetails.bind(this) }
                         reportingDate={this.state.reportingDate}
+                        showOnlyData={false}
                         handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }
                         handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
                         handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
                         handleCellHistoryClicked={ this.handleCellHistoryClicked.bind(this) }
+                        handleDeleteClick = { this.handleDeleteClick }
                       />
                   ];
                   if (this.state.showDrillDownData) {
@@ -530,6 +600,7 @@ class MaintainTransactionReportRules extends Component {
                           <AddReportTransRules
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
+                            groupId={this.props.groupId}
                             {...this.calcRuleFilter}
                           />
                       );
@@ -550,9 +621,11 @@ class MaintainTransactionReportRules extends Component {
                           <AddTransReportSectionOrder
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
-                            aggRuleData = { this.aggRuleData }
+                            secDetails = { this.aggRuleData }
                             dml_allowed = { this.aggRuleData.dml_allowed }
+                            groupId={this.props.groupId}
                             gridData={this.props.gridDataViewReport}
+                            selectedCell={this.selectedCell[0]}
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
@@ -641,8 +714,19 @@ class MaintainTransactionReportRules extends Component {
                         dml_allowed = { "Y" }
                         gridData={this.props.gridDataViewReport}
                         renderStyle={this.state.renderStyle}
-                        />
+                        groupId={this.props.groupId}
+                        selectedCell = {this.selectedCell[0]}
+                        reportingDate={this.state.reportingDate}/>
                   );
+              break;
+          case "showReportBusinessRules":
+              return(
+                <div>To be defined</div>
+                  // <ReportBusinessRules
+                  //   data={ this.reportBusinessRules }
+                  //   handleClose={this.handleReportBusinessRulesClick}
+                  //   />
+              );
               break;
           default:
               return(
@@ -672,68 +756,68 @@ class MaintainTransactionReportRules extends Component {
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
-                    {
-                        ((displayOption) => {
-                            if (!displayOption) {
-                                return(
-                                    <h2>View Repository Report Rules <small>Available Report Rules for </small>
-                                      <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
-                                    </h2>
-                                );
-                            }
-                            return(
-                                <h2>Maintain Repository Report Rules <small>{' Report '}</small>
-                                  <small><i className="fa fa-file-text"></i></small>
-                                  <small title={this.state.selectedReport.report_description}>{this.state.reportId }</small>
-                                </h2>
-                            );
-                        })(this.state.display)
-                    }
-                      <div className="row">
-                        <ul className="nav navbar-right panel_toolbox">
-                          {
-                            this.tenantRenderType &&
-                            <li>
-                              <a className="close-link" onClick={this.props.handleCancel}><i className="fa fa-close"></i></a>
-                            </li>
+                  {
+                      ((displayOption) => {
+                          if (!displayOption) {
+                              return(
+                                  <h2>View Repository Report Rules <small>Available Report Rules for </small>
+                                    <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
+                                  </h2>
+                              );
                           }
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-file-text-o"></i><small>{' Reports '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li style={{ "padding": "5px" }}>
-                                <Link
-                                  onClick={()=>{ this.setState({ display: false, renderStyle: false, },
-                                                                ()=>{this.props.fetchReportTemplateList(this.country);})
-                                                }
-                                          }
-                                >
-                                    <i className="fa fa-bars"></i> All Report List
-                                </Link>
-                              </li>
-                              <li>
-                                <ReportCatalogList
-                                  dataCatalog={this.props.dataCatalog}
-                                  navMenu={true}
-                                  handleReportClick={this.handleReportClick}
-                                  constantFilter={"TRANSACTION"}
-                                  />
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
+                          return(
+                              <h2>Maintain Repository Report Rules <small>{' Report '}</small>
+                                <small><i className="fa fa-file-text"></i></small>
+                                <small title={this.state.selectedReport.report_description}>{this.state.reportId }</small>
+                              </h2>
+                          );
+                      })(this.state.display)
+                  }
+                    <div className="row">
+                      <ul className="nav navbar-right panel_toolbox">
                         {
-                          this.state.display &&
-                          <ul className="nav navbar-right panel_toolbox">
-                            <label className="switch">
-                            <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
-                              <span className="slider round" title={this.state.renderStyle ? "Deactivate Style": "Activate Style"}></span>
-                            </label>
-                          </ul>
+                          this.tenantRenderType &&
+                          <li>
+                            <a className="close-link" onClick={this.props.handleCancel}><i className="fa fa-close"></i></a>
+                          </li>
                         }
-                      </div>
+                        <li>
+                          <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                            <i className="fa fa-file-text-o"></i><small>{' Reports '}</small>
+                            <i className="fa fa-caret-down"></i>
+                          </a>
+                          <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
+                            <li style={{ "padding": "5px" }}>
+                              <Link
+                                onClick={()=>{ this.setState({ display: false, renderStyle: false, },
+                                                              ()=>{this.props.fetchReportTemplateList(this.country);})
+                                              }
+                                        }
+                              >
+                                  <i className="fa fa-bars"></i> All Report List
+                              </Link>
+                            </li>
+                            <li>
+                              <ReportCatalogList
+                                dataCatalog={this.props.dataCatalog}
+                                navMenu={true}
+                                handleReportClick={this.handleReportClick}
+                                constantFilter={"TRANSACTION"}
+                                />
+                            </li>
+                          </ul>
+                        </li>
+                      </ul>
+                      {
+                        this.state.display &&
+                        <ul className="nav navbar-right panel_toolbox">
+                          <label className="switch">
+                          <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
+                            <span className="slider round" title={this.state.renderStyle ? "Deactivate Style": "Activate Style"}></span>
+                          </label>
+                        </ul>
+                      }
+                    </div>
                     <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
@@ -769,7 +853,7 @@ function mapStateToProps(state){
     gridDataViewReport: state.transreport.reportGridData,
     gridData: state.view_data_store.gridData,
     cell_rules: state.transreport.secRules,
-    change_history:state.maintain_report_rules_store.change_history,
+    change_history:state.transreport.change_history,
     login_details: state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,
   }
@@ -783,14 +867,14 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportCatalog:(startDate,endDate)=>{
       dispatch(actionFetchReportCatalog(startDate,endDate))
     },
-    fetchReportData:(report_id, country, db_obj_suffix)=>{
-      dispatch(actionFetchTransReportTemplateData(report_id, country, db_obj_suffix))
+    fetchReportData:(report_id,country,domain_type)=>{
+      dispatch(actionFetchTransReportTemplateData(report_id,country,domain_type))
     },
     drillDown:(report_id,sheet,cell) => {
       dispatch(actionFetchTransReportSecRules(report_id,sheet,cell));
     },
-    fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
-      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
+    fetchReportChangeHistory:(report_id,sheet_id,section_id) => {
+      dispatch(actionFetchTransReportChangeHistory(report_id,sheet_id,section_id));
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
@@ -809,6 +893,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     updateReportParameter:(id, data) => {
       dispatch(actionUpdateRuleData(id, data));
+    },
+    deleteTransReportRules:(Data,id) => {
+      dispatch(actionDeleteTransReportRules(Data,id));
     },
   }
 }

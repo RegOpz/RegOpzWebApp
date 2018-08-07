@@ -174,7 +174,7 @@ class ViewReport extends Component {
      },
       ()=>{
         if (item.report_type=="TRANSACTION"){
-          this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
+          this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate, this.state.selectedRecord.version);
         } else {
           this.props.fetchReportData(this.state.reportId,this.state.reportingDate,
             this.state.selectedRecord.version,this.state.selectedRecord.report_snapshot,
@@ -305,7 +305,7 @@ class ViewReport extends Component {
 
   fetchDataToGrid(event){
     if (this.state.selectedRecord.report_type=="TRANSACTION"){
-      this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate);
+      this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate,this.state.selectedRecord.version);
     } else {
       this.props.fetchReportData(this.state.reportId,this.state.reportingDate,
         this.state.selectedRecord.version,this.state.selectedRecord.report_snapshot,
@@ -792,8 +792,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportData:(report_id, reporting_date, version, report_snapshot,report_parameters)=>{
       dispatch(actionFetchReportData(report_id, reporting_date, version, report_snapshot,report_parameters))
     },
-    fetchTransReportData:(report_id, reporting_date)=>{
-      dispatch(actionFetchTransReportData(report_id, reporting_date))
+    fetchTransReportData:(report_id, reporting_date, version)=>{
+      dispatch(actionFetchTransReportData(report_id, reporting_date, version))
     },
     drillDown:(report_id,sheet,cell,report_snapshot) => {
       dispatch(actionDrillDown(report_id,sheet,cell,report_snapshot));

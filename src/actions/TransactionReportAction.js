@@ -24,8 +24,9 @@ export function actionFetchTransReportTemplateData(report_id, country, db_obj_su
   }
 }
 
-export function actionFetchTransReportData(report_id,reporting_date) {
+export function actionFetchTransReportData(report_id,reporting_date, version) {
   let url = BASE_URL + "transactionalReport/" + report_id + "/" + reporting_date;
+  url += "?version=" + version;
   const request = axios.get(url);
   return {
     type: FETCH_TRANS_REPORT,
@@ -33,8 +34,9 @@ export function actionFetchTransReportData(report_id,reporting_date) {
   }
 }
 
-export function actionTransReportDefineSec(sectionData) {
+export function actionTransReportDefineSec(sectionData,domain_type) {
   let url = BASE_URL + "transactionalReport/defineSection";
+  url += "?domain_type=" + domain_type;
   console.log("actionTransReportDefineSec...",sectionData);
   const request = axios.post(url, sectionData);
 
@@ -46,7 +48,7 @@ export function actionTransReportDefineSec(sectionData) {
 
 export function actionCreateTransReport(Data) {
   let url = BASE_URL + "transactionalReport/createTransReport/"+Data.report_id;
-  console.log("actionTransReportDefineSec...",Data);
+  console.log("actionCreateTransReport...",Data);
   const request = axios.post(url, Data);
 
   return {
@@ -78,8 +80,9 @@ export function actionTransReportInsertRule(Data) {
 }
 
 
-export function actionFetchTransReportSecDef(reportId,sheetId,cellId) {
+export function actionFetchTransReportSecDef(reportId,sheetId,cellId,domain_type) {
   let url = BASE_URL + "transactionalReport/getSection/"+ cellId + "?report_id="+encodeURI(reportId)+"&sheet_id="+encodeURI(sheetId);
+  url += "&domain_type="+domain_type;
   const request = axios.get(url);
 
   return {

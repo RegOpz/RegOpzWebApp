@@ -7,8 +7,10 @@ import {dispatch} from 'redux';
 import {
   actionTransReportDefineSec,
   actionFetchTransReportSecDef,
+  actionDeleteTransReportRules
 } from '../../actions/TransactionReportAction';
 import _ from 'lodash';
+import DrillDownTransRules from '../DrillDown/DrillDownTransRules';
 
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
@@ -41,10 +43,11 @@ class AddTransReportSection extends Component {
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
         this.writeOnly = this.props.writeOnly;
         this.sectionData = undefined;
-
+        this.undefineSection = false;
         this.updateRuleFormula = this.updateRuleFormula.bind(this);
         this.handleSelectCell = this.handleSelectCell.bind(this);
         this.handleResetSec = this.handleResetSec.bind(this);
+        this.handleDeleteRules = this.handleDeleteRules.bind(this);
     }
 
     componentWillMount() {
@@ -53,8 +56,17 @@ class AddTransReportSection extends Component {
       //   form: this.sectionData},
       //   ()=>{this.props.fetchTransReportSecDef(this.state.form.report_id,this.state.form.sheet_id,this.state.form.cell_id);}
       // );
-      this.props.fetchTransReportSecDef(this.state.form.report_id,this.state.form.sheet_id,this.state.form.cell_id);
-
+      this.props.fetchTransReportSecDef(this.state.form.report_id,this.state.form.sheet_id,this.state.form.cell_id,"master");
+      if(this.props.cell_rules)
+      {
+        let content=[];
+        this.props.cell_rules.secOrders.length > 0 && this.props.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+        this.secOrders=content;
+        content=[];
+        this.props.cell_rules.secRules.length > 0 && this.props.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+        this.secRules=content;
+        this.undefineSection=(this.secOrders.length == 0 && this.secRules.length ==0)?false:true;
+      }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -64,7 +76,7 @@ class AddTransReportSection extends Component {
         //   //this.props.fetchTransReportSecDef(this.state.form.report_id,this.state.form.sheet_id,this.state.form.cell_id)
         // );
         if(nextProps.sectionDetails){
-          console.log("Inside componentWillReceiveProps nextprops",nextProps.sectionDetails);
+          console.log("Inside componentWillReceiveProps nextprops",nextProps.sectionDetails,nextProps.cellRules);
           this.sectionData = nextProps.sectionDetails;
           if (this.sectionData.section_id) {
             let form = this.state.form
@@ -78,7 +90,16 @@ class AddTransReportSection extends Component {
           else{
             this.setState({openDataGridCollapsible: true});
           }
-
+          console.log("Inside componentWillReceiveProps nextprops2",nextProps.cellRules);
+          if(nextProps.cell_rules){
+            let content=[];
+            nextProps.cell_rules.secOrders.length > 0 && nextProps.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+            this.secOrders=content;
+            content=[];
+            nextProps.cell_rules.secRules.length > 0 && nextProps.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+            this.secRules=content;
+            this.undefineSection = this.secOrders.length == 0 && this.secRules.length == 0?false:true;
+          }
         }
 
         console.log("Inside componentWillReceiveProps");
@@ -159,6 +180,11 @@ class AddTransReportSection extends Component {
         <div className="x_panel">
           <div className="x_title">
             <h2>Maintain report rule <small>Add/Edit section definition</small></h2>
+              <ul className="nav navbar-right panel_toolbox">
+              <li>
+                <a className="close-link" title="Close" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
+              </li>
+            </ul>
             <div className="clearfix"></div>
           </div>
 
@@ -263,7 +289,7 @@ class AddTransReportSection extends Component {
                         type="text"
                         required="required"
                         className="form-control col-md-3 col-xs-12"
-                        readOnly={false }
+                        readOnly={! this.viewOnly && this.sectionData && this.sectionData.section_id }
                         title={"Select start and end cell range from the report grid.\n" +
                                 "For example, first select A1 and then select N12 to define A1:N13 range."}
                         onChange={(event) => {
@@ -316,39 +342,45 @@ class AddTransReportSection extends Component {
                       </Panel>
                       </div>
                     }
-
-                  <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comment">Comment<span className="required">*</span></label>
-                    <div className="col-md-5 col-sm-5 col-xs-12">
-                      <textarea
-                        value={this.state.audit_form.comment}
-                        minLength="20"
-                        maxLength="1000"
-                        required="true"
-                        type="text"
-                        readOnly={this.viewOnly}
-                        className="form-control col-md-7 col-xs-12"
-                        onChange={(event) => {
-                          let newState = {...this.state};
-                          newState.audit_form.comment = event.target.value;
-                          this.setState(newState);
-                          }
+                    {
+                      ((viewOnly)=>{
+                        if(! viewOnly && this.sectionData && this.sectionData.section_id && this.props.cell_rules && this.props.selectedCell) {
+                          return(
+                            <DrillDownTransRules
+                              cellRules = {this.props.cell_rules}
+                              readOnly = {true}
+                              addRulesBtn = {false}
+                              selectedCell = {this.props.selectedCell}
+                              reportingDate={this.props.reportingDate}
+                              showOnlyData={true}
+                              handleDeleteRules={this.handleDeleteRules}
+                            />
+                          );
                         }
-                      />
+                      })(this.viewOnly)
+                    }
+                  {this.sectionData&&(!this.sectionData.section_id||(this.sectionData.section_id&&!this.undefineSection))&&
+                    <div className="form-group">
+                      <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comment">Comment<span className="required">*</span></label>
+                      <div className="col-md-5 col-sm-5 col-xs-12">
+                        <textarea
+                          value={this.state.audit_form.comment}
+                          minLength="20"
+                          maxLength="1000"
+                          required="true"
+                          type="text"
+                          readOnly={this.viewOnly}
+                          className="form-control col-md-7 col-xs-12"
+                          onChange={(event) => {
+                            let newState = {...this.state};
+                            newState.audit_form.comment = event.target.value;
+                            this.setState(newState);
+                            }
+                          }
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="last-update-by">Last Updated By<span className="required">*</span></label>
-                    <div className="col-md-3 col-sm-3 col-xs-12">
-                      <input
-                        value={this.state.form.last_updated_by}
-                        type="text"
-                        readOnly="true"
-                        className="form-control col-md-7 col-xs-12"
-                      />
-                    </div>
-                  </div>
-
+                }
                   <div className="form-group">
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
                       <button type="button" className="btn btn-primary" onClick={this.props.handleClose}>
@@ -362,7 +394,8 @@ class AddTransReportSection extends Component {
                           }
                           if(! viewOnly && this.sectionData && this.sectionData.section_id) {
                             return(
-                                <button type="button" className="btn btn-warning" onClick={this.handleResetSec}>Undefine Section</button>
+                                <button type="button" className="btn btn-warning" onClick={this.handleResetSec}
+                                disabled={this.undefineSection}>Undefine Section</button>
                             );
                           }
                         })(this.viewOnly)
@@ -370,7 +403,6 @@ class AddTransReportSection extends Component {
 
                     </div>
                   </div>
-
           </form>
          </div>
         </div>
@@ -411,7 +443,7 @@ class AddTransReportSection extends Component {
       cell_group: this.state.form.sectionRange.split(":"),
     }
     console.log("Before call  of updateTransReportDefineSec",formData);
-    this.props.updateTransReportDefineSec(formData);
+    this.props.updateTransReportDefineSec(formData,"master");
     this.props.handleClose();
   }
 
@@ -425,11 +457,75 @@ class AddTransReportSection extends Component {
       cell_group: this.state.form.sectionRange.split(":"),
     }
     console.log("Inside call  of handleResetSec",formData);
-    this.props.updateTransReportDefineSec(formData);
+    this.props.updateTransReportDefineSec(formData,"master");
     this.props.handleClose();
   }
-
-
+  handleDeleteRules(){
+    let content=[];
+    let report_id=this.props.selectedCell.reportId;
+    let sheet_id=this.props.selectedCell.sheetName;
+    let user =this.props.login_details.user;
+    let tenant_id= this.props.login_details.domainInfo.tenant_id;
+    let group_id=this.props.groupId;
+    let flag=false;
+    this.secOrders.map((item,index)=>{
+      if(item.dml_allowed !="X" && item.in_use != "X")
+      {
+        if(item.dml_allowed =="Y")
+        {
+          let audit_info={table_name:"report_dyn_trans_agg_def",
+                          change_reference: 'Transaction Section Order for ' + report_id +
+                                            '->' + sheet_id + '->' + item.cell_agg_ref,
+                          change_type: "DELETE",
+                          maker:user,
+                          maker_tenant_id:tenant_id,
+                          comment:"Intiated removal of existing definition of Section Order to facilitate undefine section " + item.cell_agg_ref,
+                          group_id:group_id};
+          let data={id:item.id,
+                    change_type:"DELETE",
+                    table_name:"report_dyn_trans_agg_def",
+                    audit_info:audit_info
+                  };
+          content.push(data);
+        }
+        else if(item.dml_allowed =="N")
+        {
+          flag=true;
+        }
+      }
+  })
+  this.secRules.map((item,index)=>{
+    if(item.dml_allowed !="X" && item.in_use != "X")
+    {
+        if(item.dml_allowed =="Y")
+        {
+          let audit_info={table_name:"report_dyn_trans_calc_def",
+                          change_reference: 'Transaction Section Data Rule for ' + report_id +
+                                            '->' + sheet_id + '->Source ID:' +item.source_id+
+                                            '->'+item.cell_calc_ref,
+                          change_type: "DELETE",
+                          maker:user,
+                          maker_tenant_id:tenant_id,
+                          comment:"Intiated removal of existing definition of Section Rule to facilitate undefine section " + item.cell_calc_ref,
+                          group_id:group_id};
+          let data={id:item.id,
+                    change_type:"DELETE",
+                    table_name:"report_dyn_trans_calc_def",
+                    audit_info:audit_info
+                  };
+          content.push(data);
+        }
+        else if(item.dml_allowed =="N")
+          flag=true;
+    }
+   })
+    if(flag==false)
+    {
+      let newData={data:content};
+      this.props.deleteTransReportRules(newData);
+      this.props.handleClose();
+    }
+  }
 }
 
 function mapStateToProps(state) {
@@ -438,6 +534,7 @@ function mapStateToProps(state) {
     sectionDetails: state.transreport.sectionDetails,
     cell_options: state.report_store.cell_rules,
     login_details: state.login_store,
+    cell_rules: state.transreport.secRules,
   };
 }
 
@@ -446,11 +543,14 @@ const mapDispatchToProps = (dispatch) => {
     insertRuleData:(data) => {
       dispatch(actionInsertRuleData(data));
     },
-    updateTransReportDefineSec:(data) => {
-      dispatch(actionTransReportDefineSec(data));
+    updateTransReportDefineSec:(data,domain_type) => {
+      dispatch(actionTransReportDefineSec(data,domain_type));
     },
-    fetchTransReportSecDef:(reportId,sheetId,cellId) => {
-      dispatch(actionFetchTransReportSecDef(reportId,sheetId,cellId));
+    fetchTransReportSecDef:(reportId,sheetId,cellId,domain_type) => {
+      dispatch(actionFetchTransReportSecDef(reportId,sheetId,cellId,domain_type));
+    },
+    deleteTransReportRules:(newData) => {
+      dispatch(actionDeleteTransReportRules(newData));
     },
   };
 }

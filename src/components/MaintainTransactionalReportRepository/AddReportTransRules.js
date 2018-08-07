@@ -21,11 +21,14 @@ import {
   actionTransReportInsertRule
 } from '../../actions/TransactionReportAction';
 import TransSecColumnRule from './TransSecColumnRule';
+import TransColMapAssist from './TransColMapAssist';
 
 class AddReportTransRules extends Component {
   constructor(props) {
     super(props);
     this.state = {
+        display: null,
+        selectedColumn: null,
         rulesTags: [],
         aggRefTags:[],
         rulesSuggestions: [],
@@ -65,6 +68,7 @@ class AddReportTransRules extends Component {
     this.searchAnywhere = this.searchAnywhere.bind(this);
     this.populateDynDataColumns = this.populateDynDataColumns.bind(this);
     this.handleParameterChange = this.handleParameterChange.bind(this);
+    this.handleEditColMapping = this.handleEditColMapping.bind(this);
 
     this.ruleIndex = typeof this.props.index !== 'undefined' ? this.props.index : -1;
     this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
@@ -86,6 +90,7 @@ class AddReportTransRules extends Component {
                       aggRefTags: []},
                   ()=>{
                     this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                    this.props.fetchSourceColumnList(null,this.state.form.source_id);
                     this.initialiseFormFields();
                     this.populateDynDataColumns();
                   });
@@ -151,6 +156,7 @@ class AddReportTransRules extends Component {
                           },
                         ()=>{
                           this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                          this.props.fetchSourceColumnList(null,this.state.form.source_id);
                           this.initialiseFormFields();
                           this.populateDynDataColumns();
                         });
@@ -223,6 +229,17 @@ class AddReportTransRules extends Component {
               // this.setState({ additionalParameters: additionalParameters });
               break;
       }
+  }
+
+  handleEditColMapping(selectedColumn){
+    console.log("handleEditColMapping parameters...",selectedColumn);
+    let isOpen = (this.state.display == "editColMapping");
+    if(isOpen){
+        this.setState({display: null, selectedColumn: null});
+    }
+    else{
+      this.setState({display: "editColMapping", selectedColumn: selectedColumn});
+    }
   }
 
   searchAnywhere(textInputValue, possibleSuggestionsArray) {
@@ -388,6 +405,16 @@ class AddReportTransRules extends Component {
           <div className="x_panel">
             <div className="x_title">
               <h2>Maintain report rule <small>{ [-1,-2].includes(this.ruleIndex) ? 'Add' : 'Edit' } a report rule</small></h2>
+                <ul className="nav navbar-right panel_toolbox">
+                  <li>
+                    <a
+                      className="close-link"
+                      onClick={this.props.handleClose}
+                      title="To mapping list">
+                      <i className="fa fa-close"></i>
+                    </a>
+                  </li>
+                </ul>
               <div className="clearfix"></div>
             </div>
             <div className="x_content">
@@ -456,11 +483,11 @@ class AddReportTransRules extends Component {
                                   let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
                                   let form=this.state.form;
                                   form.source_id = event.target.value;
-                                  this.setState({form:form});
+                                  this.setState({form:form, display: null});
                                   console.log('Source ID............',this.state.form.source_id);
                                   this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                                   console.log('table name in change event',table_name);
-                                  this.props.fetchSourceColumnList(table_name);
+                                  this.props.fetchSourceColumnList(table_name,null);
                                 }
                               }
                             >
@@ -506,61 +533,72 @@ class AddReportTransRules extends Component {
                   </div>
                 </div>
 
-                <div className="form-group">
-                <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment"></label>
-                <div className="col-md-6 col-sm-6 col-xs-12">
-                  <div className="x_panel">
-                  <div className="x_title">
-                    <h2>Source Column Mapping <small> for the Rule </small></h2>
-                    <div className="clearfix"></div>
+                {
+                  !this.state.display &&
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="columnMapping"></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <div className="x_panel">
+                      <div className="x_title">
+                        <h2>Source Column Mapping <small> for the Rule </small></h2>
+                        <div className="clearfix"></div>
+                      </div>
+                      <div className="x_content">
+                        <table className="table table-hover">
+                          <thead>
+                            <tr>
+                              <th>Report Column</th>
+                              <th>Mapping</th>
+                              <th><i className="fa fa-wrench"></i></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {
+                              this.renderColumns()
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="x_content">
-                    <table className="table table-hover">
-                      <thead>
-                        <tr>
-                          <th>Report Column</th>
-                          <th>Source Field</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {
-                          this.renderColumns()
-                        }
-                      </tbody>
-                    </table>
-                  </div>
-                  </div>
-                </div>
-              </div>
+                }
 
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment">Comment <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <textarea
-                      type="text"
-                      placeholder="Enter a Comment"
-                      required="required"
-                      className="form-control col-md-7 col-xs-12"
-                      value={this.state.audit_form.comment}
-                      readOnly={this.viewOnly}
-                      maxLength="1000"
-                      minLength="20"
-                      onChange={
-                        (event) => {
-                          let {audit_form}=this.state;
-                          audit_form.comment = event.target.value;
-                          this.setState({audit_form});
-                        }
-                      }
+                {
+                  this.state.display=="editColMapping" &&
+                  <TransColMapAssist
+                    {...this.state.selectedColumn}
+                    handleEditColMapping={this.handleEditColMapping}
+                    handleChange={this.handleParameterChange}
                     />
+                }
+
+                {
+                  !this.viewOnly &&
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="Comment">Comment <span className="required">*</span></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <textarea
+                        type="text"
+                        placeholder="Enter a Comment"
+                        required="required"
+                        className="form-control col-md-7 col-xs-12"
+                        value={this.state.audit_form.comment}
+                        readOnly={this.viewOnly}
+                        maxLength="1000"
+                        minLength="20"
+                        onChange={
+                          (event) => {
+                            let {audit_form}=this.state;
+                            audit_form.comment = event.target.value;
+                            this.setState({audit_form});
+                          }
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="form-group">
-                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Last Updated by <span className="required">*</span></label>
-                  <div className="col-md-6 col-sm-6 col-xs-12">
-                    <input value="John Doe"  type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
-                  </div>
-                </div>
+
+                }
 
                 <div className="form-group">
                   <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
@@ -593,8 +631,11 @@ class AddReportTransRules extends Component {
               {...element}
               index={index}
               key={index}
-              sourceColumns={this.props.source_table_columns?this.props.source_table_columns:[{'Field':element.mapped_column}]}
+              disabled={this.viewOnly}
+              sourceId={this.state.form.source_id}
+              sourceColumns={this.props.source_table_columns}
               handleChange={this.handleParameterChange}
+              handleEditColMapping={this.handleEditColMapping}
               />
           );
 
@@ -631,6 +672,7 @@ class AddReportTransRules extends Component {
     // else if (data['change_type'] == "UPDATE"){
     //   this.props.updateRuleData(this.state.form.id,data);
     // }
+    let change_type = [-1,-2].includes(this.ruleIndex) ? "INSERT" : "UPDATE";
     let calc = {};
     this.state.dynamicDataColumns.map(element=>{
       calc[element.col_id]={column:element.mapped_column}
@@ -641,21 +683,34 @@ class AddReportTransRules extends Component {
               };
     calcRenderRef = JSON.stringify(calcRenderRef);
     console.log("calcRenderRef",calcRenderRef);
+    let update_info={id:this.state.form.id,
+                    report_id: this.state.form.report_id,
+                    sheet_id: this.state.form.sheet_id,
+                    section_id: this.state.form.section_id,
+                    source_id:this.state.form.source_id ,
+                    cell_calc_ref: this.state.form.cell_calc_ref,
+                    cell_calc_render_ref:calcRenderRef,
+                   };
+   let audit_info={id:null,
+                   table_name:"report_dyn_trans_calc_def",
+                   change_reference: 'Transaction Section Data Rule for ' + update_info.report_id +
+                                     '->' + update_info.sheet_id + '-> Source ID: ' + update_info.source_id +
+                                     '->' + this.state.form.cell_calc_ref,
+                   change_type: change_type,
+                   maker:this.props.login_details.user,
+                   maker_tenant_id:this.props.login_details.domainInfo.tenant_id,
+                   comment:this.state.audit_form.comment,
+                   group_id:this.props.groupId
+                   };
     let data={
-              report_id: this.state.form.report_id,
-              sheet_id: this.state.form.sheet_id,
-              section_id: this.state.form.section_id,
-              source_id:this.state.form.source_id ,
-              cell_calc_ref: this.state.form.cell_calc_ref,
-              cell_calc_render_ref:calcRenderRef,
-              last_updated_by:null,
-              in_use: "Y",
-              dml_allowed: "Y",
-              id:this.state.form.id,
+              table_name: "report_dyn_trans_calc_def",
+              change_type: change_type,
+              update_info:update_info,
+              audit_info:audit_info
             }
-    if ([-1,-2].includes(this.ruleIndex)){
+    if (change_type=="INSERT"){
       // INSERT
-      this.props.insertRuleData(this.state.form.cell_calc_ref,data);
+      this.props.insertRuleData(data);
     } else {
       // UPDATE
       this.props.updateRuleData(this.state.form.id,data);
@@ -683,11 +738,11 @@ const mapDispatchToProps = (dispatch) => {
     fetchSources:(sourceId) => {
       dispatch(actionFetchSources(sourceId));
     },
-    fetchSourceColumnList:(table_name) => {
-      dispatch(actionFetchSourceColumnList(table_name));
+    fetchSourceColumnList:(table_name,source_id) => {
+      dispatch(actionFetchSourceColumnList(table_name,source_id));
     },
-    insertRuleData:(calcRef,data) => {
-      dispatch(actionTransReportInsertRule(calcRef,data));
+    insertRuleData:(data) => {
+      dispatch(actionTransReportInsertRule(data));
     },
     updateRuleData:(id,data) => {
       dispatch(actionTransReportUpdateRule(id,data));
