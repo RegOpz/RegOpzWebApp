@@ -43,6 +43,8 @@ class AddReportTransRules extends Component {
           section_id: this.props.rule.section_id,
           source_id:this.props.rule.source_id ? this.props.rule.source_id:null,
           cell_business_rules:this.props.rule.cell_calc_render_ref ? JSON.parse(this.props.rule.cell_calc_render_ref).rule : null,
+          cell_calc_extern_ref:this.props.rule.cell_calc_extern_ref,
+          cell_calc_decsription:this.props.rule.cell_calc_decsription,
           aggregation_ref:null,
           aggregation_func:null,
           valid_from:null,
@@ -103,6 +105,8 @@ class AddReportTransRules extends Component {
         section_id: this.props.rule.section_id,
         source_id:null, //this.props.rule.source_id,
         cell_business_rules:null,
+        cell_calc_extern_ref:null,
+        cell_calc_decsription:null,
         aggregation_ref:null,
         aggregation_func:null,
         valid_from:null,
@@ -141,6 +145,8 @@ class AddReportTransRules extends Component {
               section_id: nextProps.rule.section_id,
               source_id:nextProps.rule.source_id ? nextProps.rule.source_id:null,
               cell_business_rules:nextProps.rule.cell_calc_render_ref ? JSON.parse(nextProps.rule.cell_calc_render_ref).rule : null,
+              cell_calc_extern_ref:nextProps.rule.cell_calc_extern_ref,
+              cell_calc_decsription:nextProps.rule.cell_calc_decsription,
               aggregation_ref:null,
               aggregation_func:null,
               valid_from:null,
@@ -169,6 +175,8 @@ class AddReportTransRules extends Component {
               section_id: nextProps.rule.section_id,
               source_id:null, //nextProps.rule.source_id,
               cell_business_rules:null,
+              cell_calc_extern_ref:null,
+              cell_calc_decsription:null,
               aggregation_ref:null,
               aggregation_func:null,
               valid_from:null,
@@ -511,6 +519,49 @@ class AddReportTransRules extends Component {
                   </div>
                 </div>
                 <div className="form-group">
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Calc External Ref <span className="required">*</span></label>
+                  <div className="col-md-6 col-sm-6 col-xs-12">
+                    <input
+                      type="text"
+                      placeholder="Enter Calc External Ref"
+                      readOnly={this.viewOnly}
+                      required="required"
+                      className="form-control col-md-7 col-xs-12"
+                      value={this.state.form.cell_calc_extern_ref}
+                      onChange={
+                        (event) => {
+                          let form=this.state.form;
+                          form.cell_calc_extern_ref = event.target.value;
+                          this.setState({form:form});
+                        }
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="calc-description">Calculation Description <span className="required">*</span></label>
+                  <div className="col-md-6 col-sm-6 col-xs-12">
+                    <textarea
+                      type="text"
+                      required="requried"
+                      className="form-control col-md-6 col-sm-6 col-xs-12"
+                      placeholder="Enter Calculation Description"
+                      value={this.state.form.cell_calc_decsription}
+                      readOnly={this.viewOnly}
+                      disabled={this.viewOnly}
+                      maxLength="1000"
+                      minLength="20"
+                      onChange={
+                        (event) => {
+                          let form=this.state.form;
+                          form.cell_calc_decsription = event.target.value;
+                          this.setState({form:form});
+                        }
+                      }
+                      />
+                  </div>
+                </div>
+                <div className="form-group">
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Section Calculation Rules <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <ReactTags tags={rulesTags}
@@ -690,6 +741,8 @@ class AddReportTransRules extends Component {
                     source_id:this.state.form.source_id ,
                     cell_calc_ref: this.state.form.cell_calc_ref,
                     cell_calc_render_ref:calcRenderRef,
+                    cell_calc_extern_ref:this.state.form.cell_calc_extern_ref,
+                    cell_calc_decsription:this.state.form.cell_calc_decsription,
                    };
    let audit_info={id:null,
                    table_name:"report_dyn_trans_calc_def",
@@ -741,11 +794,11 @@ const mapDispatchToProps = (dispatch) => {
     fetchSourceColumnList:(table_name,source_id) => {
       dispatch(actionFetchSourceColumnList(table_name,source_id));
     },
-    insertRuleData:(data) => {
-      dispatch(actionTransReportInsertRule(data));
+    insertRuleData:(data,domain_type) => {
+      dispatch(actionTransReportInsertRule(data,domain_type));
     },
     updateRuleData:(id,data) => {
-      dispatch(actionTransReportUpdateRule(id,data));
+      dispatch(actionTransReportUpdateRule(id,data,domain_type));
     }
   }
 }

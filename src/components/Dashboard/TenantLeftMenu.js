@@ -21,7 +21,7 @@ class TenantLeftMenu extends Component {
                       </a>
                       <ul className="nav child_menu">
                           <li>
-                              <a href="#/dashboard/capture-report-template"> Capture Report Template</a>
+                              <a href="#/dashboard/capture-report-template"> Report Template</a>
                           </li>
                           <li>
                               <a href="#/dashboard/maintain-business-rules" onClick={this.handleLeftMenuClick}>Business Rules</a>

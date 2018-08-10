@@ -15,7 +15,7 @@ class DrillDownTransRules extends Component {
     this.readOnly = this.props.readOnly;
     this.selectedCell = this.props.selectedCell;
     this.reportingDate = this.props.reportingDate;
-    this.showRulesPanel = true;
+    this.state={showRulesPanel : true};
     this.collapseIcon = "fa-chevron-up";
     //this.renderChangeHistory = this.renderChangeHistory.bind(this);
     this.renderOrderBy = this.renderOrderBy.bind(this);
@@ -32,6 +32,7 @@ class DrillDownTransRules extends Component {
   componentWillReceiveProps(nextProps){
       //TODO
       this.secDetails = nextProps.cellRules;
+      console.log("nextProps cellRules",nextProps.cellRules)
       //this.cellRules = nextProps.cellRules.secRules;
       //this.secOrders = nextProps.cellRules.secOrders;
       this.readOnly = nextProps.readOnly;
@@ -51,15 +52,19 @@ class DrillDownTransRules extends Component {
   }
 
   handleCollapse(event) {
-    this.showRulesPanel=!this.showRulesPanel;
-    if(this.showRulesPanel) {
-      this.collapseIcon = "fa-chevron-up";
-    }
-    else {
+    if(this.state.showRulesPanel) {
       this.collapseIcon = "fa-chevron-down";
     }
-    console.log("Clicked in the collapse-link",this.showRulesPanel);
-    this.forceUpdate();
+    else {
+      this.collapseIcon = "fa-chevron-up";
+    }
+    this.setState({showRulesPanel:!this.state.showRulesPanel},
+      ()=>{
+        console.log("Clicked in the collapse-link",this.state.showRulesPanel);
+      }
+    );
+
+    // this.forceUpdate();
   }
 
   render(){
@@ -84,7 +89,7 @@ class DrillDownTransRules extends Component {
               <div className="clearfix"></div>
             </div>
             {
-              this.showRulesPanel &&
+              this.state.showRulesPanel &&
               <div>
                 <div className="x_content">
                   {
@@ -127,7 +132,7 @@ class DrillDownTransRules extends Component {
                               sheet_name: this.selectedCell.sheetName,
                           };
                           this.props.handleCellHistoryClicked(event, item);
-                          this.showRulesPanel=!this.showRulesPanel;
+                          this.handleCollapse(event);
                         }
                       }
                       >
@@ -165,7 +170,7 @@ class DrillDownTransRules extends Component {
 
   renderOrderBy(secDetails) {
     console.log("Modal linkage data", secDetails);
-    if (this.secOrders && this.secOrders.length == 0 )
+    if (secDetails.secOrders && secDetails.secOrders.length == 0 )
     {
       return (
         <div>
@@ -182,7 +187,7 @@ class DrillDownTransRules extends Component {
                             onClick={
                               (event)=>{
                                 this.props.handleAggeRuleClicked(event, secDetails);
-                                this.showRulesPanel=!this.showRulesPanel;
+                                this.handleCollapse();
                               }
                             }
                           >
@@ -197,7 +202,7 @@ class DrillDownTransRules extends Component {
     }
     else {
       // TODO
-      let secOrders = this.secOrders;
+      let secOrders = secDetails.secOrders;
       return (
               <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
                 <div className="row">
@@ -227,10 +232,10 @@ class DrillDownTransRules extends Component {
                                   className="btn btn-link btn-xs"
                                   onClick={
                                       (event)=>{
-                                        let secDetailsRule = secDetails;
+                                        let secDetailsRule = {...secDetails};
                                         secDetailsRule.secOrders = item;
                                         this.props.handleAggeRuleClicked(event, secDetailsRule);
-                                        this.showRulesPanel=!this.showRulesPanel;
+                                        this.handleCollapse();
                                       }
                                     }
                                   >
@@ -482,6 +487,7 @@ class DrillDownTransRules extends Component {
                       sheet_id: this.selectedCell.sheetName,
                       section_id: this.section,
                     };
+                    console.log("add rule trnas ",rule)
                     this.props.handleCalcRuleClicked(event, rule, this.sectionColumns,"add");
                     //this.showRulesPanel=!this.showRulesPanel;
                     this.handleCollapse(event);

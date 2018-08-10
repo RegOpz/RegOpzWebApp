@@ -31,7 +31,9 @@ class AddReportRules extends Component {
           sheet_id: this.props.sheet,
           cell_id:this.props.cell,
           source_id:null,
+          cell_calc_extern_ref:null,
           cell_business_rules:null,
+          cell_calc_decsription:null,
           aggregation_ref:null,
           aggregation_func:null,
           last_updated_by:null,
@@ -82,7 +84,9 @@ class AddReportRules extends Component {
         sheet_id: this.props.sheet,
         cell_id:this.props.cell,
         source_id:null,
+        cell_calc_extern_ref:null,
         cell_business_rules:null,
+        cell_calc_decsription:null,
         aggregation_ref:null,
         aggregation_func:null,
         last_updated_by:null,
@@ -113,7 +117,9 @@ class AddReportRules extends Component {
               sheet_id: nextProps.sheet,
               cell_id:nextProps.cell,
               source_id:null,
+              cell_calc_extern_ref:null,
               cell_business_rules:null,
+              cell_calc_decsription:null,
               aggregation_ref:null,
               aggregation_func:null,
               last_updated_by:null,
@@ -291,6 +297,47 @@ class AddReportRules extends Component {
                   <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Sheet ID <span className="required">*</span></label>
                   <div className="col-md-6 col-sm-6 col-xs-12">
                     <input value={this.state.form.sheet_id}  type="text" required="required" className="form-control col-md-7 col-xs-12" readOnly="readonly" />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Calc External Ref <span className="required">*</span></label>
+                  <div className="col-md-6 col-sm-6 col-xs-12">
+                    <input
+                      type="text"
+                      placeholder="Enter Calc External Ref"
+                      readOnly={this.viewOnly}
+                      required="required"
+                      className="form-control col-md-7 col-xs-12"
+                      value={this.state.form.cell_calc_extern_ref}
+                      onChange={
+                        (event) => {
+                          let form=this.state.form;
+                          form.cell_calc_extern_ref = event.target.value;
+                          this.setState({form:form});
+                        }
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="calc-description">Calculation Description <span className="required">*</span></label>
+                  <div className="col-md-6 col-sm-6 col-xs-12">
+                    <textarea
+                      type="text"
+                      required="requried"
+                      className="form-control col-md-6 col-sm-6 col-xs-12"
+                      placeholder="Enter Calculation Description"
+                      value={this.state.form.cell_calc_decsription}
+                      readonly={true}
+                      disabled={this.viewOnly}
+                      onChange={
+                        (event) => {
+                          let form=this.state.form;
+                          form.cell_calc_decsription = event.target.value;
+                          this.setState({form:form});
+                        }
+                      }
+                      />
                   </div>
                 </div>
                 <div className="form-group">

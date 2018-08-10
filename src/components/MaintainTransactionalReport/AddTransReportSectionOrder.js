@@ -16,6 +16,7 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         { type=="textarea" &&
           <textarea {...input}
            placeholder={label}
+           readOnly={readOnly}
            className="form-control col-md-4 col-xs-12"/>
         }
         {
@@ -46,8 +47,7 @@ const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formS
         }
       </div>
       {
-        input.name !=="ranktype" && input.name !=="rankvalue" &&
-        input.name !=="cell_agg_ref" && input.name !=="comment" &&
+        ["ranktype","rankvalue","cell_agg_ref","comment","comp_agg_extern_ref","cell_agg_decsription"].indexOf(input.name) == -1 &&
         !readOnly &&
         <div className="col-md-3 col-sm-3 col-xs-12">
         {
@@ -77,6 +77,12 @@ const validate = (values) => {
     }
     if (!values.cell_agg_ref) {
         errors.cell_agg_ref = "Cell Aggregation Reference  can not be empty.";
+    }
+    if (!values.cell_agg_decsription || values.cell_agg_decsription.length <= 20 ) {
+        errors.cell_agg_decsription = "Description can not be less than 20 characters.";
+    }
+    if (!values.comp_agg_extern_ref ) {
+        errors.comp_agg_extern_ref = "Please enter a valid external reference.";
     }
     if (!values.comment || values.comment.length <= 20 ) {
         errors.comment = "Comment can not be less than 20 characters.";
@@ -129,6 +135,8 @@ class AddTransReportSectionOrder extends Component {
         orderCols = orderCols ? JSON.parse(orderCols) : {sortorder:[]};
         this.secSort["ranktype"] = orderCols.ranktype;
         this.secSort["rankvalue"] = orderCols.rankvalue;
+        this.secSort["comp_agg_extern_ref"] = this.props.secDetails.secOrders.comp_agg_extern_ref;
+        this.secSort["cell_agg_decsription"] = this.props.secDetails.secOrders.cell_agg_decsription;
         orderCols.sortorder.map((col,index)=>{
           this.secSort[col.column] = col.order;
           formSecElements.push(col.column);
@@ -222,7 +230,9 @@ class AddTransReportSectionOrder extends Component {
                          sheet_id:this.props.selectedCell.sheetName,
                          section_id:this.props.secDetails.section,
                          cell_agg_ref:data.cell_agg_ref,
-                         cell_agg_render_ref:JSON.stringify(cell_agg_render_ref)
+                         cell_agg_render_ref:JSON.stringify(cell_agg_render_ref),
+                         comp_agg_extern_ref: data.comp_agg_extern_ref,
+                         cell_agg_decsription: data.cell_agg_decsription,
                        };
         let audit_info={id:null,
                         table_name:"report_dyn_trans_agg_def",
@@ -304,6 +314,24 @@ class AddTransReportSectionOrder extends Component {
         columns.push(this.getSecElement("rankvalue"));
         formSecElements.map((col)=>{columns.push(this.getSecElement(col));
         })
+        columns.push(
+          <Field
+              label={"External Reference"}
+              name={"comp_agg_extern_ref"}
+              type="input"
+              component={renderField}
+              readOnly={this.viewOnly}
+            />
+        );
+        columns.push(
+          <Field
+            label={"Section Order Description"}
+            name={"cell_agg_decsription"}
+            type="textarea"
+            component={renderField}
+            readOnly={this.viewOnly}
+            />
+        );
         !this.viewOnly && columns.push(this.getSecElement("Comment"));
         return columns;
     }

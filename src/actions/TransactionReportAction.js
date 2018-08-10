@@ -57,9 +57,9 @@ export function actionCreateTransReport(Data) {
   }
 }
 
-export function actionTransReportUpdateRule(id,Data) {
-  let url = BASE_URL + "transactionalReport/trans-report-rule/"+id;
-  console.log("actionTransReportUpdateRule...",Data);
+export function actionTransReportUpdateRule(id,Data,domain_type) {
+  let url = BASE_URL + "transactionalReport/trans-report-rule/"+id+"?domain_type=" + domain_type;
+  console.log("actionTransReportUpdateRule...",Data,domain_type);
   const request = axios.put(url, Data);
 
   return {
@@ -68,9 +68,9 @@ export function actionTransReportUpdateRule(id,Data) {
   }
 }
 
-export function actionTransReportInsertRule(Data) {
-  let url = BASE_URL + "transactionalReport/trans-report-rule";
-  console.log("actionTransReportInsertRule...",Data);
+export function actionTransReportInsertRule(Data,domain_type) {
+  let url = BASE_URL + "transactionalReport/trans-report-rule?domain_type=" + domain_type;
+  console.log("actionTransReportInsertRule...",Data,domain_type);
   const request = axios.post(url, Data);
 
   return {
@@ -91,8 +91,9 @@ export function actionFetchTransReportSecDef(reportId,sheetId,cellId,domain_type
   }
 }
 
-export function actionFetchTransReportSecRules(reportId,sheetId,cellId) {
+export function actionFetchTransReportSecRules(reportId,sheetId,cellId,domain_type) {
   let url = BASE_URL + "transactionalReport/getRules/"+ cellId + "?report_id="+encodeURI(reportId)+"&sheet_id="+encodeURI(sheetId);
+  url += "&domain_type="+domain_type;
   const request = axios.get(url);
 
   return {

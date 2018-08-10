@@ -26,6 +26,8 @@ class AddReportAggRules extends Component {
             report_id: this.props.report_id,
             sheet_id: this.props.sheet_id,
             cell_id: this.props.cell_id,
+            comp_agg_extern_ref: this.props.comp_agg_extern_ref,
+            cell_agg_decsription: this.props.cell_agg_decsription,
             comp_agg_ref: null,
             comp_agg_rule: null,
             reporting_scale: null,
@@ -138,6 +140,48 @@ class AddReportAggRules extends Component {
                          }
                         }
                       />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Agg External Ref <span className="required">*</span></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <input
+                        type="text"
+                        placeholder="Enter Agg External Ref"
+                        readOnly={this.viewOnly}
+                        required="required"
+                        className="form-control col-md-7 col-xs-12"
+                        value={this.state.form.comp_agg_extern_ref}
+                        onChange={
+                          (event) => {
+                            let form=this.state.form;
+                            form.comp_agg_extern_ref = event.target.value;
+                            this.setState({form:form});
+                          }
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="calc-description">Summary Description <span className="required">*</span></label>
+                    <div className="col-md-6 col-sm-6 col-xs-12">
+                      <textarea
+                        type="text"
+                        required="requried"
+                        className="form-control col-md-6 col-sm-6 col-xs-12"
+                        placeholder="Enter Summary Description"
+                        value={this.state.form.comp_agg_decsription}
+                        readonly={true}
+                        disabled={this.viewOnly}
+                        onChange={
+                          (event) => {
+                            let form=this.state.form;
+                            form.comp_agg_decsription = event.target.value;
+                            this.setState({form:form});
+                          }
+                        }
+                        />
                     </div>
                   </div>
                   <div className="form-group">

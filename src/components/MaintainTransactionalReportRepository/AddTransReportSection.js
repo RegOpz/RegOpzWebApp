@@ -88,7 +88,13 @@ class AddTransReportSection extends Component {
             this.setState({form:form, openDataGridCollapsible: false});
           }
           else{
-            this.setState({openDataGridCollapsible: true});
+            let form = this.state.form
+            form.section_id = null;
+            form.section_type = null;
+            form.sectionStart = null;
+            form.sectionEnd = null;
+            form.sectionRange = null;
+            this.setState({form: form, openDataGridCollapsible: true});
           }
           console.log("Inside componentWillReceiveProps nextprops2",nextProps.cellRules);
           if(nextProps.cell_rules){

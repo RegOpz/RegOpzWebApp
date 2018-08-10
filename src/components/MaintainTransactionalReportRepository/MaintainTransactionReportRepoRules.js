@@ -277,7 +277,7 @@ class MaintainTransactionReportRules extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: false,
           },
-          this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId)
+          this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId,"master")
         );
       }
     }
@@ -318,7 +318,7 @@ class MaintainTransactionReportRules extends Component {
             showAggRuleDetails: false,
             showCellChangeHistory: false,
             },
-              // this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId)
+              this.props.drillDown(this.selectedCell[0].reportId,this.selectedCell[0].sheetName,cellId,"master")
           );
         }
       }
@@ -601,6 +601,7 @@ class MaintainTransactionReportRules extends Component {
                             writeOnly={this.writeOnly}
                             handleClose={this.handleDetails.bind(this)}
                             groupId={this.props.groupId}
+                            country={this.country}
                             {...this.calcRuleFilter}
                           />
                       );
@@ -870,8 +871,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportData:(report_id,country,domain_type)=>{
       dispatch(actionFetchTransReportTemplateData(report_id,country,domain_type))
     },
-    drillDown:(report_id,sheet,cell) => {
-      dispatch(actionFetchTransReportSecRules(report_id,sheet,cell));
+    drillDown:(report_id,sheet,cell,domain_type) => {
+      dispatch(actionFetchTransReportSecRules(report_id,sheet,cell,domain_type));
     },
     fetchReportChangeHistory:(report_id,sheet_id,section_id) => {
       dispatch(actionFetchTransReportChangeHistory(report_id,sheet_id,section_id));
