@@ -49,6 +49,7 @@ import AddReportTransRules from './AddReportTransRules';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
+import CopyReportTemplate from '../MaintainReportRulesRepository/CopyReportRules';
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainTransactionReportRules extends Component {
@@ -80,6 +81,8 @@ class MaintainTransactionReportRules extends Component {
                     null);
     this.tenantRenderType = this.props.tenantRenderType;
     this.domainInfo = this.props.login_details.domainInfo;
+    this.tenant_report_details= this.props.tenant_report_details;
+    this.tableList=[];
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -100,7 +103,7 @@ class MaintainTransactionReportRules extends Component {
       this.buttons=[
         { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
         { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-        { title: 'Copy Report', iconClass: 'fa-rocket', checkDisabled: 'Yes', className: "btn-success", onClick: this.handleDetails.bind(this) },
+        { title: 'Copy Report', iconClass: 'fa-rocket', checkDisabled: 'Yes', className: "btn-success", onClick: this.handleCopyReportClick.bind(this) },
         // { title: 'Copy Selected', iconClass: 'fa-crop', checkDisabled: 'Yes', className: "btn-warning", onClick: this.handleDetails.bind(this) },
         { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
         { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
@@ -148,6 +151,7 @@ class MaintainTransactionReportRules extends Component {
     this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
     this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
     this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
+    this.handleCopyReportClick = this.handleCopyReportClick.bind(this);
     this.handleReportBusinessRulesClick = this.handleReportBusinessRulesClick.bind(this);
 
     this.handleDefineSection = this.handleDefineSection.bind(this);
@@ -157,7 +161,10 @@ class MaintainTransactionReportRules extends Component {
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
-    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
+    this.isSubscribed=this.props.login_details.domainInfo.tenant_id=="regopz" ?
+                      true
+                      :
+                      JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
     this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"}) : null;
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
@@ -462,6 +469,37 @@ class MaintainTransactionReportRules extends Component {
     }
   }
 
+  handleCopyReportClick(){
+    let isOpen = this.state.display === "copyTenant";
+    if(isOpen) {
+      this.tableList =[];
+      this.setState({
+        display: "showReportGrid"
+      })
+    } else {
+      this.tableList = [
+                          { ref_table: "report_dyn_trans_def_master",
+                            target_table: "report_dyn_trans_def",
+                            review_columns: false,
+                          },
+                          { ref_table: "report_dyn_trans_calc_def_master",
+                            target_table: "report_dyn_trans_calc_def",
+                            review_columns: true,
+                          },
+                          { ref_table: "report_dyn_trans_agg_def_master",
+                            target_table: "report_dyn_trans_agg_def",
+                            review_columns: true,
+                          }
+                      ];
+      this.setState({
+        display: "copyTenant"
+        },
+      );
+      this.operationName = "INSERTTENANT";
+      this.copyType = "CopyAll";
+    }
+  }
+
   handleExportCSV(event) {
     let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
     this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
@@ -729,6 +767,23 @@ class MaintainTransactionReportRules extends Component {
                   //   />
               );
               break;
+          case "copyTenant":
+           if(this.copyType == "CopyAll"){
+             console.log("Inside Copy Report,,,",this.country,this.tenant_report_details,this.state.selectedReport);
+             return(
+               <CopyReportTemplate
+                 master_report_details={this.state.selectedReport}
+                 handleCancel={this.handleCopyReportClick}
+                 handleOnSubmit={this.props.handleCancel}
+                 groupId={this.props.groupId}
+                 report_type={"TRANSACTION"}
+                 country={this.country}
+                 tenant_report_details={this.tenant_report_details}
+                 tableList={this.tableList}
+               />
+             );
+           }
+           break;
           default:
               return(
                   <ReportCatalogList

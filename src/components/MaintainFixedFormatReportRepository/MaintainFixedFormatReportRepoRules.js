@@ -44,7 +44,7 @@ import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
-import CopyReportTemplate from '../MaintainFixedFormatReport/CopyReportRules';
+import CopyReportTemplate from '../MaintainReportRulesRepository/CopyReportRules';
 require('react-datepicker/dist/react-datepicker.css');
 
 class MaintainFixedFormatReportRules extends Component {
@@ -77,6 +77,7 @@ class MaintainFixedFormatReportRules extends Component {
     this.tenantRenderType = this.props.tenantRenderType;
     this.domainInfo = this.props.login_details.domainInfo;
     this.tenant_report_details= this.props.tenant_report_details;
+    this.tableList=[];
     this.pages=0;
     this.currentPage=0;
     this.dataSource = null;
@@ -429,10 +430,25 @@ class MaintainFixedFormatReportRules extends Component {
   handleCopyReportClick(){
     let isOpen = this.state.display === "copyTenant";
     if(isOpen) {
+      this.tableList=[];
       this.setState({
         display: "showReportGrid"
       })
     } else {
+      this.tableList = [
+                          { ref_table: "report_def_master",
+                            target_table: "report_def",
+                            review_columns: false,
+                          },
+                          { ref_table: "report_calc_def_master",
+                            target_table: "report_calc_def",
+                            review_columns: true,
+                          },
+                          { ref_table: "report_comp_agg_def_master",
+                            target_table: "report_comp_agg_def",
+                            review_columns: true,
+                          }
+                      ];
       this.setState({
         display: "copyTenant"
         },
@@ -638,6 +654,7 @@ class MaintainFixedFormatReportRules extends Component {
                 report_type={"Fixed Format"}
                 country={this.country}
                 tenant_report_details={this.tenant_report_details}
+                tableList={this.tableList}
               />
             );
           }

@@ -127,7 +127,8 @@ export function actionFetchReportChangeHistory(report_id, sheet_id, cell_id) {
 
 export function actionCopyReportTemplate(formElement) {
     console.log("inside action copyReportTemplate....",formElement);
-    let url = BASE_URL+ "report-rules-repo/copy-report-template" ;
+    let url = BASE_URL;
+    url += "report-rules-repo/copy-report-template" ;
     const request = axios.post(url, formElement);
     return {
         type: COPY_REPORT_TEMPLATE,

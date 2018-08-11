@@ -149,7 +149,9 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
                           report_description: data.report_description,
                           ref_domain:"MASTER",
                           target_domain:"TENANT",
-                          target_groupId:this.props.groupId};
+                          target_groupId:this.props.groupId,
+                          table_list: this.props.tableList
+                        };
 
             console.log("Data Submitted.....",newData);
             this.props.copyReportTemplate(newData);

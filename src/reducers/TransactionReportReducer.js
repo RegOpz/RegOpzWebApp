@@ -15,12 +15,12 @@ import {
 
 export default function (state = {}, action) {
 
-    if (action.error) {
-        return {
-          error: action.payload.response,
-          message: action.payload.message
-        };
-    }
+    // if (action.error) {
+    //     return {
+    //       error: action.payload.response,
+    //       message: action.payload.message
+    //     };
+    // }
 
     switch (action.type) {
         case FETCH_TRANS_REPORT_TEMPLATE:
