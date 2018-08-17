@@ -13,12 +13,14 @@ import {
 } from '../../actions/CaptureReportAction';
 import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
 import RegOpzReportGrid from './../RegOpzDataGrid/RegOpzReportGrid';
+import AggRuleAssist from './AggRuleAssist';
 require('../MaintainReportRules/MaintainReportRules.css');
 
 class AddReportAggRules extends Component {
     constructor(props) {
         super(props);
         this.state = {
+          display:null,
           form: {
             id: null,
             report_id: this.props.report_id,
@@ -45,8 +47,8 @@ class AddReportAggRules extends Component {
         this.dml_allowed = this.props.dml_allowed === 'Y' ? true : false;
         this.writeOnly = this.props.writeOnly;
 
-        this.updateRuleFormula = this.updateRuleFormula.bind(this);
-        this.handleSelectCell = this.handleSelectCell.bind(this);
+        this.handleEditAggRule=this.handleEditAggRule.bind(this);
+        this.handleChangeAggRule=this.handleChangeAggRule.bind(this);
     }
 
     componentWillMount() {
@@ -56,96 +58,26 @@ class AddReportAggRules extends Component {
 
     componentWillReceiveProps(nextProps) {
           this.setState({form: nextProps.aggRuleData});
-          let buttons =[];
-          if (nextProps.cell_options){
-            nextProps.cell_options.comp_agg_rules.map((item,index)=>{
-              console.log("inside if handleSelectCell data.drillDown.comp_agg_rules.map",this.state.form.cell_id , this.state.form.sheet_id,item.cell_id + item.sheet_id);
-              if(this.state.form.cell_id + this.state.form.sheet_id != item.cell_id + item.sheet_id){
-                buttons.push({
-                    title: item.cell_id + " Aggregation Rule: " + item.comp_agg_rule,
-                    name: item.comp_agg_ref,
-                    iconClass: 'fa-paperclip',
-                    checkDisabled: 'No',
-                    className: "btn-success",
-                  })
-              }
-            })
-            nextProps.cell_options.cell_rules.map((item,index)=>{
-              buttons.push({
-                  title: item.cell_id + " Rule: " + item.cell_business_rules + " Aggregation: " + item.aggregation_func + "(" + item.aggregation_ref +")",
-                  name: item.cell_calc_ref,
-                  iconClass: 'fa-tag',
-                  checkDisabled: 'No',
-                  className: "btn-info",
-                })
-            })
-          }
-          this.setState({buttons:buttons},()=>{console.log("At the end of setState select",this.state.buttons);});
-          if(!this.ruleInputField)
-            return;
-          if (this.state.form.comp_agg_rule){
-            this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
-            this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
-          }
-          this.ruleInputField.focus();
-        console.log("Inside componentWillReceiveProps");
-    }
+  }
 
-    handleSelectCell(data){
-      console.log("handleSelectCell",data);
-      if(data.cell){
-        //this.buttons=[];
-        //console.log("inside if handleSelectCell",data);
-        this.props.drillDown(data.reportId,data.sheetName,data.cell)
-      }
-    }
-    updateRuleFormula(event,elementRef){
-      console.log("updateRuleFormula",elementRef);
-      if(!this.ruleInputField)
-        return;
-      let form = this.state.form;
-      let currentFormula = form.comp_agg_rule ? form.comp_agg_rule : '';
-      if(currentFormula != '' && (this.ruleInputField.selectionStart || this.ruleInputField.selectionStart == '0')){
-        let startPos = this.ruleInputField.selectionStart;
-        let endPos = this.ruleInputField.selectionEnd;
-        currentFormula = currentFormula.substring(0, startPos) +
-          elementRef +
-          currentFormula.substring(endPos, currentFormula.length);
-        this.ruleInputField.selectionStart = startPos + elementRef.length;
-        this.ruleInputField.selectionEnd = startPos + elementRef.length;
-      }
-      else{
-        currentFormula += elementRef;
-        this.ruleInputField.selectionStart = currentFormula.length;
-        this.ruleInputField.selectionEnd = currentFormula.length;
-        this.ruleInputField.focus();
-      }
-
-
-      form.comp_agg_rule = currentFormula;
-      this.setState({form});
-
-      this.ruleInputField.focus();
-      console.log("updateRuleFormula buttons",this.state.buttons);
-
-    }
 
   render() {
     this.viewOnly = ! (this.writeOnly && this.dml_allowed);
-    console.log("Inside render",this.state,this.props.aggRuleData)
+
     if(typeof this.state.form == 'undefined') {
       return(
         <h4>Loading...</h4>
       )
     }
     return(
+
       <div className="row form-container" >
+      {!this.state.display &&
         <div className="x_panel">
           <div className="x_title">
             <h2>Maintain report rule <small>Add a new aggregation rule</small></h2>
             <div className="clearfix"></div>
           </div>
-
           <div className="x_content">
            <form className="form-horizontal form-label-left" onSubmit={this.handleSubmit.bind(this)}>
 
@@ -208,81 +140,27 @@ class AddReportAggRules extends Component {
                       />
                     </div>
                   </div>
-
                   <div className="form-group">
-                    <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation Logic <span className="required">*</span></label>
-                    <div className="col-md-6 col-sm-6 col-xs-12">
-                      <textarea
-                        value={this.state.form.comp_agg_rule}
-                        type="text"
-                        className="form-control col-md-7 col-xs-12"
-                        readOnly={this.viewOnly}
-                        onChange={(event) => {
-                          let newState = {...this.state};
-                          //if(this.checkRuleValidity(event) == "valid") {
-                            newState.form.comp_agg_rule = event.target.value;
-                            this.setState(newState);
-                          // }
-                          // else {
-                          //   alert("Invalid formula, please check");
-                          //   this.setState(newState);
-                          // }
-                         }
-                        }
-                        ref={(element) => {
-                          this.ruleInputField = element;
-                        }}
-                      />
-                    </div>
-                    {
-                      this.props.gridData &&
-                      !this.viewOnly &&
-                      <div className="col-md-2 col-sm-2 col-xs-12">
-                        <button
-                          type="button"
-                          disabled={this.viewOnly}
-                          className="btn btn-primary btn-sm"
-                          onClick={() => {
-                            let currentState = this.state.openDataGridCollapsible;
-                            this.setState({openDataGridCollapsible: !currentState});
-                            if (this.state.form.comp_agg_rule){
-                              this.ruleInputField.selectionStart = this.state.form.comp_agg_rule.length;
-                              this.ruleInputField.selectionEnd = this.state.form.comp_agg_rule.length;
-                            }
-                            this.ruleInputField.focus();
-                          }}
-                        >
-                          {this.state.openDataGridCollapsible ? "Hide" : "Show"} Data Grid
-                        </button>
-                      </div>
-                    }
-                    </div>
-                    {
-                      this.props.gridData &&
-                      !this.viewOnly &&
-                      <div className="form-group">
-                      <Panel
-                        collapsible
-                        bsClass=""
-                        expanded={this.state.openDataGridCollapsible}
-                        >
-                          <RegOpzFlatGridActionButtons
-                            editable={this.writeOnly}
-                            checkDisabled={this.checkDisabled}
-                            buttons={this.state.buttons}
-                            dataNavigation={false}
-                            buttonClicked={this.updateRuleFormula}
-                          />
-                          <RegOpzReportGrid
-                            gridData={this.props.gridData}
-                            report_id={this.state.form.report_id}
-                            handleSelectCell={this.handleSelectCell.bind(this)}
-                          />
-                      </Panel>
-                      </div>
-                    }
-
-                  <div className="form-group">
+                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="comp-agg-ref">Aggregation Logic <span className="required">*</span></label>
+                     <div className="col-md-6 col-sm-6 col-xs-12">
+                       <textarea
+                         value={this.state.form.comp_agg_rule}
+                         type="text"
+                         className="form-control col-md-7 col-xs-12"
+                         readonly={true}
+                         disabled={this.viewOnly}
+                       />
+                     </div>
+                     <button
+                         type="button"
+                         disabled={this.viewOnly}
+                         className="btn btn-primary btn-xs"
+                         onClick={this.handleEditAggRule}
+                       >
+                      Edit
+                    </button>
+                   </div>
+                   <div className="form-group">
                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="reporting-scale">Reporting Scale<span className="required">*</span></label>
                     <div className="col-md-2 col-sm-2 col-xs-12">
                       <input
@@ -360,24 +238,47 @@ class AddReportAggRules extends Component {
                     <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
                       <button type="button" className="btn btn-primary" onClick={this.props.handleClose}>
                         Cancel</button>
-                      {
-                        ((viewOnly)=>{
-                          if(! viewOnly) {
-                            return(
-                                <button type="submit" className="btn btn-success" >Submit</button>
-                            );
-                          }
-                        })(this.viewOnly)
+                      {!this.viewOnly &&
+                        <button type="submit" className="btn btn-success" >Submit</button>
                       }
-
                     </div>
                   </div>
 
           </form>
          </div>
-        </div>
+         </div>
+       }
+       { this.state.display=="editAggRule" &&
+         <AggRuleAssist
+           {...this.state.form}
+           handleEditAggRule={this.handleEditAggRule}
+           handleChangeAggRule={this.handleChangeAggRule}
+           gridData={this.props.gridData}/>
+       }
       </div>
+
+
+
     );
+  }
+
+  handleChangeAggRule(formula){
+
+    let newState={...this.state};
+    newState.form.comp_agg_rule=formula;
+    this.setState(newState);
+
+  }
+
+  handleEditAggRule(){
+    console.log("handleEditAggRule:",this);
+    let isOpen = (this.state.display == "editAggRule");
+    if(isOpen){
+        this.setState({display: null});
+    }
+    else{
+      this.setState({display: "editAggRule"});
+    }
   }
 
   handleSubmit(event) {
@@ -410,40 +311,12 @@ class AddReportAggRules extends Component {
 
     this.props.handleClose();
   }
-
-  checkRuleValidity(event){
-    var nstr = ''
-    var str = event.target.value;
-    var str1 = event.target.value;
-    var nnstr=''
-    var aggRulesPattern = /[\+\-\*\/\(\)\[\]\{\}\^]/g;
-    //do {
-      //nstr = str.replace(this.aggRulesPattern, '0');
-      nstr = str.replace(aggRulesPattern, ',');
-      nstr = nstr.split(",");
-      nstr.map(function(item,index){
-          this.state.form.cell_business_rules += `${item.text},`;
-        }.bind(this));
-      console.log('inside while...',nstr,str);
-    //} while (nstr !== str && ((str = nstr) || 1));
-    nnstr = str1.replace(/(AB\b|A\b|ABC\b)/g,'2');
-    console.log('outside while...',nnstr,nstr,str);
-    if (str === '0') {
-      console.log("valid");
-      return "valid";
-    } else {
-      console.log("invalid");
-      return "invalid";
-    }
-  }
-
 }
 
 function mapStateToProps(state) {
   return{
     //cell_rules: state.report_store.cell_rules,
-    cell_options: state.report_store.cell_rules,
-    login_details: state.login_store,
+    login_details: state.login_store
   };
 }
 
@@ -454,10 +327,7 @@ const mapDispatchToProps = (dispatch) => {
     },
     updateRuleData:(id, data) => {
       dispatch(actionUpdateRuleData(id, data));
-    },
-    drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
-    },
+    }
   };
 }
 
