@@ -58,6 +58,9 @@ import { actionCheckReportId } from '../../actions/CaptureReportTemplateAction';
     if (!values.report_id) {
         errors.report_id = "Report ID can not be empty.";
     }
+    if (values.report_description < 30) {
+        errors.report_description = "Report Description can not be less than 30 characters.";
+    }
     return errors;
   }
 
