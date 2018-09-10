@@ -107,6 +107,11 @@ class LoginComponent extends Component {
     }
 
     componentDidMount() {
+       $(window).load(function() {
+                // Animate loader off screen
+                $(".se-pre-con").fadeOut("slow");
+        });
+        $("#main_container").removeClass("se-pre-con");
         document.body.classList.add('login');
         document.title = "RegOpz Login";
     }
