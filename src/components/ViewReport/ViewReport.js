@@ -461,7 +461,8 @@ class ViewReport extends Component {
 
   handleExportReport(event) {
     let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
-    this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
+    this.props.exportXlsx(this.state.reportId, reportingDate,'Y',
+                          this.state.selectedRecord)
   }
 
   handleModalOkayClick(event){
@@ -810,8 +811,8 @@ const mapDispatchToProps = (dispatch) => {
     createTransReport:(reportInfo)=>{
       dispatch(actionCreateTransReport(reportInfo));
     },
-    exportXlsx:(report_id,reporting_date,cell_format_yn) => {
-      dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn));
+    exportXlsx:(report_id,reporting_date,cell_format_yn,selectedRecord) => {
+      dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn,selectedRecord));
     },
     exportRulesXlsx:(report_id) => {
       dispatch(actionExportRulesXlsx(report_id));

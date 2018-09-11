@@ -25,7 +25,7 @@ export default class RegOpzDataGridBody extends Component {
     }
 
     cellSpan(title,value, stylex,item){
-      if (item.origin =='TEMPLATEIMAGE')
+      if (item.origin =='TEMPLATEIMAGE' || item.cell == 'A3')
       {
         // console.log("Image style values...",stylex.height,stylex.width,(stylex.height/stylex.width)*100,Object.keys(stylex))
         let imgStyle={

@@ -797,7 +797,7 @@ const mapDispatchToProps = (dispatch) => {
     insertRuleData:(data,domain_type) => {
       dispatch(actionTransReportInsertRule(data,domain_type));
     },
-    updateRuleData:(id,data) => {
+    updateRuleData:(id,data,domain_type) => {
       dispatch(actionTransReportUpdateRule(id,data,domain_type));
     }
   }

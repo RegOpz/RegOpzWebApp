@@ -174,7 +174,8 @@ class DrillDownRules extends Component {
               cellRules.comp_agg_rules.map((item,index)=>{
                 return(
                   (item.in_use =="Y" ||
-                  (item.in_use !="X" && item.dml_allowed != 'X')) &&
+                  (item.in_use !="X" && item.dml_allowed != 'X') ||
+                  this.reportingDate ) &&
                   <tr>
                     <td>{index}</td>
                     <td>
@@ -254,7 +255,8 @@ class DrillDownRules extends Component {
             item.map((item,index)=>{
               return(
                 (item.in_use =="Y" ||
-                (item.in_use !="X" && item.dml_allowed != 'X')) &&
+                (item.in_use !="X" && item.dml_allowed != 'X') ||
+                this.reportingDate ) &&
                 <tr>
                   <td>{item.source_id}</td>
                   <td>

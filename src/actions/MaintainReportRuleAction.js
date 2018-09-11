@@ -97,10 +97,13 @@ export function actionDeleteRuleData(id,data) {
   }
 }
 
-export function actionExportXlsx(report_id,reporting_date,cell_format_yn){
+export function actionExportXlsx(report_id,reporting_date,cell_format_yn, selectedRecord){
   const url = BASE_URL + "view-report/get-report-export-to-excel?report_id=" + report_id
               + "&reporting_date=" + reporting_date
-              + "&cell_format_yn=" + cell_format_yn;
+              + "&cell_format_yn=" + cell_format_yn
+              + "&report_snapshot=" + encodeURIComponent(selectedRecord.report_snapshot)
+              + "&version=" + selectedRecord.version
+              + "&report_parameters=" + encodeURIComponent(selectedRecord.report_parameters);
   return{
     type:EXPORT_REPORT_XLSX,
     payload:axios.get(url)

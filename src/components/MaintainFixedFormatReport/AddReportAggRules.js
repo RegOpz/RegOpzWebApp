@@ -171,13 +171,13 @@ class AddReportAggRules extends Component {
                         required="requried"
                         className="form-control col-md-6 col-sm-6 col-xs-12"
                         placeholder="Enter Summary Description"
-                        value={this.state.form.comp_agg_decsription}
+                        value={this.state.form.cell_agg_decsription}
                         readonly={true}
                         disabled={this.viewOnly}
                         onChange={
                           (event) => {
                             let form=this.state.form;
-                            form.comp_agg_decsription = event.target.value;
+                            form.cell_agg_decsription = event.target.value;
                             this.setState({form:form});
                           }
                         }

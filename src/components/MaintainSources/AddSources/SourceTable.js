@@ -95,6 +95,10 @@ class SourceTable extends Component {
             let varcharValue = `varchar(${this.state.varcharAmount})`;
             this.props.handleChange({ target: { value: varcharValue } }, 'type', index);
         }
+        else if (value === 'float') {
+          let decimaldef = `decimal(65,20)`;
+          this.props.handleChange({ target: { value: decimaldef } }, 'type', index);
+        }
         else {
             this.setState({ varcharSelected: false });
             this.props.handleChange(event, 'type', index);

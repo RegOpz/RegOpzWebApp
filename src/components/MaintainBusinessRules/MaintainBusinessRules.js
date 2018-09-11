@@ -5,6 +5,7 @@ import { bindActionCreators, dispatch } from 'redux';
 import { Link } from 'react-router';
 import _ from 'lodash';
 import ReactTable from 'react-table';
+import { compareTwoStrings, findBestMatch } from 'string-similarity';
 import { actionFetchAuditList } from '../../actions/DefChangeAction';
 import {
   //actionFetchSources,
@@ -643,8 +644,14 @@ class MaintainBusinessRules extends Component {
                           }}
                           defaultFilterMethod = {(filter, row, column) => {
                             const id = filter.pivotId || filter.id
-                            let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
-                            return row[id] !== undefined ? String(row[id]).match(matchText) : true
+                            let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:]$/,'').replace(/[,+&\:]/g,'|')})`,'i');
+                            // return row[id] !== undefined ? String(row[id]).match(matchText) : true
+                            // var stringSimilarity = require('string-similarity');
+                            let fuzzyCompare = findBestMatch(row[id]?row[id]:'*',filter.value.toString().split(/[,+&\:]/))
+                            return row[id] !== undefined ? String(row[id]).match(matchText) ||
+                                                           // compareTwoStrings(filter.value.toString(),row[id]?row[id]:'*')>=0.5
+                                                           fuzzyCompare.bestMatch.rating >=0.5
+                                                           : true
                           }}
                           onFetchData={(state,instance)=>{
                                           console.log("Inside onFetchData ...",state.page, state.pageSize, this.currentPage);

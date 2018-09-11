@@ -220,7 +220,8 @@ class DrillDownTransRules extends Component {
                       secOrders.length > 0 && secOrders.map((item,index)=>{
                         return(
                           (item.in_use =="Y" ||
-                          (item.in_use !="X" && item.dml_allowed != 'X')) &&
+                          (item.in_use !="X" && item.dml_allowed != 'X') ||
+                          this.reportingDate ) &&
                           <tr>
                             <td><strong>{index+1}</strong></td>
                             <td>
@@ -316,7 +317,8 @@ class DrillDownTransRules extends Component {
               console.log("After parsing JSON string...", cellCalc);
               return(
                 (item.in_use=="Y" ||
-                (item.in_use !="X" && item.dml_allowed != 'X')) &&
+                (item.in_use !="X" && item.dml_allowed != 'X') ||
+                this.reportingDate ) &&
                 <tr>
                   <td>{item.source_id}</td>
                   <td>
