@@ -21,13 +21,13 @@ export default function(state = {}, action) {
         if (action.error){
           let loginTime = new Date()
           return Object.assign({}, state, {
-            user: null, name: null, role: null, permission: null,error: loginTime.toLocaleString()+" " +action.payload.response.data.msg
+            user: null, name: null, role: null, permission: null, report: null, source: null, error: loginTime.toLocaleString()+" " +action.payload.response.data.msg
           });
         } else {
-          const { userId, name, role, permission, domainInfo } = helperLogin(action.payload.data);
+          const { userId, name, role, permission, report, source, domainInfo } = helperLogin(action.payload.data);
           sessionStorage.setItem('RegOpzToken', action.payload.data);
           return Object.assign({}, state, {
-            user: userId, name: name, role: role, permission: permission, error: null
+            user: userId, name: name, role: role, permission: permission, report: report, source: source, error: null
           });
         }
       } catch (err) {
@@ -35,11 +35,11 @@ export default function(state = {}, action) {
       }
     case LOGIN_CHECK:
       try {
-        const { userId, name, role, permission, domainInfo } = helperLogin(action.payload);
+        const { userId, name, role, permission, report, source, domainInfo } = helperLogin(action.payload);
         // setTenantDetail(domainInfo);
         const {tenant_id,country,tenant_description,subscription_details}=JSON.parse(domainInfo);
         let subscriptionInfo={tenant_id,country,tenant_description,subscription_details};
-        return { user: userId, name: name, role: role, permission: permission, error: null, domainInfo:subscriptionInfo  };
+        return { user: userId, name: name, role: role, permission: permission, report: report, source: source, error: null, domainInfo:subscriptionInfo  };
       } catch (err) {
         return { error: err.message };
       }

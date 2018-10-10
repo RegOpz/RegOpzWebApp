@@ -551,11 +551,21 @@ class MaintainFixedFormatReportRules extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
-                      const permissions=[{"permission": "View Business Rules"}];
+                      const {permission,source} = this.props.login_details;
+                      const filter = this.businessRuleFilterParam;
+                      let isRulesComponent = permission.find(function(p){return p.component.match(/Business Rules/);});
+                      console.log("businessRuleFilterParam",source,isRulesComponent,filter,this.businessRuleFilterParam);
+                      let sourceItem = source.find(function(s){return s.source_id==filter.source_id;});
+                      if (sourceItem){
+                          console.log("permission_details...",sourceItem);
+                          sourceItem={...sourceItem,...JSON.parse(sourceItem.permission_details)};
+                      }
+                      const permissions=[{"permission": isRulesComponent ? "View Business Rules" : null}];
                       content.push(
                           <ViewBusinessRules
                             privileges={ permissions }
-                            showBusinessRuleGrid={true}
+                            selectedItem={ sourceItem }
+                            showBusinessRuleGrid={"showBusinessRuleGrid"}
                             flagRuleDrillDown={true}
                             sourceId={this.businessRuleFilterParam.source_id}
                             ruleFilterParam={this.businessRuleFilterParam}

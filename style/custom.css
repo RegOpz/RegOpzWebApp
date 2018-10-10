@@ -475,6 +475,11 @@ body .container.body .right_col {
     border: 1px solid #F39C12 !important;
     color: #fff
 }
+.bg-amber {
+    background: #EEA236 !important;
+    border: 1px solid #F39C12 !important;
+    color: #fff
+}
 .bg-purple {
     background: #9B59B6 !important;
     border: 1px solid #9B59B6 !important;
@@ -551,8 +556,17 @@ body {
 .fixed_height_200 {
     height: 200px
 }
+.fixed_height_100 {
+    height: 100px;
+}
+.fixed_height_50 {
+    height: 50px;
+}
 .overflow_hidden {
     overflow: hidden
+}
+.overflow_auto {
+    overflow: auto
 }
 .progress-bar-dark {
     background-color: #34495E !important

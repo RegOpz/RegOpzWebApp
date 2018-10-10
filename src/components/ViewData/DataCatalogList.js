@@ -21,6 +21,9 @@ class DataCatalogList extends Component {
     this.dataCatalogEndDate = this.props.dataCatalog.end_date;
     this.dataCatalog = this.props.dataCatalog.data_sources;
     this.linkageData = this.dataCatalog;
+    this.sourcePermissions = this.props.sourcePermissions;
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
+    this.associateRulePermission = this.associateRulePermission.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
@@ -29,6 +32,7 @@ class DataCatalogList extends Component {
       this.dataCatalogStartDate = nextProps.dataCatalog.start_date;
       this.dataCatalogEndDate = nextProps.dataCatalog.end_date;
       this.linkageData = this.dataCatalog;
+      this.sourcePermissions = nextProps.sourcePermissions;
       this.setState ({
         startDate:moment(this.dataCatalogStartDate),
         endDate:moment(this.dataCatalogEndDate),
@@ -60,10 +64,61 @@ class DataCatalogList extends Component {
     this.setState({ endDate: date });
   }
 
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
+  }
+
+  associateRulePermission(linkageData){
+      let dataSource=[];
+      // console.log("this.sourcePermissions...",this.sourcePermissions)
+      linkageData.map((source,index)=>{
+        let permission = this.sourcePermissions ?
+                         this.sourcePermissions.find(function(p){return p.source_id==source.source_id;})
+                         :
+                         undefined;
+        // console.log("permission...",permission)
+        let permission_details = {
+                                   access_type: 'No access',
+                                   access_condition: '',
+                                   ruleaccess_type: 'No access',
+                                   access_condition: ''
+                                 };
+        if (permission){
+          permission_details = JSON.parse(permission.permission_details);
+          permission_details.ruleaccess_type = permission_details.ruleaccess_type ?
+                                               permission_details.ruleaccess_type : 'No access';
+          permission_details.ruleaccess_condition = permission_details.ruleaccess_condition ?
+                                               permission_details.ruleaccess_condition : '';
+        }
+        let versions=[]
+        source.versions.map((ver,idx)=>{
+          versions.push({ ...ver,
+                          ...permission_details,
+                          source_file_name:permission? permission.source_file_name : 'Check Source',
+                          source_table_name:permission? permission.source_table_name : 'Check Source'
+                        });
+        })
+        source.versions = versions;
+        dataSource.push({...source,
+                         ...permission_details,
+                         source_file_name:permission? permission.source_file_name : 'Check Source',
+                         source_table_name:permission? permission.source_table_name : 'Check Source'});
+
+      });
+
+      return dataSource;
+  }
+
   handleFilter(){
 
       if(typeof this.dataCatalog != 'undefined' && this.dataCatalog.length ){
-        let linkageData = this.dataCatalog;
+        let linkageData = this.associateRulePermission(this.dataCatalog);
         const { startDate, endDate, filterText } = this.state;
         if (startDate != null) {
             linkageData = linkageData.filter(item => {
@@ -169,12 +224,16 @@ class DataCatalogList extends Component {
               <tbody>
               {linkageData.map((item,index) => {
                 return (
-                  <tr key={index}>
+                  <tr key={index}
+                    className={ this.getaccTypeColor(item.access_type)}
+                    >
                     <td>{moment(item.business_date).format("DD-MMM-YYYY")}</td>
-                    <td>{item.source_id}</td>
+                    <td>
+                      <i className={"fa fa-tags "}></i>
+                      &nbsp;{item.source_id}</td>
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.access_type)}
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.source_description}
@@ -210,6 +269,7 @@ class DataCatalogList extends Component {
                           data-toggle="tooltip"
                           data-placement="top"
                           title="View Data Feed Versions"
+                          disabled={ item.access_type=="No access"}
                           onClick={
                             (event)=>{
                               this.props.viewDataVersions(item)
@@ -271,10 +331,17 @@ class DataCatalogList extends Component {
             <tbody>
               {
                 linkageData.map((item,index) => (
-                    <tr key={index}>
+                    <tr key={index}
+                      className={ this.getaccTypeColor(item.access_type) }
+                      onClick={
+                        (event)=>{
+                          this.props.handleDataFileClick(item)
+                        }
+                      }
+                      >
                       <td>{item.source_id}</td>
                       <td><button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.access_type)}
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.data_file_name}

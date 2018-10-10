@@ -7,7 +7,7 @@ import { Tab, Tabs } from 'react-bootstrap';
 import _ from 'lodash';
 import {
   actionFetchReportTemplate,
-  actionExportXlsx,
+  // actionExportXlsx,
   actionExportRulesXlsx,
   // actionFetchReportChangeHistory,
   actionUpdateRuleData
@@ -29,6 +29,7 @@ import {
   actionFetchTransReportSecRules,
   actionFetchTransReportChangeHistory,
   actionDeleteTransReportRules,
+  actionTransExportXlsx,
 } from '../../actions/TransactionReportAction';
 import {
   actionLeftMenuClick,
@@ -445,7 +446,7 @@ class MaintainTransactionReportRules extends Component {
 
   handleExportReport(event) {
     let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
-    this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
+    this.props.exportTransXlsx(this.state.reportId, reportingDate,'Y')
   }
 
   handleSaveParameterClick(report_info){
@@ -895,8 +896,8 @@ const mapDispatchToProps = (dispatch) => {
     applyRules:(source_info) => {
       dispatch(actionApplyRules(source_info));
     },
-    exportXlsx:(report_id,reporting_date,cell_format_yn) => {
-      dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn));
+    exportTransXlsx:(report_id,reporting_date,cell_format_yn) => {
+      dispatch(actionTransExportXlsx(report_id,reporting_date,cell_format_yn));
     },
     exportRulesXlsx:(report_id) => {
       dispatch(actionExportRulesXlsx(report_id));

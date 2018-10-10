@@ -125,7 +125,7 @@ class ModifyUser extends Component {
         //console.log("Inside componentWillMount", this.initialValues, this.shouldUpdate)
         if (typeof this.userIndex !== 'undefined' && this.userIndex != null) {
             this.props.fetchUser(this.userIndex);
-            this.props.fetchRoles();
+            this.props.fetchRoles(this.props.login_details.domainInfo.tenant_id);
         } else {
             hashHistory.push(encodeURI('/dashboard'));
         }
@@ -309,7 +309,8 @@ function mapStateToProps(state) {
     return {
         userDetails: state.user_details.error,
         roleList: state.role_management.data,
-        selectedRole: selector(state, 'Role')
+        selectedRole: selector(state, 'Role'),
+        login_details:state.login_store,
     };
 }
 
@@ -318,8 +319,8 @@ const mapDispatchToProps = (dispatch) => {
         fetchUser: (data) => {
             dispatch(actionFetchUsers(data));
         },
-        fetchRoles: () => {
-            dispatch(actionFetchRoles());
+        fetchRoles: (tenant_id) => {
+            dispatch(actionFetchRoles(tenant_id));
         },
         submitUser: (data) => {
             dispatch(actionUpdateUser(data));

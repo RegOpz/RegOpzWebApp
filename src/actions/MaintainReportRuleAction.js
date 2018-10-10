@@ -101,9 +101,9 @@ export function actionExportXlsx(report_id,reporting_date,cell_format_yn, select
   const url = BASE_URL + "view-report/get-report-export-to-excel?report_id=" + report_id
               + "&reporting_date=" + reporting_date
               + "&cell_format_yn=" + cell_format_yn
-              + "&report_snapshot=" + encodeURIComponent(selectedRecord.report_snapshot)
-              + "&version=" + selectedRecord.version
-              + "&report_parameters=" + encodeURIComponent(selectedRecord.report_parameters);
+              + "&report_snapshot=" + (selectedRecord ? encodeURIComponent(selectedRecord.report_snapshot) : "{}")
+              + "&version=" + (selectedRecord ? selectedRecord.version : "0")
+              + "&report_parameters=" + (selectedRecord ? encodeURIComponent(selectedRecord.report_parameters) : "{}");
   return{
     type:EXPORT_REPORT_XLSX,
     payload:axios.get(url)

@@ -20,7 +20,9 @@ import {
 } from '../../actions/ViewDataAction';
 import {
   actionCreateTransReport,
-  actionFetchTransReportData
+  actionFetchTransReportData,
+  actionFetchTransReportChangeHistory,
+  actionTransExportXlsx
 } from '../../actions/TransactionReportAction';
 import {
   actionFetchReportData,
@@ -49,6 +51,7 @@ import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
 import CreateReport from '../CreateReport/CreateReport';
 import OperationLogList from '../OperationLog/OperationLogList';
 import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
+import AccessDenied from '../Authentication/AccessDenied';
 require('react-datepicker/dist/react-datepicker.css');
 
 class ViewReport extends Component {
@@ -124,6 +127,9 @@ class ViewReport extends Component {
     this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
+    // this.getGridData = this.getGridData.bind(this);
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
+
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report" }) ? true : false;
   }
@@ -140,11 +146,12 @@ class ViewReport extends Component {
     if (this.state.selectedRecord && this.state.selectedRecord.report_type=="TRANSACTION"){
       console.log("Inside this.state.selectedRecord && this.state.selectedRecord.report_type==TRANSACTION",this.state.selectedRecord)
       this.gridDataViewReport = nextProps.gridDataViewTransReport;
+      this.changeHistory=nextProps.trans_change_history;
     } else {
       this.gridDataViewReport=nextProps.gridDataViewReport;
+      this.changeHistory=nextProps.change_history;
     }
     this.gridData=nextProps.gridData;
-    this.changeHistory=nextProps.change_history;
     this.operationLogs=nextProps.operation_log;
     this.reportBusinessRules=nextProps.cell_rules;
     console.log("nextProps",this.props.leftmenu);
@@ -156,34 +163,47 @@ class ViewReport extends Component {
         showAggRuleDetails: false,
         showCellChangeHistory: false,
         renderStyle: false,
+        selectedRecord: null,
       });
     }
   }
 
   handleReportClick(item) {
     console.log("selected item",item);
-    this.currentPage = 0;
-    this.selectedViewColumns=[];
-    this.gridDataViewReport=undefined;
-    this.setState({
-        display: "showReportGrid",
-        reportId: item.report_id,
-        reportingDate: item.reporting_date,
-        businessDate: item.as_of_reporting_date,
-        selectedRecord: item,
-     },
-      ()=>{
-        if (item.report_type=="TRANSACTION"){
-          this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate, this.state.selectedRecord.version);
-        } else {
-          this.props.fetchReportData(this.state.reportId,this.state.reportingDate,
-            this.state.selectedRecord.version,this.state.selectedRecord.report_snapshot,
-            this.state.selectedRecord.report_parameters
-          );
-        }
+    if(item.access_type=="No access"){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please note that you do not have access to view " + item.report_type + " report "
+                            +"[" + item.report_id + "]. Contact administrator for access permission.");
+      this.setState({display: "accessDenied",
+                     reportId: item.report_id,
+                     reportingDate: item.reporting_date,
+                     businessDate: item.as_of_reporting_date,
+                     selectedRecord: item,
+                   });
+    } else {
+      this.currentPage = 0;
+      this.selectedViewColumns=[];
+      this.gridDataViewReport=undefined;
+      this.setState({
+          display: "showReportGrid",
+          reportId: item.report_id,
+          reportingDate: item.reporting_date,
+          businessDate: item.as_of_reporting_date,
+          selectedRecord: item,
+       },
+        ()=>{
+          if (item.report_type=="TRANSACTION"){
+            this.props.fetchTransReportData(this.state.reportId,this.state.reportingDate, this.state.selectedRecord.version);
+          } else {
+            this.props.fetchReportData(this.state.reportId,this.state.reportingDate,
+              this.state.selectedRecord.version,this.state.selectedRecord.report_snapshot,
+              this.state.selectedRecord.report_parameters
+            );
+          }
 
-      }
-    );
+        }
+      );
+    }
   }
 
   handleEditParameterClick(item) {
@@ -314,6 +334,16 @@ class ViewReport extends Component {
     }
   }
 
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
+  }
+
   handleDetails(event){
     //TODO
     let isOpen = this.state.display === "showDrillDownRules";
@@ -425,11 +455,18 @@ class ViewReport extends Component {
     } else {
       //this.props.fetchReportChangeHistory(this.state.reportId);
       //console.log("Repot Linkage",this.props.change_history);
-      let sheetName = this.props.gridDataViewReport[0].sheet;
       this.setState({
         display: "showHistory"
         },
-        ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+        ()=>{
+          if (this.state.selectedRecord.report_type=="TRANSACTION"){
+            let sheetName = this.props.gridDataViewTransReport[0].sheet;
+            this.props.fetchTransReportChangeHistory(this.state.reportId,sheetName);
+          } else {
+            let sheetName = this.props.gridDataViewReport[0].sheet;
+            this.props.fetchReportChangeHistory(this.state.reportId,sheetName)
+          }
+        }
       );
     }
   }
@@ -461,8 +498,14 @@ class ViewReport extends Component {
 
   handleExportReport(event) {
     let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
-    this.props.exportXlsx(this.state.reportId, reportingDate,'Y',
-                          this.state.selectedRecord)
+    if (this.state.selectedRecord.report_type=="TRANSACTION"){
+      this.props.exportTransXlsx(this.state.reportId, reportingDate,'Y',
+                            this.state.selectedRecord)
+    } else {
+      this.props.exportXlsx(this.state.reportId, reportingDate,'Y',
+                            this.state.selectedRecord)
+    }
+
   }
 
   handleModalOkayClick(event){
@@ -532,9 +575,26 @@ class ViewReport extends Component {
                       />
                   ];
                   if (this.state.showDrillDownData) {
+                      console.log("this.calcRuleFilter...",this.calcRuleFilter);
+                      const {permission,source} = this.props.login_details;
+                      const filters=this.calcRuleFilter.params.drill_kwargs;
+                      let isDataComponent = permission.find(function(p){return p.component.match(/View Data/);});
+                      let sourceItem = source.find(function(s){return s.source_id==filters.source_id;});
+                      if (!sourceItem){
+                        sourceItem={source_id: filters.source_id,
+                                    source_file_name: 'Check source',
+                                    source_table_name: 'Check source',
+                                    access_type: 'No access',
+                                    access_condition: ''
+                                  };
+                      } else {
+                        sourceItem = {...sourceItem,...JSON.parse(sourceItem.permission_details)}
+                      }
+                      const permissions=[{"permission": isDataComponent ? "View Data" : null}];
                       content.push(
                           <ViewData
                             showDataGrid={true}
+                            selectedItem={ sourceItem }
                             flagDataDrillDown={true}
                             sourceId={this.state.sourceId}
                             businessDate={this.state.businessDate}
@@ -551,11 +611,26 @@ class ViewReport extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
-                      const permissions=[{"permission": "View Business Rules"}];
+                      const {permission,source} = this.props.login_details;
+                      const filter = this.businessRuleFilterParam;
+                      let isRulesComponent = permission.find(function(p){return p.component.match(/Business Rules/);});
+                      let sourceItem = source.find(function(s){return s.source_id==filter.source_id;;});
+                      if (!sourceItem){
+                        sourceItem={source_id: filter.source_id,
+                                    source_file_name: 'Check source',
+                                    source_table_name: 'Check source',
+                                    ruleaccess_type: 'No access',
+                                    ruleaccess_condition: ''
+                                  };
+                      } else {
+                        sourceItem = {...sourceItem,...JSON.parse(sourceItem.permission_details)}
+                      }
+                      const permissions=[{"permission": isRulesComponent ? "View Business Rules" : null}];
                       content.push(
                           <ViewBusinessRules
                             privileges={ permissions }
-                            showBusinessRuleGrid={true}
+                            selectedItem={ sourceItem }
+                            showBusinessRuleGrid={"showBusinessRuleGrid"}
                             flagRuleDrillDown={true}
                             sourceId={this.businessRuleFilterParam.source_id}
                             ruleFilterParam={this.businessRuleFilterParam}
@@ -658,6 +733,14 @@ class ViewReport extends Component {
                     />
               );
               break;
+          case "accessDenied":
+            let item = this.state.selectedRecord;
+            if (this.state.selectedRecord){
+                return <AccessDenied
+                        component={"View Report for " + item.report_id + "]"
+                                              + " [Report Type: " + item.report_type + "] "}/>
+            }
+            break;
           default:
               return(
                   <ReportCatalogList
@@ -669,6 +752,7 @@ class ViewReport extends Component {
                     generateReport={this.submitGenerateReport}
                     viewReportVersions={this.viewReportVersions}
                     viewOperationLog={this.viewOperationLog}
+                    reportPermissions={this.props.login_details.report}
                     />
               );
       }
@@ -722,6 +806,7 @@ class ViewReport extends Component {
                                   navMenu={true}
                                   handleReportClick={this.handleReportClick}
                                   dateFilter={this.handleDateFilter}
+                                  reportPermissions={this.props.login_details.report}
                                   />
                               </li>
                             </ul>
@@ -802,6 +887,9 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
       dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
     },
+    fetchTransReportChangeHistory:(report_id,sheet_id,section_id) => {
+      dispatch(actionFetchTransReportChangeHistory(report_id,sheet_id,section_id));
+    },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
     },
@@ -813,6 +901,9 @@ const mapDispatchToProps = (dispatch) => {
     },
     exportXlsx:(report_id,reporting_date,cell_format_yn,selectedRecord) => {
       dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn,selectedRecord));
+    },
+    exportTransXlsx:(report_id,reporting_date,cell_format_yn,selectedRecord) => {
+      dispatch(actionTransExportXlsx(report_id,reporting_date,cell_format_yn,selectedRecord));
     },
     exportRulesXlsx:(report_id) => {
       dispatch(actionExportRulesXlsx(report_id));
@@ -836,6 +927,7 @@ function mapStateToProps(state){
     gridData: state.view_data_store.gridData,
     cell_rules: state.report_store.cell_rules,
     change_history:state.maintain_report_rules_store.change_history,
+    trans_change_history:state.transreport.change_history,
     operation_log: state.operation_log_store.operation_log,
     login_details:state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,

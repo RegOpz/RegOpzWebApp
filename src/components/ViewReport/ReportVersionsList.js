@@ -16,6 +16,7 @@ class ReportVersionsList extends Component {
     this.dataCatalog = this.props.dataCatalog.data_sources;
     this.linkageData = this.dataCatalog;
     this.handleFilter = this.handleFilter.bind(this);
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
@@ -47,6 +48,16 @@ class ReportVersionsList extends Component {
         }
         this.linkageData = linkageData;
       }
+  }
+
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
   }
 
   render(){
@@ -120,10 +131,12 @@ class ReportVersionsList extends Component {
               <tbody>
               {linkageData.map((item,index) => {
                 return (
-                  <tr key={index}>
+                  <tr key={index}
+                    className={ this.getaccTypeColor(item.access_type)}
+                    >
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.access_type)}
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
@@ -170,6 +183,7 @@ class ReportVersionsList extends Component {
                           data-toggle="tooltip"
                           data-placement="top"
                           title="Edit Report Parameters"
+                          disabled={item.access_type=="No access"}
                           onClick={
                             (event)=>{
                               this.props.editParameter(item)

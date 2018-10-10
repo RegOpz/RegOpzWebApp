@@ -1,14 +1,13 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { hashHistory } from 'react-router';
-import { Label, Checkbox } from 'react-bootstrap';
+import { Label, Checkbox, Tab, Tabs } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import ReactTable from 'react-table';
 import { bindActionCreators, dispatch } from 'redux';
 import moment from 'moment';
 import {
     actionFetchRoles,
-    actionFetchComponents,
-    actionFetchPermissions,
     actionUpdateRoles,
     actionDeleteRoles
 } from '../../../actions/RolesAction';
@@ -16,6 +15,9 @@ import Breadcrumbs from 'react-breadcrumbs';
 import AuditModal from '../../AuditModal/AuditModal';
 import ModalAlert from '../../ModalAlert/ModalAlert';
 import ViewRole from '../ViewRole';
+import SourcePermissions from './SourcePermissions';
+import ReportPermissions from './ReportPermissions';
+import ComponentPermissions from './ComponentPermissions';
 require('./AddRoles.css');
 
 class AddRolesComponent extends Component {
@@ -23,24 +25,22 @@ class AddRolesComponent extends Component {
         super(props);
         this.state = {
             role: this.props.role,
-            permissions: null,
-            selectedComponent: null,
-            showAuditModal: false
+            showAuditModal: false,
+            selectedTab: 0,
+            fetched: null,
         };
-        this.dataSource = null;
         this.domainInfo = this.props.login_details.domainInfo;
         this.subscribedComponents = JSON.parse(this.domainInfo.subscription_details);
         this.formData = [];
-        this.componentList = null;
-        this.permissionList = null;
+        this.components = null;
+        this.sources = null;
+        this.reports = null;
         this.modalAlert = null;
         this.buttonClicked = null;
         this.grouId = this.props.user + "PRMS" + moment.utc();
-        this.isDefaultChecked = this.isDefaultChecked.bind(this);
-        this.savePrevious = this.savePrevious.bind(this);
+
         this.onTextChange = this.onTextChange.bind(this);
-        this.onComponentSelect = this.onComponentSelect.bind(this);
-        this.onPermissionSelect = this.onPermissionSelect.bind(this);
+
         this.handleClose = this.props.handleClose;
         this.onClickOkay = this.onClickOkay.bind(this);
         this.handleCancel = this.handleCancel.bind(this);
@@ -48,28 +48,53 @@ class AddRolesComponent extends Component {
         this.handleSubmit = this.handleSubmit.bind(this);
         this.renderSubmitRole = this.renderSubmitRole.bind(this);
         this.formSubmit = this.formSubmit.bind(this);
+        this.checkRoleName = this.checkRoleName.bind(this);
     }
 
     componentWillMount() {
         if (this.state.role != null) {
-            this.props.fetchOne(this.state.role,"N");
+            this.props.fetchOne(this.props.tenant_id,this.state.role,"N" );
+        } else {
+            this.props.fetchOne(this.props.tenant_id,'Default',"N");
         }
-        this.props.fetchPermissions();
+        // this.props.fetchPermissions();
+    }
+
+    componentWillReceiveProps(nextProps) {
+        console.log("Role names: ",this.state.role,nextProps.form.role,nextProps.form);
+        if (this.state.role == nextProps.form.role || (!this.state.role && nextProps.form.role=="Default")) {
+          this.sources = nextProps.form.sources;
+          this.reports = nextProps.form.reports;
+          this.components = [];
+          // Only subscribed components will be available for role assignment
+          nextProps.form.components.map(
+            (item) => {
+              let isSubscribed = this.domainInfo.tenant_id=="regopz" ? true : this.subscribedComponents ? this.subscribedComponents[item.component] : false;
+              if (isSubscribed) this.components.push(item);
+          });
+        }
+        // this.props.fetchPermissions();
     }
 
     render() {
-        if (this.props.role) {
-            this.dataSource = this.props.form
-        }
-        if (typeof this.props.permissions !== 'undefined' && this.props.permissions !== null){
-          this.permissionList = this.props.permissions;
-          this.componentList = [];
-          // Only subscribed components will be available for role assignment
-          this.permissionList.map(
-            (item) => {
-              let isSubscribed = this.domainInfo.tenant_id=="regopz" ? true : this.subscribedComponents ? this.subscribedComponents[item.component] : false;
-              if (isSubscribed) this.componentList.push({ 'component': item.component });
-          });
+
+        console.log("Redering...",this.components,this.props.form);
+
+        if (typeof this.components !== 'undefined' && this.components !== null){
+          console.log("Redering...inside undefined ...",this.props.form);
+          // this.sources = this.props.form.sources;
+          // this.reports = this.props.form.reports;
+          // this.components = [];
+          // // Only subscribed components will be available for role assignment
+          // this.props.form.components.map(
+          //   (item) => {
+          //     let isSubscribed = this.domainInfo.tenant_id=="regopz" ? true : this.subscribedComponents ? this.subscribedComponents[item.component] : false;
+          //     if (isSubscribed) this.components.push(item);
+          // });
+        } else {
+          return(
+            <h4>Loading....</h4>
+          )
         }
 
         return(
@@ -82,27 +107,81 @@ class AddRolesComponent extends Component {
                       <div className="x_content">
                           <form className="form-horizontal form-label-left" onSubmit={ this.handleSubmit }>
                               <div className="form-group">
-                                <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="role-title">Role <span className="required">*</span></label>
-                                <div className="col-md-6 col-sm-6 col-xs-12">
+                                <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="role-title"><i className="fa fa-rocket"></i>{' Role '}<span className="required">*</span></label>
+                                <div className="col-md-4 col-sm-4 col-xs-12">
                                   <input
                                     name="role"
                                     placeholder="Title"
                                     value={ this.state.role }
                                     type="text"
                                     id="role-title"
-                                    className="form-control col-md-7 col-xs-12"
+                                    className="form-control col-md-4 col-xs-12"
+                                    readOnly={this.props.role}
                                     onChange={ this.onTextChange }
                                   />
                                 </div>
+                                {
+                                  !this.props.role &&
+                                  this.state.roleExists != undefined &&
+                                  <span className="red" ><i className="fa fa-warning"></i>{' Role name alreay exists!'}</span>
+                                }
                               </div>
-                              <div className="form-group">
-                                <div className="col-md-6 col-sm-6 col-xs-12 component-list">
-                                    { this.renderComponents() }
+                              <Tabs
+                                defaultActiveKey={0}
+                                activeKey={this.state.selectedTab}
+                                onSelect={(key) => {
+                                    this.setState({selectedTab:key});
+                                }}
+                                >
+                                <Tab
+                                  key={0}
+                                  eventKey={0}
+                                  title={<div className="green"><i className="fa fa-support"></i> Components</div>}
+                                >
+                                  <div className="form-group">
+                                  {
+                                    this.components &&
+                                    <ComponentPermissions
+                                      role = { this.state.role }
+                                      componentPermissions = { this.components }
+                                      />
+                                  }
+                                  </div>
+                                </Tab>
+                                {
+                                  this.props.tenant_id !='regopz' && // regopz tenant_id for master which does not have any source
+                                  <Tab
+                                    key={1}
+                                    eventKey={1}
+                                    title={<div className="blue"><i className="fa fa-rss"></i> Sources</div>}
+                                  >
+                                    <div className="form-group">
+                                    {
+                                      this.sources &&
+                                      <SourcePermissions
+                                        role = { this.state.role }
+                                        sourcePermissions = { this.sources }
+                                        />
+                                    }
+                                    </div>
+                                  </Tab>
+                                }
+                                <Tab
+                                  key={2}
+                                  eventKey={2}
+                                  title={<div className="amber"><i className="fa fa-file-text"></i> Reports</div>}
+                                >
+                                <div className="form-group">
+                                {
+                                  this.reports &&
+                                  <ReportPermissions
+                                    role = { this.state.role }
+                                    reportPermissions = { this.reports }
+                                    />
+                                }
                                 </div>
-                                <div className="col-md-6 col-sm-6 col-xs-12">
-                                    { this.renderPermissions() }
-                                </div>
-                              </div>
+                                </Tab>
+                              </Tabs>
                               <div className="form-group">
                                 <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
                                   <button type="button"
@@ -112,15 +191,18 @@ class AddRolesComponent extends Component {
                                   </button>
                                   <button type="submit"
                                   className="btn btn-success"
-                                  disabled={ !this.state.role }>
+                                  disabled={ !this.state.role || this.state.roleExists }>
                                     Submit
                                   </button>
-                                  <button type="button"
-                                  className="btn btn-danger"
-                                  disabled={ !this.props.role }
-                                  onClick={this.handleDelete}>
-                                    Delete
-                                  </button>
+                                  {
+                                    this.props.role &&
+                                    <button type="button"
+                                    className="btn btn-danger"
+                                    disabled={ !this.props.role }
+                                    onClick={this.handleDelete}>
+                                      Delete
+                                    </button>
+                                  }
                                 </div>
                               </div>
                           </form>
@@ -140,257 +222,15 @@ class AddRolesComponent extends Component {
         );
     }
 
-    renderComponents() {
-        if (this.componentList != null) {
-            return(
-            <div className="x_panel_overflow x_panel tile fixed_height_320">
-              <div className="x_title">
-                <h2>Asigning Permissions
-                  <small> for { this.state.selectedComponent ? this.state.selectedComponent: "component" }</small>
-                </h2>
-                <div className="clearfix"></div>
-              </div>
-              <div className="x_content">
-                <div className="dashboard-widget-content">
-                  <ul className="to_do">
-                  {
-                      this.componentList.map((item, index) => {
-                          return(
-                              <li
-                              className="list-group-item component-list-item"
-                              key={ index }>
-                                  <button type="button"
-                                  name={ item.component }
-                                  className="btn btn-primary component-btn"
-                                  onClick={ this.onComponentSelect }>
-                                      { item.component }
-                                  </button>
-                              </li>
-                          );
-                      })
-                  }
-                </ul>
-              </div>
-            </div>
-          </div>
-          );
-      } else {
-          return (
-            <div className="x_panel_overflow x_panel tile fixed_height_320">
-              <div className="x_title">
-                <h2>No Component Available
-                  <small>for permissions</small>
-                </h2>
-                <div className="clearfix"></div>
-              </div>
-              <div className="x_content">
-                <div className="dashboard-widget-content">
-                  <ul className="to_do">
-                    <p>Ooops, No component available</p>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          );
-        }
-    }
-
-    renderPermissions() {
-        if (this.permissionList != null && this.state.selectedComponent != null) {
-          return(
-            <div className="x_panel_overflow x_panel tile fixed_height_320">
-              <div className="x_title">
-                <h2>{ this.state.selectedComponent }
-                  <small>Available permissions</small>
-                </h2>
-                <div className="clearfix"></div>
-              </div>
-              <div className="x_content">
-                <div className="dashboard-widget-content">
-                  <ul className="to_do">
-                  {
-                      (() => {
-                          let permissionIndex = this.permissionList.findIndex(
-                              (item) => {
-                                  return item.component === this.state.selectedComponent;
-                              }
-                          );
-                          console.log("PermissionIndex inside permission list..",permissionIndex,this.permissionList[permissionIndex]);
-                          let permission_list = [];
-                          this.permissionList[permissionIndex].permissions.map((item, index) => {
-                              permission_list.push(
-                                  <li
-                                  key={ index }>
-                                  <div>
-                                    <input
-                                      type="checkbox"
-                                      id={ item.permission }
-                                      name={ item.permission }
-                                      value={ item.permission }
-                                      disabled={ this.isEditable(item.permission) }
-                                      onChange={ this.onPermissionSelect }
-                                      checked={ this.isDefaultChecked(item.permission) }/>
-                                    <span className="perm_label">
-                                      { item.permission }
-                                    </span>
-                                  </div>
-                                  </li>
-                              );
-                          })
-                          return permission_list;
-                      })(this)
-                  }
-                  </ul>
-                </div>
-              </div>
-            </div>
-          );
-      } else {
-          return (
-            <div className="x_panel_overflow x_panel tile fixed_height_320">
-              <div className="x_title">
-                <h2>No Component Selected
-                  <small>for permissions</small>
-                </h2>
-                <div className="clearfix"></div>
-              </div>
-              <div className="x_content">
-                <div className="dashboard-widget-content">
-                  <ul className="to_do">
-                    <p>Please select a component to assign permissions</p>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          );
-        }
-    }
-
-    isDefaultChecked(permission) {
-        if (this.state.permissions != null) {
-            let selectedPermission = this.state.permissions.find(
-                (item) => {
-                    return item.permission == permission;
-                }
-            );
-            if (typeof selectedPermission !== 'undefined') {
-              //return !!selectedPermission.permission_id;
-              if (selectedPermission.status=== 'PENDING'){
-                return true;
-              } else {
-                return !!selectedPermission.permission_id;
-              }
-              //return ((selectedPermission.in_use == 'Y' || selectedPermission.status == 'PENDING')? true : false);
-            }
-        }
-        return false;
-    }
-
-    isEditable(permission) {
-        if (this.state.permissions != null) {
-            let selectedPermission = this.state.permissions.find(
-                (item) => {
-                    return item.permission == permission;
-                }
-            );
-            if (typeof selectedPermission !== 'undefined') {
-              return !!selectedPermission.status;
-            }
-        }
-        return false;
-    }
-
-    savePrevious() {
-        if (this.state.selectedComponent != null && this.state.permissions != null) {
-            let selectedComponent = this.state.selectedComponent;
-            let permissions = this.state.permissions;
-            let pushObj = {
-                'component': selectedComponent,
-                'permissions': permissions
-            };
-            if (this.dataSource == null) {
-                this.dataSource = { 'components': [ pushObj ]};
-            } else {
-                let selectedPermissionsIndex = this.dataSource.components.findIndex(
-                    (item) => {
-                        return item.component == selectedComponent;
-                    }
-                );
-                if (selectedPermissionsIndex == -1) {
-                    this.dataSource.components.push(pushObj);
-                } else {
-                    this.dataSource.components[selectedPermissionsIndex].permissions = permissions;
-                }
-            }
-        }
-    }
-
     onTextChange(e) {
-        this.setState({ [e.target.name]: e.target.value });
+        let roleExists = this.checkRoleName(e.target.value);
+        this.setState({ [e.target.name]: e.target.value, roleExists: roleExists });
     }
 
-    onComponentSelect(e) {
-        this.savePrevious();
-        let selectedComponent = e.target.name;
-        let permissions = null;
-        if (this.dataSource != null) {
-            let selectedPermissions = this.dataSource.components.filter(
-                (item) => {
-                    return item.component == selectedComponent;
-                }
-            );
-            console.log(selectedComponent, "selectedPermissions...", selectedPermissions);
-            if (selectedPermissions.length != 0) {
-              permissions = selectedPermissions[0].permissions;
-            }
-        }
-        this.setState({ selectedComponent: selectedComponent, permissions: permissions });
-    }
-
-    onPermissionSelect(e) {
-        let targetName = e.target.name;
-        let selectedComponent = this.state.selectedComponent;
-        console.log("Clicked:", targetName, "on", selectedComponent);
-        let permissionId = null, in_use = false, dml_allowed = false;
-        if (this.permissionList != null) {
-          let listElement = this.permissionList.find(
-            (item) => {
-              return item.component == selectedComponent;
-            }
-          );
-          if (typeof listElement !== 'undefined') {
-            let selectedPermission = listElement.permissions.find(
-              (item) => {
-                return item.permission == targetName;
-            });
-            console.log(selectedPermission);
-            if (typeof selectedPermission !== 'undefined') {
-              permissionId = selectedPermission.permission_id;
-              dml_allowed = selectedPermission.dml_allowed;
-            }
-          }
-        }
-        let permissionObj = {
-            'permission': targetName,
-            'permission_id': permissionId,
-            'dml_allowed': dml_allowed
-        }
-        if (this.state.permissions == null) {
-            this.setState({ permissions: [ permissionObj ] });
-        } else {
-            let permissions = this.state.permissions;
-            let permissionIndex = permissions.findIndex(
-                (item) => {
-                    return item.permission == targetName;
-                }
-            );
-            if (permissionIndex == -1) {
-                permissions.push(permissionObj);
-            } else {
-                permissions[permissionIndex].permission_id = permissions[permissionIndex].permission_id ? null : permissionId;
-            }
-            this.setState({ permissions: permissions });
-        }
+    checkRoleName(role){
+        let a = this.props.roles.find(function(rec){return rec.role.toLowerCase() == role.trim().toLowerCase();});
+        // console.log("Value of checkRoleName...", a)
+        return a;
     }
 
     onClickOkay(e) {
@@ -403,6 +243,7 @@ class AddRolesComponent extends Component {
 
     handleCancel(e) {
         this.buttonClicked = "Cancel";
+        console.log("Values of the permissions...",this.props.form.sources)
         this.modalAlert.open("Are you sure to cancel all the changes?");
     }
 
@@ -422,10 +263,25 @@ class AddRolesComponent extends Component {
             console.log("410:", form.comment);
             this.props.deleteRow(this.state.role, form.comment);
         } else if (this.buttonClicked == 'Submit') {
-            this.savePrevious();
-            if (this.dataSource != null) {
-                let formData = { ...this.dataSource,
-                                role: this.state.role,
+            let components = [];
+            this.components.map((item,index)=>{
+                let permissions=item.permissions.filter(p=>(["EDITED"].includes(p.status)));
+                if (permissions.length > 0) {
+                  components.push({
+                    component: item.component,
+                    permissions: permissions
+                  });
+                }
+            })
+            let sources = this.sources.filter(p=>(p.status=="EDITED"));
+            let reports = this.reports.filter(p=>(p.status=="EDITED"));
+            console.log("Inside formSubmit...", components,sources,reports);
+            if (components.length > 0 || sources.length >0 || reports.length > 0) {
+                let formData = {
+                                components: components,
+                                sources: sources,
+                                reports: reports,
+                                role: this.state.role.trim(),
                                 comment: form.comment,
                                 maker: this.props.user,
                                 maker_tenant_id: this.props.tenant_id,
@@ -440,7 +296,7 @@ class AddRolesComponent extends Component {
     }
 
     renderSubmitRole() {
-      this.savePrevious();
+
       if (this.dataSource != null) {
           let formData = { ...this.dataSource, role: this.state.role} ;
           return(
@@ -462,8 +318,9 @@ class AddRolesComponent extends Component {
 function mapStateToProps(state) {
     return {
         form: state.role_management.form,
-        components: state.role_management.components,
-        permissions: state.role_management.permissions,
+        roles: state.role_management.data,
+        // components: state.role_management.components,
+        // permissions: state.role_management.permissions,
         message: state.role_management.message,
         login_details:state.login_store,
     };
@@ -471,12 +328,12 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchOne: (role, inUseCheck) => {
-        dispatch(actionFetchRoles(role, inUseCheck));
+    fetchOne: (tenant_id,role, inUseCheck) => {
+        dispatch(actionFetchRoles(tenant_id,role, inUseCheck));
     },
-    fetchPermissions: () => {
-        dispatch(actionFetchPermissions());
-    },
+    // fetchPermissions: () => {
+    //     dispatch(actionFetchPermissions());
+    // },
     deleteRow: (role, comment) => {
         dispatch(actionDeleteRoles(role, comment));
     },

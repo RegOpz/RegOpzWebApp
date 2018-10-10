@@ -11,6 +11,7 @@ export let CREATE_TRANS_REPORT ='CREATE_TRANS_REPORT';
 export let FETCH_TRANS_REPORT ='FETCH_TRANS_REPORT';
 export let DELETE_TRANS_REPORT_RULE='DELETE_TRANS_REPORT_RULE';
 export let FETCH_TRANS_REPORT_CHANGE_HISTORY='FETCH_TRANS_REPORT_CHANGE_HISTORY';
+export let EXPORT_TRNASREPORT_XLSX = 'EXPORT_TRNASREPORT_XLSX';
 
 
 // TODO:
@@ -129,5 +130,18 @@ export function actionFetchTransReportChangeHistory(report_id, sheet_id, section
   return {
     type: FETCH_TRANS_REPORT_CHANGE_HISTORY,
     payload: axios.get(url)
+  }
+}
+
+export function actionTransExportXlsx(report_id,reporting_date,cell_format_yn, selectedRecord){
+  const url = BASE_URL + "transactionalReport/get-transreport-export-to-excel?report_id=" + report_id
+              + "&reporting_date=" + reporting_date
+              + "&cell_format_yn=" + cell_format_yn
+              + "&report_snapshot=" + (selectedRecord ? encodeURIComponent(selectedRecord.report_snapshot) : "{}")
+              + "&version=" + (selectedRecord ? selectedRecord.version : "0")
+              + "&report_parameters=" + (selectedRecord ? encodeURIComponent(selectedRecord.report_parameters) : "{}");
+  return{
+    type:EXPORT_TRNASREPORT_XLSX,
+    payload:axios.get(url)
   }
 }

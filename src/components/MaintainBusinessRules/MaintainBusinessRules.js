@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import _ from 'lodash';
 import ReactTable from 'react-table';
 import { compareTwoStrings, findBestMatch } from 'string-similarity';
+import  doubleMetaphone  from 'double-metaphone';
 import { actionFetchAuditList } from '../../actions/DefChangeAction';
 import {
   //actionFetchSources,
@@ -54,12 +55,14 @@ class MaintainBusinessRules extends Component {
       sourceFileName: null,
       sourceDescription: null,
       tableName: null,
+      selectedItem: (this.props.selectedItem ? this.props.selectedItem : null),
       // ReactTable variables
       page: 0,
       pageSize: 20,
       rowIndex: [],
       loading: true,
-      filtered: []
+      filtered: [],
+      fetchTime: moment.now()
     }
 
     this.domainInfo = this.props.login_details.domainInfo;
@@ -117,6 +120,8 @@ class MaintainBusinessRules extends Component {
     this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
 
     this.reactTableColumns = this.reactTableColumns.bind(this);
+    this.getGridData = this.getGridData.bind(this);
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
 
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Business Rules" }) ? true : false;
@@ -142,7 +147,10 @@ class MaintainBusinessRules extends Component {
     if (this.gridData != nextProps.gridBusinessRulesData){
       this.gridData=nextProps.gridBusinessRulesData;
       this.currentPage = undefined;
-      this.setState({loading: false});
+      this.setState({loading: false,
+                     selectedItem: nextProps.selectedItem ? nextProps.selectedItem : this.state.selectedItem,
+                     display: nextProps.showBusinessRuleGrid ? nextProps.showBusinessRuleGrid : this.state.display,
+                   });
     }
 
     this.changeHistory=nextProps.change_history;
@@ -159,7 +167,8 @@ class MaintainBusinessRules extends Component {
     }
     if(this.props.leftmenu){
      this.setState({
-       display: false
+       display: false,
+       selectedItem: null,
      });
    }
   }
@@ -171,20 +180,28 @@ class MaintainBusinessRules extends Component {
 
   handleDataFileClick(item) {
     console.log("selected item",item);
-    this.currentPage = undefined;
-    this.selectedViewColumns=[];
-    this.gridData=undefined;
-    this.selectedItems =[];
-    this.setState({
-        display: "showBusinessRuleGrid",
-        sourceId: item.source_id,
-        sourceFileName: item.source_file_name,
-        sourceDescription: item.source_description,
-        tableName: item.source_table_name,
-        rowIndex: []
-     },
-      this.props.fetchBusinesRules(item.source_id,0)
-    );
+    if(item.ruleaccess_type=="No access"){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please note that you do not have access to view business rules of " + item.source_file_name + ". Contact administrator for access permission.");
+      this.setState({display: "accessDenied",selectedItem: item,});
+    } else {
+      this.currentPage = undefined;
+      this.selectedViewColumns=[];
+      this.gridData=undefined;
+      this.selectedItems =[];
+      this.setState({
+          display: "showBusinessRuleGrid",
+          sourceId: item.source_id,
+          sourceFileName: item.source_file_name,
+          sourceDescription: item.source_description,
+          tableName: item.source_table_name,
+          rowIndex: [],
+          selectedItem: item,
+       },
+        this.props.fetchBusinesRules(item.source_id,0)
+      );
+    }
+
   }
 
 
@@ -233,10 +250,47 @@ class MaintainBusinessRules extends Component {
     let reactTableViewColumns=[];
     if (columns){
       columns.map(item =>{
-        reactTableViewColumns.push({Header: item.toString().replace(/_/g,' '), accessor: item})
+        reactTableViewColumns.push({Header: item.toString().replace(/_/g,' '),
+                                    accessor: item,
+                                    filterable: item=='logical_condition'
+                                   })
       })
     }
     return reactTableViewColumns;
+  }
+
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
+  }
+
+  getGridData(){
+    // No access is granted for the source business rule
+    console.log("Please note that you do not have access to view business rules of 0 " ,this.state.selectedItem,this.state.selectedItem.source_file_name + ". Contact administrator for access permission.");
+    if(this.state.selectedItem.ruleaccess_type=="No access"){
+      console.log("Please note that you do not have access to view business rules of " + this.state.selectedItem.source_file_name + ". Contact administrator for access permission.");
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please note that you do not have access to view business rules of " + this.state.selectedItem.source_file_name + ". Contact administrator for access permission.");
+      this.setState({display: "accessDenied"});
+    }
+    // All rules are allowed to view
+    if(this.state.selectedItem.ruleaccess_type=="Not restricted"){
+      return this.gridData.rows;
+    }
+    // Only serach matching data is visible
+    if(this.state.selectedItem.ruleaccess_type=="Search matched"){
+      // if any serach criteria is mentioned then data grid whould be filtered using defaultFilterMethod
+      // else send an empty array to prevent any data being shown on the grid
+      return this.state.filtered.length != 0 ? this.gridData.rows : [];
+    }
+    if(this.state.selectedItem.ruleaccess_type=="Restricted"){
+      // TODO
+    }
   }
 
   actionButtonClicked(event,itemClicked){
@@ -562,13 +616,26 @@ class MaintainBusinessRules extends Component {
       if (flagRuleDrillDown) {
           content.push(
               <h2>Drilldown Cell Rules <small>{' for Cell '}</small>
-                <small><i className="fa fa-tag"></i></small>
+                <small>
+                  <i className={"fa fa-tags " + this.getaccTypeColor(this.state.selectedItem.ruleaccess_type)}></i>
+                </small>
                 <small>{' ' + this.ruleFilterParam.cell_id}</small>
                 <small>Calculation Ref</small>
                 <small><i className="fa fa-cube"></i></small>
                 <small>{ this.ruleFilterParam.cell_calc_ref }</small>
               </h2>
           );
+          if (this.state.selectedItem){
+            content.push(
+              <div className="row">
+                <ul className="nav navbar-right panel_toolbox">
+                  <div className={" label bg-" + this.getaccTypeColor(this.state.selectedItem.ruleaccess_type)}>
+                    {this.state.selectedItem.ruleaccess_type}
+                  </div>
+                </ul>
+              </div>
+            );
+          }
       } else {
           if (displayOption) {
               content.push(
@@ -576,7 +643,8 @@ class MaintainBusinessRules extends Component {
                     <small>{this.state.sourceId + ' '}</small>
                     <small><i className="fa fa-file-text"></i></small>
                     <small title={this.state.sourceDescription}>{' Source File: ' + this.state.sourceFileName}</small>
-                    <small>{' '}<i className="fa blue fa-tags" title={this.state.sourceDescription}></i></small>
+                    <small>{' '}<i className={"fa fa-tags " + this.getaccTypeColor(this.state.selectedItem.ruleaccess_type)} title={this.state.sourceDescription}></i>
+                    </small>
                   </h2>
               );
           } else {
@@ -595,7 +663,7 @@ class MaintainBusinessRules extends Component {
                     <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
                       <li>
                         <Link to="/dashboard/maintain-business-rules"
-                          onClick={()=>{ this.setState({ display: false }) }}>
+                          onClick={()=>{ this.setState({ display: false, selectedItem: null }) }}>
                             <i className="fa fa-bars"></i>{' All Sources'}
                         </Link>
                       </li>
@@ -605,10 +673,22 @@ class MaintainBusinessRules extends Component {
                           dataCatalog={this.props.dataCatalog}
                           navMenu={true}
                           handleDataFileClick={this.handleDataFileClick}
+                          sourcePermissions={this.props.login_details.source}
                           />
                       </li>
                     </ul>
                   </li>
+                  <li>
+                    <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                      <i className="fa fa-clock-o"></i><small>{' ' + moment().format('DD-MMM-YYYY h:mm:ss a')+ ' '}</small>
+                    </a>
+                  </li>
+                  {
+                    this.state.selectedItem &&
+                    <div className={" label bg-" + this.getaccTypeColor(this.state.selectedItem.ruleaccess_type)}>
+                      {this.state.selectedItem.ruleaccess_type}
+                    </div>
+                  }
                 </ul>
               </div>
           );
@@ -632,7 +712,7 @@ class MaintainBusinessRules extends Component {
                           buttonClassOverride={this.buttonClassOverride}
                           />
                         <ReactTable
-                          data={this.gridData.rows}
+                          data={ this.getGridData()}
                           filterable={true}
                           className="-highlight -striped"
                           columns={this.reactTableColumns()}
@@ -647,10 +727,36 @@ class MaintainBusinessRules extends Component {
                             let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:]$/,'').replace(/[,+&\:]/g,'|')})`,'i');
                             // return row[id] !== undefined ? String(row[id]).match(matchText) : true
                             // var stringSimilarity = require('string-similarity');
-                            let fuzzyCompare = findBestMatch(row[id]?row[id]:'*',filter.value.toString().split(/[,+&\:]/))
-                            return row[id] !== undefined ? String(row[id]).match(matchText) ||
-                                                           // compareTwoStrings(filter.value.toString(),row[id]?row[id]:'*')>=0.5
-                                                           fuzzyCompare.bestMatch.rating >=0.5
+                            let filters = filter.value.toString().split(/[,+&\:]/);
+                            let fuzzyCompare = findBestMatch(row[id]?row[id]:'*',filters)
+                            let dmpRow=doubleMetaphone(row[id]?row[id]:'*');
+
+                            // let arrData = row[id] ? row[id].toString().split(/[,+&\:\ ]/) : [];
+                            //
+                            let fuzzyCompare2 = 0.0;
+                            filters.forEach(function(element) {
+                              let dmpFilter=doubleMetaphone(element); // Get two metaphone for each filter
+                              dmpRow.forEach(function(rowMetaphone){
+                                dmpFilter.forEach(function(filterMetaphone){
+                                  let dmpSDF = compareTwoStrings(rowMetaphone,filterMetaphone);
+                                  if (dmpSDF > fuzzyCompare2 ) { fuzzyCompare2 = dmpSDF; }
+                                }); // end of row filterMetaphone
+                              }); // end of rowMetaphone
+                            }); // end of filters
+                            // let fuzzyCompare2 = filters.find(function(element) {
+                            //                                     let dmpFilter=doubleMetaphone(element);
+                            //                                     dmpSDF=compareTwoStrings(dmpRow[0],dmpFilter[0]) >= compareTwoStrings(dmpRow[1],dmpFilter[1]) ?
+                            //                                             compareTwoStrings(dmpRow[0],dmpFilter[0])
+                            //                                             :
+                            //                                             compareTwoStrings(dmpRow[1],dmpFilter[1]);
+                            //                                     return dmpSDF >= 0.7 ? dmpSDF : null;
+                            //                                   });
+                            (fuzzyCompare.bestMatch.rating >=0.7 || fuzzyCompare2 >= 0.7) && console.log("Values of fuzzyCompare : ", fuzzyCompare.bestMatch.rating, "fuzzyCompare2: ",fuzzyCompare2)
+
+                            return row[id] !== undefined ? //String(row[id]).match(matchText) ||
+                                                           // compareTwoStrings(filter.value.toString(),row[id]?row[id]:'*')>=0.5 ||
+                                                           fuzzyCompare.bestMatch.rating >=0.7 ||
+                                                           fuzzyCompare2 >= 0.7
                                                            : true
                           }}
                           onFetchData={(state,instance)=>{
@@ -659,6 +765,7 @@ class MaintainBusinessRules extends Component {
                                           this.setState({page: state.page,
                                                          pageSize:  state.pageSize,
                                                          filtered: state.filtered,
+                                                         fetchTime: moment.now(),
                                                        });
                                           console.log("Post onFetchData ...",state.page, state.pageSize, this.currentPage);
                                         }
@@ -788,12 +895,19 @@ class MaintainBusinessRules extends Component {
                     />
               );
               break;
+          case "accessDenied":
+              if (this.state.selectedItem){
+                  return <AccessDenied
+                          component={"View Business Rules for source [" + this.state.selectedItem.source_file_name +"] "}/>
+              }
+              break;
           default:
             return(
                 <DataSourceList
                   dataCatalog={this.props.dataCatalog}
                   navMenu={false}
                   handleDataFileClick={this.handleDataFileClick}
+                  sourcePermissions={this.props.login_details.source}
                   />
             );
       }

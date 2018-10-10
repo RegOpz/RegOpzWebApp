@@ -10,6 +10,7 @@ import {
     INSERT_TRANS_REPORT_RULE,
     DELETE_TRANS_REPORT_RULE,
     FETCH_TRANS_REPORT_CHANGE_HISTORY,
+    EXPORT_TRNASREPORT_XLSX,
 } from '../actions/TransactionReportAction';
 
 
@@ -52,6 +53,9 @@ export default function (state = {}, action) {
         case CREATE_TRANS_REPORT:
             return state;
         case DELETE_TRANS_REPORT_RULE:
+            return state;
+        case EXPORT_TRNASREPORT_XLSX:
+            window.location.href = BASE_URL + "../../static/" + action.payload.data.file_name;
             return state;
         default:
             return state;

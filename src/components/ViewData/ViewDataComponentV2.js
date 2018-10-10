@@ -33,6 +33,7 @@ import ModalAlert from '../ModalAlert/ModalAlert';
 import ShowToggleColumns from '../RegOpzFlatGrid/ShowToggleColumns';
 import DataReportLinkage from './DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
+import AccessDenied from '../Authentication/AccessDenied';
 require('react-datepicker/dist/react-datepicker.css');
 require('./ViewDataComponentStyle.css');
 require('react-table/react-table.css');
@@ -52,6 +53,7 @@ class ViewDataComponentV2 extends Component {
       businessDate: null,
       showAuditModal: false,
       retainFilter: false,
+      selectedItem: (this.props.selectedItem ? this.props.selectedItem : null),
       // state variables for react-table
       rowIndex: [],
       currentPage: 0,
@@ -126,6 +128,8 @@ class ViewDataComponentV2 extends Component {
     this.reactTableColumns = this.reactTableColumns.bind(this);
     this.recatTablePages = this.recatTablePages.bind(this);
     this.reactTableData = this.reactTableData.bind(this);
+    this.getGridData = this.getGridData.bind(this);
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
 
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Data" }) ? true : false;
@@ -144,10 +148,14 @@ class ViewDataComponentV2 extends Component {
 
   componentWillReceiveProps(nextProps){
     if(this.gridData != nextProps.gridData){
-      console.log("nextProps gridData ...",this.gridData, nextProps.gridData,this.state);
+      console.log("nextProps gridData ...",this.gridData, nextProps.gridData,this.state,nextProps.selectedItem);
       this.gridData=nextProps.gridData;
       let pages = Math.ceil(this.gridData.count / this.state.pageSize);
-      this.setState({isFetched: true, pages: pages})
+      this.setState({isFetched: true,
+                     pages: pages,
+                     selectedItem: nextProps.selectedItem ? nextProps.selectedItem : this.state.selectedItem,
+                     display: nextProps.showBusinessRuleGrid ? nextProps.showBusinessRuleGrid : this.state.display,
+                   });
     }
     this.reportLinkage=nextProps.report_linkage;
     this.changeHistory=nextProps.change_history;
@@ -160,7 +168,8 @@ class ViewDataComponentV2 extends Component {
     }
     if(this.props.leftmenu){
       this.setState({
-        display: false
+        display: false,
+        selectedItem: null,
       });
     }
   }
@@ -173,24 +182,41 @@ class ViewDataComponentV2 extends Component {
 
   handleDataFileClick(item) {
     console.log("selected item",item);
-    this.useDataGridPageHandler = true;
-    this.selectedViewColumns=[];
-    this.gridData=undefined;
-    this.setState({
-        display: "showDataGrid",
-        sourceId: item.source_id,
-        businessDate: item.business_date,
-        sourceFileName: item.data_file_name,
-        sourceDescription: item.source_description,
-        rowIndex: [],
-        selectedRecord: item.version ? item : null,
-     },
-      this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage,null,item.version,null)
-    );
+    if(item.access_type=="No access"){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open("Please note that you do not have access to view data of " + (item.data_file_name ? item.data_file_name : "")
+                            + "[Source ID: " + item.source_id +", Source File: " + item.source_file_name
+                            +", Source Table: " + item.source_table_name + "]. Contact administrator for access permission.");
+      this.setState({display: "accessDenied",
+                     selectedItem: item,
+                     sourceId: item.source_id,
+                     businessDate: item.business_date,
+                     sourceFileName: item.data_file_name,
+                     sourceDescription: item.source_description,
+                   });
+    } else {
+
+      this.useDataGridPageHandler = true;
+      this.selectedViewColumns=[];
+      this.gridData=undefined;
+      this.selectedItems =[];
+      this.setState({
+          display: "showDataGrid",
+          sourceId: item.source_id,
+          businessDate: item.business_date,
+          sourceFileName: item.data_file_name,
+          sourceDescription: item.source_description,
+          rowIndex: [],
+          selectedRecord: item.version ? item : null,
+          selectedItem: item,
+       },
+        this.props.fetchReportFromDate(item.source_id,item.business_date,this.state.currentPage,null,item.version,null)
+      );
+    }
   }
 
   viewDataVersions(item) {
-    console.log("selected view data versions item",item);
+    console.log("selected view data versions item",item,this.state.selectedItem);
     let isOpen = this.state.display === "viewDataVersions";
     if(isOpen){
       this.setState({
@@ -200,6 +226,7 @@ class ViewDataComponentV2 extends Component {
         sourceFileName: item.data_file_name,
         sourceDescription: item.source_description,
         selectedRecord: null,
+        selectedItem: null,
       },
       // Nothing to add at this stage
       );
@@ -213,6 +240,7 @@ class ViewDataComponentV2 extends Component {
         sourceFileName: item.data_file_name,
         sourceDescription: item.source_description,
         selectedRecord: item,
+        selectedItem: item,
        },
         // Nothing to add at this stage
       );
@@ -283,6 +311,16 @@ class ViewDataComponentV2 extends Component {
     return reactTableViewColumns;
   }
 
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
+  }
+
   recatTablePages(state,instance){
     console.log("Inside reactTablePages ....", state,state.page,this.state.pageSize,this.state.pages,this.state.currentPage);
     console.log("Inside reactTablePages instance...",state.filtered,this.state.filtered);
@@ -324,6 +362,33 @@ class ViewDataComponentV2 extends Component {
 
                   });
     console.log("Inside reactTablePages instance 2 ...",instance);
+  }
+
+  getGridData(){
+    // No access is granted for the source business rule
+    console.log("Please note that you do not have access to view business rules of 0 " ,this.state.selectedItem,this.state.selectedItem.data_file_name + ". Contact administrator for access permission.");
+    if(this.state.selectedItem.access_type=="No access"){
+      console.log("Please note that you do not have access to view business rules of " + this.state.selectedItem.data_file_name + ". Contact administrator for access permission.");
+      this.modalAlert.isDiscardToBeShown = false;
+      let item = this.state.selectedItem;
+      this.modalAlert.open("Please note that you do not have access to view data of " + (item.data_file_name ? item.data_file_name : "")
+                            + "[Source ID: " + item.source_id +", Source File: " + item.source_file_name
+                            +", Source Table: " + item.source_table_name + "]. Contact administrator for access permission.");
+      this.setState({display: "accessDenied"});
+    }
+    // All rules are allowed to view
+    if(this.state.selectedItem.access_type=="Not restricted"){
+      return this.reactTableData();
+    }
+    // Only serach matching data is visible
+    if(this.state.selectedItem.access_type=="Search matched"){
+      // if any serach criteria is mentioned then data grid whould be filtered using defaultFilterMethod
+      // else send an empty array to prevent any data being shown on the grid
+      return this.state.filtered.length != 0 && !this.state.isFilterChanged ? this.reactTableData() : [];
+    }
+    if(this.state.selectedItem.access_type=="Restricted"){
+      // TODO
+    }
   }
 
   reactTableData(){
@@ -719,7 +784,7 @@ class ViewDataComponentV2 extends Component {
                             buttonClassOverride={this.buttonClassOverride}
                             />
                             <ReactTable
-                              data={this.reactTableData()}
+                              data={this.getGridData()}
                               filterable={true}
                               sortable={false}
                               className="-highlight -striped"
@@ -861,6 +926,17 @@ class ViewDataComponentV2 extends Component {
                   />
             );
             break;
+          case "accessDenied":
+            let item = this.state.selectedItem;
+            if (this.state.selectedItem){
+                return <AccessDenied
+                        component={"View Data for source " + (item.data_file_name ? "[" + item.data_file_name + "]":"")
+                                              + " [Source ID: " + item.source_id
+                                              +", Source File: " + item.source_file_name
+                                              +", Source Table: " + item.source_table_name
+                                              + "] "}/>
+            }
+            break;
           default:
               return(
                   <DataCatalogList
@@ -870,6 +946,7 @@ class ViewDataComponentV2 extends Component {
                     dateFilter={this.handleDateFilter}
                     applyRules={this.props.applyRules}
                     viewDataVersions={this.viewDataVersions}
+                    sourcePermissions={this.props.login_details.source}
                     />
               );
       }
@@ -894,19 +971,35 @@ class ViewDataComponentV2 extends Component {
                         <h2>View Data <small>{' Data for Source '}</small>
                           <small><i className="fa fa-database"></i></small>
                           <small title={this.state.sourceDescription}>{'['+this.state.sourceId + '] ' + this.state.sourceFileName.substring(0,30) }</small>
-                          <small>{' '}<i className="fa blue fa-tags" title={this.state.sourceFileName + '\n' + this.state.sourceDescription}></i></small>
+                          <small>{' '}<i className={"fa fa-tags " + (this.state.selectedItem?
+                                                                     this.getaccTypeColor(this.state.selectedItem.access_type)
+                                                                     :
+                                                                     "")
+                                                                   }
+                                         title={this.state.sourceFileName + '\n' + this.state.sourceDescription}></i></small>
                           <small>{' Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                         </h2>
                       }
                       {
                         this.flagDataDrillDown &&
                         <h2>Drilldown Data <small>{' for Cell '}</small>
-                          <small><i className="fa fa-tag"></i></small>
+                          <small><i className={"fa fa-tag " +  this.getaccTypeColor(this.state.selectedItem.access_type)}></i></small>
                           <small>{' ' + this.dataFilterParam.params.drill_kwargs.cell_id}</small>
                           <small>Calculation Ref</small>
                           <small><i className="fa fa-cube"></i></small>
                           <small>{ this.dataFilterParam.params.drill_kwargs.cell_calc_ref }</small>
                         </h2>
+                      }
+                      {
+                        this.state.selectedItem &&
+                        this.flagDataDrillDown &&
+                        <div className="row">
+                          <ul className="nav navbar-right panel_toolbox">
+                            <div className={" label bg-" + this.getaccTypeColor(this.state.selectedItem.access_type)}>
+                              {this.state.selectedItem.access_type}
+                            </div>
+                          </ul>
+                        </div>
                       }
                       {
                         !this.flagDataDrillDown &&
@@ -922,6 +1015,7 @@ class ViewDataComponentV2 extends Component {
                                   <Link to="/dashboard/view-data"
                                     onClick={()=>{this.setState({
                                                                   display: false,
+                                                                  selectedItem: null,
                                                                 });}}>
                                       <i className="fa fa-bars"></i>{' All Data Feeds'}
                                   </Link>
@@ -933,31 +1027,41 @@ class ViewDataComponentV2 extends Component {
                                     navMenu={true}
                                     handleDataFileClick={this.handleDataFileClick}
                                     dateFilter={this.handleDateFilter}
+                                    sourcePermissions={this.props.login_details.source}
                                     />
                                 </li>
                               </ul>
                             </li>
-                          </ul>
-                          {
-                            !this.state.display &&
-                            <ul className="nav navbar-right panel_toolbox">
-                              <li>
-                                <a className="user-profile"
-                                  aria-expanded="false"
-                                  data-toggle="tooltip"
-                                  data-placement="top"
-                                  title="Refresh List"
-                                  onClick={
-                                      (event) => {
-                                        this.props.fetchSource(moment(this.state.startDate).format('YYYYMMDD') ,moment(this.state.endDate).format('YYYYMMDD') , 'Data');
+                            {
+                              !this.state.display &&
+                                <li>
+                                  <a className="user-profile"
+                                    aria-expanded="false"
+                                    data-toggle="tooltip"
+                                    data-placement="top"
+                                    title="Refresh List"
+                                    onClick={
+                                        (event) => {
+                                          this.props.fetchSource(moment(this.state.startDate).format('YYYYMMDD') ,moment(this.state.endDate).format('YYYYMMDD') , 'Data');
+                                        }
                                       }
-                                    }
-                                  >
-                                  <i className="fa fa-refresh"></i><small>{' Refresh '}</small>
-                                </a>
-                              </li>
-                            </ul>
-                          }
+                                    >
+                                    <i className="fa fa-refresh"></i><small>{' Refresh '}</small>
+                                  </a>
+                                </li>
+                            }
+                            <li>
+                              <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+                                <i className="fa fa-clock-o"></i><small>{' ' + moment().format('DD-MMM-YYYY h:mm:ss a')+ ' '}</small>
+                              </a>
+                            </li>
+                            {
+                              this.state.selectedItem &&
+                              <div className={" label bg-" + this.getaccTypeColor(this.state.selectedItem.access_type)}>
+                                {this.state.selectedItem.access_type}
+                              </div>
+                            }
+                          </ul>
                         </div>
                       }
                     <div className="clearfix"></div>

@@ -21,6 +21,9 @@ class ReportCatalogList extends Component {
     this.dataCatalog = this.props.dataCatalog.data_sources;
     this.linkageData = this.dataCatalog;
     this.handleFilter = this.handleFilter.bind(this);
+    this.reportPermissions = this.props.reportPermissions;
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
+    this.associateReportPermission = this.associateReportPermission.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
@@ -29,6 +32,7 @@ class ReportCatalogList extends Component {
       this.dataCatalogStartDate = nextProps.dataCatalog.start_date;
       this.dataCatalogEndDate = nextProps.dataCatalog.end_date;
       this.linkageData = this.dataCatalog;
+      this.reportPermissions = nextProps.reportPermissions;
       this.setState ({
         startDate:moment(this.dataCatalogStartDate),
         endDate:moment(this.dataCatalogEndDate),
@@ -60,10 +64,49 @@ class ReportCatalogList extends Component {
     this.setState({ endDate: date });
   }
 
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      default: return "red";
+    }
+  }
+
+  associateReportPermission(linkageData){
+      let dataSource=[];
+      // console.log("this.sourcePermissions...",this.sourcePermissions)
+      linkageData.map((report,index)=>{
+        let permission = this.reportPermissions ?
+                         this.reportPermissions.find(function(p){return p.report_id==report.report_id;})
+                         :
+                         undefined;
+        // console.log("permission...",permission)
+        let permission_details = {
+                                   access_type: 'No access',
+                                 };
+        if (permission){
+          permission_details = JSON.parse(permission.permission_details);
+        }
+        let versions=[]
+        report.versions.map((ver,idx)=>{
+          versions.push({ ...ver,
+                          ...permission_details,
+                        });
+        })
+        report.versions = versions;
+        dataSource.push({...report,
+                         ...permission_details,
+                         });
+
+      });
+
+      return dataSource;
+  }
+
   handleFilter(){
 
       if(typeof this.dataCatalog != 'undefined' && this.dataCatalog.length ){
-        let linkageData = this.dataCatalog;
+        let linkageData = this.associateReportPermission(this.dataCatalog);
         const { startDate, endDate, filterText } = this.state;
         if (startDate != null) {
             linkageData = linkageData.filter(item => {
@@ -173,10 +216,12 @@ class ReportCatalogList extends Component {
               <tbody>
               {linkageData.map((item,index) => {
                 return (
-                  <tr key={index}>
+                  <tr key={index}
+                    className={ this.getaccTypeColor(item.access_type)}
+                    >
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.access_type)}
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
@@ -223,6 +268,7 @@ class ReportCatalogList extends Component {
                           data-toggle="tooltip"
                           data-placement="top"
                           title="Edit Report Parameters"
+                          disabled={ item.access_type=="No access"}
                           onClick={
                             (event)=>{
                               this.props.editParameter(item)
@@ -237,6 +283,7 @@ class ReportCatalogList extends Component {
                           className="btn btn-circle btn-link btn-xs"
                           data-toggle="tooltip"
                           data-placement="top"
+                          disabled={ item.access_type=="No access"}
                           title="View Report Versions"
                           onClick={
                             (event)=>{
@@ -296,7 +343,14 @@ class ReportCatalogList extends Component {
             <tbody>
               {
                 linkageData.map((item,index) => (
-                    <tr key={index}>
+                    <tr key={index}
+                      className={ this.getaccTypeColor(item.access_type) }
+                      onClick={
+                        (event)=>{
+                          this.props.handleReportClick(item)
+                        }
+                      }
+                      >
                       <td>
                         <button
                           className="btn btn-link btn-xs"

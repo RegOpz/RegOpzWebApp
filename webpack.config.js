@@ -12,7 +12,7 @@ let banner = PACKAGE.name.toString() + ' - ' + PACKAGE.version.toString()
             + PACKAGE.author.toString() + ' | ' + PACKAGE.license.toString()
 
 module.exports = {
-    entry: [ APP_DIR + '/index.js' ],
+    entry: [ 'webpack/hot/dev-server', APP_DIR + '/index.js' ],
     output: {
         path: BUILD_DIR,
         publicPath: '/',
@@ -88,6 +88,7 @@ module.exports = {
     devServer: {
         inline: true,
         historyApiFallback: true,
-        contentBase: './'
+        contentBase: './',
+        watchContentBase: true
     }
 };

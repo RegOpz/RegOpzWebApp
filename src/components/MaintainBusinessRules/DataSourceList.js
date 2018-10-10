@@ -14,29 +14,73 @@ class DataSourceList extends Component {
     }
     this.dataCatalog = this.props.dataCatalog;
     this.linkageData = this.dataCatalog;
+    this.sourcePermissions = this.props.sourcePermissions;
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
+    this.associateRulePermission = this.associateRulePermission.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
       //TODO
       this.dataCatalog = nextProps.dataCatalog;
       this.linkageData = this.dataCatalog;
+      this.sourcePermissions = nextProps.sourcePermissions;
       this.setState ({
         filterText: null
       });
+  }
+
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
+  }
+
+  associateRulePermission(linkageData){
+      let dataSource=[];
+      // console.log("this.sourcePermissions...",this.sourcePermissions)
+      linkageData.map((source,index)=>{
+        let permission = this.sourcePermissions ?
+                         this.sourcePermissions.find(function(p){return p.source_id==source.source_id;})
+                         :
+                         undefined;
+        // console.log("permission...",permission)
+        let permission_details = {
+                                   access_type: 'No access',
+                                   access_condition: '',
+                                   ruleaccess_type: 'No access',
+                                   access_condition: ''
+                                 };
+        if (permission){
+          permission_details = JSON.parse(permission.permission_details);
+          permission_details.ruleaccess_type = permission_details.ruleaccess_type ?
+                                               permission_details.ruleaccess_type : 'No access';
+          permission_details.ruleaccess_condition = permission_details.ruleaccess_condition ?
+                                               permission_details.ruleaccess_condition : '';
+        }
+        dataSource.push({...source,...permission_details});
+
+      });
+
+      return dataSource;
   }
 
 
   handleFilter(){
 
       if(typeof this.dataCatalog != 'undefined' && this.dataCatalog.length ){
-        let linkageData = this.dataCatalog;
+        let linkageData = this.associateRulePermission(this.dataCatalog);
         const { filterText } = this.state;
         if (filterText != null) {
             let matchText = RegExp(`(${filterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
-            console.log("matchText",matchText);
+            console.log("matchText",matchText, linkageData);
             linkageData = linkageData.filter(element =>
                 element.source_id.toString().match(matchText) ||
                 element.source_file_name.match(matchText) ||
+                (element.ruleaccess_type ? element.ruleaccess_type.match(matchText):null) ||
                 element.source_description.match(matchText) ||
                 element.source_table_name.match(matchText) ||
                 (element.country ? element.country.match(matchText):null)
@@ -99,15 +143,19 @@ class DataSourceList extends Component {
               {linkageData.map((item,index) => {
                 return (
                   <tr key={index}
+                    className={ this.getaccTypeColor(item.ruleaccess_type)}
                     onClick={
                       (event)=>{
                         this.props.handleDataFileClick(item)
                       }
                     }>
-                    <td>{item.source_id}</td>
+                    <td>
+                      <i className={"fa fa-tags "}></i>
+                      &nbsp;{item.source_id}
+                    </td>
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.ruleaccess_type)}
                         onClick={
                           (event)=>{
                             this.props.handleDataFileClick(item)
@@ -115,7 +163,7 @@ class DataSourceList extends Component {
                         }
                         >
                         <small>
-                          <i className="fa fa-file-text"></i>
+                          <i className={"fa fa-file-text "}></i>
                           {' '}{item.source_file_name}
                         </small>
                       </button>
@@ -147,6 +195,7 @@ class DataSourceList extends Component {
   }
 
   renderNavMenu(linkageData) {
+    console.log("renderNavMenu...",linkageData);
     return(
         <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
           <div className="row">
@@ -162,15 +211,19 @@ class DataSourceList extends Component {
               {
                 linkageData.map((item,index) => (
                   <tr key={index}
+                    className={ this.getaccTypeColor(item.ruleaccess_type) }
                     onClick={
                       (event)=>{
                         this.props.handleDataFileClick(item)
                       }
                     }>
-                    <td>{item.source_id}</td>
+                    <td>
+                      <i className={"fa fa-tags "}></i>
+                      &nbsp;{item.source_id}
+                    </td>
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.ruleaccess_type)}
                         onClick={
                           (event)=>{
                             this.props.handleDataFileClick(item)

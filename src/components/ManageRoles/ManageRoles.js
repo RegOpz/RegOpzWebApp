@@ -32,7 +32,7 @@ class ManageRolesComponent extends Component {
   }
 
   componentWillMount() {
-    this.props.fetchPermission();
+    this.props.fetchPermission(this.props.tenant_id);
   }
   componentDidUpdate(){
       this.props.leftMenuClick(false);
@@ -85,6 +85,7 @@ class ManageRolesComponent extends Component {
                     role={this.selectedRole}
                     user={this.props.user}
                     tenant_id={this.props.tenant_id}
+                    readOnly={!this.writeOnly}
                     handleClose={this.handleCancel.bind(this)}
                   />
               );
@@ -177,6 +178,7 @@ class ManageRolesComponent extends Component {
                         <ViewRole
                           item={item}
                           readOnly={!this.writeOnly}
+                          tenant_id={this.props.tenant_id}
                           handleButtonClicked={this.handleEditButtonClicked.bind(this)}
                         />
                       </div>
@@ -199,8 +201,8 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchPermission: () => {
-      dispatch(actionFetchRoles());
+    fetchPermission: (tenant_id) => {
+      dispatch(actionFetchRoles(tenant_id));
     },
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));

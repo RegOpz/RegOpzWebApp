@@ -14,6 +14,7 @@ class DataVersionsList extends Component {
     }
     this.dataCatalog = this.props.dataCatalog;
     this.linkageData = this.dataCatalog;
+    this.getaccTypeColor = this.getaccTypeColor.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
@@ -33,6 +34,15 @@ class DataVersionsList extends Component {
         // No filter for now to be added later if required
         this.linkageData = linkageData;
       }
+  }
+  getaccTypeColor(accType){
+    switch(accType){
+      case "No access": return "red";
+      case "Not restricted": return "green";
+      case "Restricted": return "amber";
+      case "Search matched": return "purple";
+      default: return "red";
+    }
   }
 
   render(){
@@ -88,12 +98,14 @@ class DataVersionsList extends Component {
               <tbody>
               {linkageData.versions.map((item,index) => {
                 return (
-                  <tr key={index}>
+                  <tr key={index}
+                    className={ this.getaccTypeColor(item.access_type)}
+                    >
                     <td>{moment(item.business_date.toString()).format("DD-MMM-YYYY")}</td>
                     <td>{item.version}</td>
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs " + this.getaccTypeColor(item.access_type)}
                         data-toggle="tooltip"
                         data-placement="top"
                         title={linkageData.source_description}

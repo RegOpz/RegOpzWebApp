@@ -12,15 +12,18 @@ export let DELETE_ROLE_ACTION = 'DELETE_ROLE_ACTION';
 const url = BASE_URL + "roles";
 
 // TODO: Fetch Role Details from API
-export function actionFetchRoles(role,inUseCheck) {
+export function actionFetchRoles(tenant_id,role,inUseCheck) {
     let curl = url;
     let actionType = FETCH_ROLE_ACTION;
     if (typeof role !== 'undefined') {
         curl += `/${role}`;
-        if (inUseCheck == "N"){
-          curl += "?inUseCheck="+ inUseCheck
-        }
         actionType = FETCH_ONE_ROLE_ACTION;
+    }
+    curl += "?tenant_id="+encodeURI(tenant_id)
+    if (inUseCheck == "N"){
+      curl += "&inUseCheck="+ inUseCheck
+    } else {
+      curl += "&inUseCheck=Y"
     }
     console.log("Fetching roles from API.");
     const request = axios.get(encodeURI(curl));
