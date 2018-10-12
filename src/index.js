@@ -57,6 +57,21 @@ if (sessionStorage.RegOpzToken) {
 class Index extends Component {
     componentDidMount() {
         this.notificationSystem = this.refs.notificationSystem;
+        $(window).load(function() {
+                 // Animate loader off screen
+                 $(".se-pre-con").fadeOut("slow");
+         });
+         $("#main_container").removeClass("se-pre-con");
+
+    }
+
+    componentDidUpdate() {
+      $(window).load(function() {
+               // Animate loader off screen
+               $(".se-pre-con").fadeOut("slow");
+       });
+       $("#main_container").removeClass("se-pre-con");
+      
     }
 
     componentWillMount() {
