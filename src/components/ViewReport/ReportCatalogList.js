@@ -76,27 +76,29 @@ class ReportCatalogList extends Component {
       let dataSource=[];
       // console.log("this.sourcePermissions...",this.sourcePermissions)
       linkageData.map((report,index)=>{
-        let permission = this.reportPermissions ?
-                         this.reportPermissions.find(function(p){return p.report_id==report.report_id;})
-                         :
-                         undefined;
-        // console.log("permission...",permission)
-        let permission_details = {
-                                   access_type: 'No access',
-                                 };
-        if (permission){
-          permission_details = JSON.parse(permission.permission_details);
+        if( !_.isEmpty(report)){
+          let permission = this.reportPermissions ?
+                           this.reportPermissions.find(function(p){return p.report_id==report.report_id;})
+                           :
+                           undefined;
+          // console.log("permission...",permission)
+          let permission_details = {
+                                     access_type: 'No access',
+                                   };
+          if (permission){
+            permission_details = JSON.parse(permission.permission_details);
+          }
+          let versions=[]
+          report.versions.map((ver,idx)=>{
+            versions.push({ ...ver,
+                            ...permission_details,
+                          });
+          })
+          report.versions = versions;
+          dataSource.push({...report,
+                           ...permission_details,
+                           });
         }
-        let versions=[]
-        report.versions.map((ver,idx)=>{
-          versions.push({ ...ver,
-                          ...permission_details,
-                        });
-        })
-        report.versions = versions;
-        dataSource.push({...report,
-                         ...permission_details,
-                         });
 
       });
 

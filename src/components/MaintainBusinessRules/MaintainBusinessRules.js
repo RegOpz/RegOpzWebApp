@@ -252,7 +252,7 @@ class MaintainBusinessRules extends Component {
       columns.map(item =>{
         reactTableViewColumns.push({Header: item.toString().replace(/_/g,' '),
                                     accessor: item,
-                                    filterable: item=='logical_condition'
+                                    // filterable: item=='logical_condition'
                                    })
       })
     }
