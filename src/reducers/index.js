@@ -27,6 +27,7 @@ import BusinessRulesRepositoryReducer from './BusinessRulesRepositoryReducer';
 import ReportRulesRepositoryReducer from './ReportRulesRepositoryReducer';
 import ShredDataReducer from './SharedDataReducer';
 import OperationLogReducer from './OperationLogReducer';
+import PasswordRecoveryReducer from './PasswordRecoveryReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -57,7 +58,8 @@ const rootReducer = combineReducers({
   business_rules_repo: BusinessRulesRepositoryReducer,
   report_rules_repo: ReportRulesRepositoryReducer,
   sharedData: ShredDataReducer,
-  operation_log_store: OperationLogReducer
+  operation_log_store: OperationLogReducer,
+  passwordRecovery: PasswordRecoveryReducer,
 });
 
 export const store=createStore(rootReducer);

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { hashHistory } from 'react-router';
 import { connect } from 'react-redux';
-import { Modal } from 'react-bootstrap';
+import { Modal, Tab, Tabs } from 'react-bootstrap';
 import { bindActionCreators, dispatch } from 'redux';
 import {
   actionLoginRequest,
@@ -12,21 +12,30 @@ import Signup from './Signup';
 import LoginForm from './LoginForm';
 import DomainForm from './DomainForm';
 import Subscribe from './Subscribe';
+import SecQuestionRecovery from './SecQuestionRecovery';
+import OTPRecovery from './OTPRecovery';
+import ChangePassword from './ChangePassword';
 
 class LoginComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
             isLoading: false,
-            isDomainValid:false
+            isDomainValid:false,
+            selectedTab: 0
         };
         this.modalAlert = null;
         this.isModalOpen = false;
         this.whichModal = "None";
+        this.recoveryUserName = null;
         this.onSubmit = this.onSubmit.bind(this);
         this.onSignup = this.onSignup.bind(this);
         this.onSubscribe = this.onSubscribe.bind(this);
         this.onNext =this.onNext.bind(this);
+        this.onResetPassword = this.onResetPassword.bind(this);
+        this.getModalTitle = this.getModalTitle.bind(this);
+        this.onValidation = this.onValidation.bind(this);
+        this.handleHideModal = this.handleHideModal.bind(this);
     }
 
     render() {
@@ -50,6 +59,7 @@ class LoginComponent extends Component {
                        error={this.props.error}
                        tenant={this.props.domainInfo.tenant_description}
                        isLoading={this.state.isLoading}
+                       onResetPassword={ this.onResetPassword}
                       />
                    }
                    {
@@ -83,12 +93,13 @@ class LoginComponent extends Component {
                 <Modal
                   show={this.state.isModalOpen}
                   container={this}
+                  backdrop={false}
                   onHide={(event) => {
                       this.setState({isModalOpen:false});
                     }}
                 >
                   <Modal.Header closeButton >
-                    <h2>{this.whichModal}  <small>Add your {this.whichModal == "Signup" ? "signin": "subscription"} details</small></h2>
+                    { this.getModalTitle()}
                   </Modal.Header>
 
                   <Modal.Body>
@@ -99,6 +110,42 @@ class LoginComponent extends Component {
                     {
                       this.whichModal == "Subscribe" &&
                       <Subscribe/>
+                    }
+                    {
+                      this.whichModal == "ResetPassword" &&
+                      <Tabs
+                        defaultActiveKey={0}
+                        activeKey={this.state.selectedTab}
+                        onSelect={(key) => {
+                            this.setState({selectedTab:key});
+                        }}
+                        >
+                        <Tab
+                          key={0}
+                          eventKey={0}
+                          title={<div className="green"><i className="fa fa-key"></i> Using Security Questions</div>}
+                        >
+                          <br/>
+                          <SecQuestionRecovery
+                            onValidation={this.onValidation}/>
+                        </Tab>
+                        <Tab
+                          key={1}
+                          eventKey={1}
+                          title={<div className="purple"><i className="fa fa-envelope"></i> Using OTP</div>}
+                        >
+                          <br/>
+                          <OTPRecovery
+                            onValidation={this.onValidation}/>
+                        </Tab>
+                      </Tabs>
+                    }
+                    {
+                      this.whichModal == "ChangePassword" &&
+                      <ChangePassword
+                        username={this.recoveryUserName}
+                        handleHideModal={this.handleHideModal}
+                        />
                     }
                   </Modal.Body>
                 </Modal>
@@ -122,6 +169,26 @@ class LoginComponent extends Component {
         this.setState({ isLoading:false},
                       hashHistory.push(encodeURI('/'))
                       );
+      }
+    }
+
+    getModalTitle(){
+      switch (this.whichModal) {
+        case "Signup":
+          return(<h2>Signup  <small>Add your signin details</small></h2>)
+          break;
+        case "Subscribe":
+          return(<h2>Subscribe  <small>Add your subscriber details</small></h2>)
+          break;
+        case "ResetPassword":
+          return(<h2>Reset Password  <small>Password recovery</small></h2>)
+          break;
+        case "ChangePassword":
+          return(<h2>Change Password  <small>Please enter new password</small></h2>)
+          break;
+        default:
+          return(<h2 className="amber mid_center">{this.whichModal}</h2>)
+          break;
       }
     }
 
@@ -153,6 +220,31 @@ class LoginComponent extends Component {
       this.setState({isLoading:true},
                     this.props.domainRequest(domainName)
                     );
+    }
+
+    onResetPassword(){
+      event.preventDefault();
+      console.log("whichModal",this.whichModal);
+      this.whichModal = "ResetPassword";
+      console.log("whichModal",this.whichModal);
+      this.setState({isModalOpen:true})
+    }
+
+    onValidation(validation){
+      event.preventDefault();
+      if (validation.status){
+        this.whichModal = "ChangePassword";
+        this.recoveryUserName = validation.name;
+      } else {
+        // Validation failed, so just through the message
+        this.whichModal = validation.msg;
+      }
+
+      this.setState({isModalOpen: true})
+    }
+
+    handleHideModal(){
+      this.setState({isModalOpen: false})
     }
 }
 

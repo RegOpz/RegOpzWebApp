@@ -4,9 +4,9 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 
 
-const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) => (
+const renderField = ({ input, label, type, secQuestion, readOnly, meta: { touched, error }}) => (
     <div className="form-group">
-      <label className="control-label col-md-3 col-sm-3 col-xs-12">
+      <label className={secQuestion ? "col-md-12 col-sm-12 col-xs-12" : "control-label col-md-3 col-sm-3 col-xs-12"}>
         { label }
       </label>
       <div className="col-md-9 col-sm-9 col-xs-12">
@@ -27,6 +27,10 @@ const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) 
 );
 
 const normaliseContactNumber = value => value && value.replace(/[^\d]/g, '')
+const required = value => value && value.length >= 3 ? undefined : 'Answer can not be less than 3 characters'
+
+let pwdRegExp ="";
+let pwdPolicyText = "";
 
 const validate = (values) => {
     const errors = {};
@@ -53,6 +57,14 @@ const validate = (values) => {
         errors.passwordConfirm = "Password must match"
     }
 
+    if (values.password) {
+        var strongRegex = new RegExp(pwdRegExp);
+        let policy = values.password.match(strongRegex);
+        if (policy == null){
+          errors.password = pwdPolicyText
+        }
+    }
+
     return errors;
 }
 
@@ -60,7 +72,8 @@ class ProfileLeftPane extends Component {
     constructor(props) {
         super(props);
         this.state={
-          changePassword: false
+          changePassword: false,
+          changeSecrectQuestion: false
         }
         this.toInitialise = true;
         this.userData = this.props.userData;
@@ -85,7 +98,7 @@ class ProfileLeftPane extends Component {
     }
 
     componentDidMount() {
-        document.body.classList.add('profile');
+        // document.body.classList.add('profile');
         document.title = "RegOpz User Profile";
         console.log("this.props.userData.error...",this.props.userData);
         if (this.userData && this.toInitialise) {
@@ -95,7 +108,14 @@ class ProfileLeftPane extends Component {
     }
 
     render() {
-        const { handleSubmit, asyncValidating, pristine, reset, submitting, message } = this.props;
+        const { handleSubmit, asyncValidating, pristine, reset, submitting, message, secretQuestions } = this.props;
+        let questions =[];
+        if (secretQuestions){
+            pwdRegExp = secretQuestions.reg_exp;
+            pwdPolicyText = secretQuestions.policy_statement;
+            questions = secretQuestions.questions;
+        }
+
         if (typeof this.props.userData == 'undefined' || this.props.userData.length == 0) {
             return(
               <div className="col-sm-5 col-md-5 col-xs-12">
@@ -176,15 +196,41 @@ class ProfileLeftPane extends Component {
                             label="Password Confirmation"
                           />
                         }
+                        {
+                          this.state.changeSecrectQuestion &&
+                          <div className="x_panel">
+                            <div className="x_title">
+                              <h5><i className="fa fa-key purple"></i> Secrect Questions</h5>
+                              <div className="clearfix"></div>
+                            </div>
+                            <div className="x_content">
+                            {
+                              this.renderSecretQuestions(questions)
+                            }
+                            </div>
+                          </div>
+
+                        }
 
                         <div className="form-group">
-                          <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                            <button type="button" className="btn btn-sm btn-primary" onClick={ reset } disabled={ pristine || submitting }>Reset</button>
+                          <div className="col-md-12 col-sm-12 col-xs-12  col-md-offset-2">
+                            <button type="button" className="btn btn-sm btn-primary"
+                              onClick={ ()=>{
+                                              this.setState({changePassword: false, changeSecrectQuestion: false});
+                                              reset();} }
+                              disabled={ pristine || submitting }>Reset</button>
                             <button type="submit" className="btn btn-sm btn-success" disabled={ pristine || submitting }>Submit</button>
                             {
                               !this.state.changePassword &&
                               <button type="button" className="btn btn-sm btn-warning" onClick={ ()=>{this.setState({changePassword:true});} }>
-                                <i className="fa fa-edit"></i> Password</button>
+                                <i className="fa fa-edit"></i> Password
+                              </button>
+                            }
+                            {
+                              !this.state.changeSecrectQuestion &&
+                              <button type="button" className="btn btn-sm btn-info" onClick={ ()=>{this.setState({changeSecrectQuestion:true});} } >
+                                <i className="fa fa-key"></i> Q&A
+                              </button>
                             }
                           </div>
                        </div>
@@ -194,6 +240,25 @@ class ProfileLeftPane extends Component {
             </div>
 
         );
+    }
+
+    renderSecretQuestions(questions){
+      let content =[]
+      questions && questions.map((q,index)=>{
+            content.push(
+              <Field
+                name={"ans_" + q.id.toString()}
+                type="text"
+                component={renderField}
+                secQuestion={true}
+                label={q.question + "?"}
+                validate={[required]}
+              />
+            )
+          });
+
+      return content;
+
     }
 
     handleFormSubmit(data) {

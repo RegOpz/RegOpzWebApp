@@ -5,6 +5,7 @@ import ProfileRightPane from './ProfileRight';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { actionFetchUsers, actionUpdateUser } from './../../actions/UsersAction';
+import { actionGetAllSecQuestion } from '../../actions/PasswordRecoveryAction';
 
 class Profile extends Component {
     constructor(props) {
@@ -23,6 +24,7 @@ class Profile extends Component {
 
     componentWillMount() {
         this.props.fetchUserDetails(this.state.user,undefined,true);
+        this.props.getSecQuestions()
     }
 
     componentWillReceiveProps(nextProps) {
@@ -71,6 +73,7 @@ class Profile extends Component {
                                 username={this.state.user}
                                 userData={this.state.userDetails}
                                 saveEditedData={this.saveEditedData}
+                                secretQuestions={this.props.secretQuestions}
                                 toInitialise={true}
                             />
                             <ProfileRightPane />
@@ -85,7 +88,8 @@ class Profile extends Component {
 function mapStateToProps(state) {
     return {
         userDetails: state.user_details,
-        login: state.login_store
+        login: state.login_store,
+        secretQuestions: state.passwordRecovery.secretQuestions,
     };
 }
 
@@ -96,6 +100,9 @@ const matchDispatchToProps = (dispatch) => {
         },
         updateUserDetails: (data) => {
             dispatch(actionUpdateUser(data));
+        },
+        getSecQuestions: () => {
+            dispatch(actionGetAllSecQuestion());
         }
     };
 };
