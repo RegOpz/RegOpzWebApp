@@ -27,6 +27,7 @@ class DefChangePane extends Component{
     this.reportRulesList = this.reportRulesList.bind(this);
     this.reportTemplatesList = this.reportTemplatesList.bind(this);
     this.rolesList = this.rolesList.bind(this);
+    this.pwdPolicyList = this.pwdPolicyList.bind(this);
     this.permissionsList = this.permissionsList.bind(this);
     this.actionButtons = this.actionButtons.bind(this);
     this.handleAddRemoveItem = this.handleAddRemoveItem.bind(this);
@@ -82,6 +83,9 @@ class DefChangePane extends Component{
     }
     if (this.item.group_tables.match(RegExp(`role`))){
       return(this.rolesList(changeItem));
+    }
+    if (this.item.group_tables.match(RegExp(`pwd_policy`))){
+      return(this.pwdPolicyList(changeItem));
     }
 
   }
@@ -334,7 +338,7 @@ class DefChangePane extends Component{
             <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
           </h3>
           <p>
-            {(changeItem.change_type=='INSERT'? 'Granted permission ': 'Revoked permission' ) + " " + changeItem.change_reference}
+            {(changeItem.change_type=='INSERT'? 'Granted permission for ': 'Amended permission for ' ) + " " + changeItem.change_reference}
             <br></br>
             <i className="fa fa-comments-o"></i>
             <span className={this.state.display ? "preserve-text" : "truncate-text"}>&nbsp;{changeItem.maker_comment}</span>
@@ -361,6 +365,36 @@ class DefChangePane extends Component{
         <div className="right">
           <h3>
             Role {changeItem.change_type=='INSERT' ? 'created' : ''} {changeItem.change_type=='DELETE' ? 'deleted' : ''}
+            <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
+          </h3>
+          <p>
+            {changeItem.change_type + " " + changeItem.change_reference}
+            <br></br>
+            <i className="fa fa-comments-o"></i>
+            <span className="preserve-text">&nbsp;{changeItem.maker_comment}</span>
+          </p>
+          <h3>
+            <small>{moment.utc(changeItem.date_of_change).format('hh:mm:ss a')}</small>
+          </h3>
+        </div>
+      </div>
+    );
+  }
+
+  pwdPolicyList(changeItem) {
+    return(
+      <div>
+        <div className="left">
+          <i className="fa fa-bullhorn"></i>
+          <h6>
+            {moment.utc(changeItem.date_of_change).format('DD')}
+            <br/>
+            <small>{moment.utc(changeItem.date_of_change).format('MMM')}</small>
+          </h6>
+        </div>
+        <div className="right">
+          <h3>
+            Password Policy Amended
             <small>{changeItem.maker_tenant_id+"/"}&nbsp;{changeItem.maker}&nbsp;</small>
           </h3>
           <p>

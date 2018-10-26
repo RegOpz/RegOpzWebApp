@@ -155,9 +155,9 @@ class DefChangeList extends Component{
             </h3>
             <p>
               <small>
-                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " New Permission grant requested"}</span>
+                <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " New Permission provisioned"}</span>
                 <br></br>
-                <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " Permission to be revoked"}</span>
+                <span><i className="fa fa-circle amber"></i>&nbsp; {group.updates + " Existing Permission amended"}</span>
               </small>
             </p>
             <h3>
@@ -186,7 +186,36 @@ class DefChangeList extends Component{
               <small>
                 <span><i className="fa fa-circle green"></i>&nbsp; {group.inserts + " New Permission grant requested"}</span>
                 <br></br>
+                <span><i className="fa fa-circle amber"></i>&nbsp; {group.updates + " Permission to be amended"}</span>
+                <br></br>
                 <span><i className="fa fa-circle red"></i>&nbsp; {group.deletes + " Permission to be revoked"}</span>
+              </small>
+            </p>
+            <h3>
+              <small>{moment.utc(group.group_date_of_change).format('hh:mm:ss a')}</small>
+            </h3>
+          </div>
+        </div>
+      )
+    }
+    if (group.group_tables.match(RegExp(`pwd_policy`))){
+      return(
+        <div>
+          <div className="left">
+            <i className="fa fa-bullhorn"></i>
+            <h6>
+              {moment.utc(group.group_date_of_change).format('DD')}
+              <br/>
+              <small>{moment.utc(group.group_date_of_change).format('MMM')}</small>
+            </h6>
+          </div>
+          <div className="right">
+            <h3>
+              Password Policy <small>{group.maker}</small>
+            </h3>
+            <p>
+              <small>
+                <span><i className="fa fa-circle amber"></i>&nbsp; {" Password Policy to be amended"}</span>
               </small>
             </p>
             <h3>

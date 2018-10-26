@@ -21,7 +21,8 @@ export default function(state = {}, action) {
         if (action.error){
           let loginTime = new Date()
           return Object.assign({}, state, {
-            user: null, name: null, role: null, permission: null, report: null, source: null, error: loginTime.toLocaleString()+" " +action.payload.response.data.msg
+            user: null, name: null, role: null, permission: null, report: null, source: null, error: loginTime.toLocaleString()+" " +action.payload.response.data.msg,
+            validation: action.payload.response.data.validation
           });
         } else {
           const { userId, name, role, permission, report, source, domainInfo } = helperLogin(action.payload.data);

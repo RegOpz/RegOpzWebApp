@@ -5,8 +5,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
 import { actionAddUser, actionFetchUsers } from '../../actions/UsersAction';
 import {
-          actionGetUserSecQuestion,
-          actionValidateUserSecQuestion,
+          actionGetUserOtp,
+          actionValidateUserOtp,
         } from '../../actions/PasswordRecoveryAction';
 
 const renderField = ({ input, label, type, readOnly, meta: { touched, error }}) => (
@@ -132,6 +132,7 @@ class OTPRecovery extends Component {
                                         }
                                   }
                           disabled={ pristine || submitting }>Reset</button>
+                        <button type="button" className="btn btn-info" onClick={ ()=>{this.setState({isOTPGenerated: true });} } disabled={ pristine || submitting || invalid }>Already Have OTP</button>
                         <button type="button" className="btn btn-dark" onClick={ ()=>{this.onGetOTP()} } disabled={ pristine || submitting || invalid }>Send OTP</button>
                         <button type="submit" className="btn btn-success" disabled={ pristine || submitting || !this.state.isOTPGenerated}>Validate</button>
                       </div>
@@ -149,7 +150,7 @@ class OTPRecovery extends Component {
       if (values.name)
       {
         this.setState({isOTPGenerated: true},
-                      //this.props.getSecQuestions(values.name)
+                      this.props.getOTP(values.name)
                     );
       }
 
@@ -159,7 +160,7 @@ class OTPRecovery extends Component {
         const {reset} = this.props;
         console.log("inside handleFormSubmit",data);
         this.setState({isOTPGenerated: false, isValidating: true},
-                      //this.props.validateOTP(data)
+                      this.props.validateOTP(data)
                     );
 
         reset();
@@ -177,11 +178,11 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        validateAnswer: (data) => {
-            dispatch(actionValidateUserSecQuestion(data));
+        validateOTP: (data) => {
+            dispatch(actionValidateUserOtp(data));
         },
-        getSecQuestions: (username) => {
-            dispatch(actionGetUserSecQuestion(username));
+        getOTP: (username) => {
+            dispatch(actionGetUserOtp(username));
         }
     };
 }

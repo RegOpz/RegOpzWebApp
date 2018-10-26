@@ -117,6 +117,9 @@ class TenantLeftMenu extends Component {
                           <li>
                               <Link to="/dashboard/manage-roles" onClick={this.handleLeftMenuClick}>Roles</Link>
                           </li>
+                          <li>
+                              <Link to="/dashboard/password-policy" onClick={this.handleLeftMenuClick}>Password Policy</Link>
+                          </li>
                       </ul>
                   </li>
               </ul>

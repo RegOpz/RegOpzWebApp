@@ -134,15 +134,19 @@ class AddBusinessRule extends Component {
     console.log('inside dataFieldsTags addition 0', dataFieldsTags, this.state.dataFieldsTags);
     // check whether its a valid rule to be added
     if (this.state.fieldsSuggestions.indexOf(tag) != -1) {
-      dataFieldsTags.push({
-        id: dataFieldsTags.length + 1,
-        text: tag
-      });
+      if (dataFieldsTags.map(function(r){return r.text;}).indexOf(tag) == -1){
+        dataFieldsTags.push({
+            id: dataFieldsTags.length + 1,
+            text: tag
+        });
+        this.setState({ dataFieldsTags: dataFieldsTags });
+      } else {
+        alert("[" + tag + "] - The field already added, please check...")
+      }
     }
     else {
-      alert("Not a valid data field, please check...", tag)
+      alert("[" + tag + "] - Not a valid data field, please check...")
     }
-    this.setState({ dataFieldsTags: dataFieldsTags });
   }
 
   handleDataFieldsDrag(tag, currPos, newPos) {

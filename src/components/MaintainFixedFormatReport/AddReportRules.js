@@ -153,14 +153,19 @@ class AddReportRules extends Component {
         let rulesTags = this.state.rulesTags;
         // check whether its a valid rule to be added
         if (this.state.rulesSuggestions.indexOf(tag) != -1){
-          rulesTags.push({
-              id: rulesTags.length + 1,
-              text: tag
-          });
-          this.setState({rulesTags: rulesTags});
+          if (rulesTags.map(function(r){return r.text;}).indexOf(tag) == -1){
+            rulesTags.push({
+                id: rulesTags.length + 1,
+                text: tag
+            });
+            this.setState({rulesTags: rulesTags});
+          } else {
+            alert("[" + tag + "] - The rule already added, please check...")
+          }
+
         }
         else{
-          alert("Not a valid rule, please check...",tag)
+          alert("[" + tag + "] - Not a valid rule, please check...")
         }
 
     }

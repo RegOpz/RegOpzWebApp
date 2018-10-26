@@ -45,6 +45,7 @@ import NotificationSystem from 'react-notification-system';
 import ManageSubscribers from './components/ManageSubscribers/ManageSubscribers';
 import MaintainBusinessRulesRepository from './components/MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import MaintainReportRulesRepository from './components/MaintainReportRulesRepository/MaintainReportRulesRepository';
+import PasswordPolicy from './components/PasswordPolicy/PasswordPolicy';
 
 const createStoreWithMiddleware = applyMiddleware(promiseMiddleware, promiseRejectMiddleWare)(createStore);
 const store = createStoreWithMiddleware(reducers);
@@ -71,7 +72,7 @@ class Index extends Component {
                $(".se-pre-con").fadeOut("slow");
        });
        $("#main_container").removeClass("se-pre-con");
-      
+
     }
 
     componentWillMount() {
@@ -168,6 +169,7 @@ ReactDOM.render(
                     <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(withRouter(ManageDataChange))} />
                     <Route path="manage-roles" name="Manage Roles" component={authenticate(ManageRoles)} />
                     <Route path="manage-users" name="Manage Users" component={authenticate(ManageUsers)} />
+                    <Route path="password-policy" name="Password Policy" component={authenticate(PasswordPolicy)} />
                     <Route path="manage-users/edit-user" name="Edit User" component={EditUsers} />
                     <Route path="manage-subscribers" name="Subscriber Management" component={authenticate(ManageSubscribers)} />
                     <Route path="maintain-business-rules-repo" name="Maintain Business Rules Repository" component={authenticate(MaintainBusinessRulesRepository)} />

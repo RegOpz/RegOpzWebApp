@@ -160,11 +160,17 @@ class LoginComponent extends Component {
 
     componentWillReceiveProps(nextProps){
 
+      console.log("Component Recieved Props Login",nextProps.validation)
+
       if (!nextProps.error && this.props.domainInfo != nextProps.domainInfo){
           this.setState({isLoading:false,
                         isDomainValid:(this.whichModal == "Subscribe" && this.state.isModalOpen) ? false : true});
       } else if(nextProps.error && this.state.isLoading && this.props !== nextProps){
           this.setState({ isLoading:false});
+          // Check if the password expired, then force to change password to access application
+          if(nextProps.validation && nextProps.validation.isPasswordExpired){
+            this.onValidation({status: true, name: nextProps.validation.name})
+          }
       } else if (nextProps.permissions){
         this.setState({ isLoading:false},
                       hashHistory.push(encodeURI('/'))
@@ -253,6 +259,7 @@ function mapStateToProps(state) {
   return {
     token: state.login_store.token,
     error: state.login_store.error,
+    validation: state.login_store.validation,
     domainInfo:state.login_store.domainInfo
   };
 }
