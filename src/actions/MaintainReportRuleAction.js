@@ -17,7 +17,7 @@ export const COPY_REPORT_TEMPLATE = 'COPY_REPORT_TEMPLATE';
 export const CHECK_REPORT_ID = 'CHECK_REPORT_ID';
 
 // TODO:
-export function actionFetchReportTemplate(reports, country) {
+export function actionFetchReportTemplate(reports, country,domain_type) {
   let url = BASE_URL + "document/get-report-template-suggestion-list?";
   console.log("[" + reports + "]");
   if (typeof(reports) !== 'undefined' && reports.length !== 0) {
@@ -25,6 +25,9 @@ export function actionFetchReportTemplate(reports, country) {
   }
   if (typeof(country) !== 'undefined') {
     url += `country=${country}&`;
+  }
+  if (typeof(domain_type) !== 'undefined') {
+    url += `domain_type=${domain_type}&`;
   }
   console.log(url);
   const request = axios.get(url);

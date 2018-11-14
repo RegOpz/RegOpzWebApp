@@ -559,6 +559,8 @@ class MaintainFixedFormatReportRules extends Component {
                       if (sourceItem){
                           console.log("permission_details...",sourceItem);
                           sourceItem={...sourceItem,...JSON.parse(sourceItem.permission_details)};
+                      } else {
+                        sourceItem={source_id: filter.source_id}
                       }
                       const permissions=[{"permission": isRulesComponent ? "View Business Rules" : null}];
                       content.push(
@@ -569,6 +571,7 @@ class MaintainFixedFormatReportRules extends Component {
                             flagRuleDrillDown={true}
                             sourceId={this.businessRuleFilterParam.source_id}
                             ruleFilterParam={this.businessRuleFilterParam}
+                            origin={"FIXEDFORMAT"}
                           />
                       );
                   } else if (this.state.showCellChangeHistory && this.props.change_history) {

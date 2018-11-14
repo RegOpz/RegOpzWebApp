@@ -19,6 +19,7 @@ import {
   actionInsertBusinessRule,
   actionUpdateBusinessRule
 } from '../../actions/BusinessRulesAction';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 class AddBusinessRule extends Component {
   constructor(props) {
@@ -124,9 +125,21 @@ class AddBusinessRule extends Component {
   //   this.setState({ rulesTags: rulesTags });
   // }
   handleDataFieldsDelete(i) {
+
     let dataFieldsTags = this.state.dataFieldsTags;
-    dataFieldsTags.splice(i, 1);
-    this.setState({ dataFieldsTags: dataFieldsTags });
+    let matchText = RegExp("\\["+dataFieldsTags[i].text+"\\]");
+    let isUsedInRuleCondition = this.state.form.python_implementation.match(matchText);
+    if (isUsedInRuleCondition){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i>
+          {" Source column attribute [ " + dataFieldsTags[i].text + " ] can not be removed as it is being used in the rule condition, please check..."}
+        </span>);
+    } else {
+      dataFieldsTags.splice(i, 1);
+      this.setState({ dataFieldsTags: dataFieldsTags });
+    }
   }
 
   handleDataFieldsAddition(tag) {
@@ -141,11 +154,21 @@ class AddBusinessRule extends Component {
         });
         this.setState({ dataFieldsTags: dataFieldsTags });
       } else {
-        alert("[" + tag + "] - The field already added, please check...")
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open(
+          <span className="">
+            <i className="fa fa-warning amber"></i>
+            {" Source column attribute [ " + tag + " ] already added, please check..."}
+          </span>);
       }
     }
     else {
-      alert("[" + tag + "] - Not a valid data field, please check...")
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i>
+          {" [ " + tag + " ] is not a valid source column attribute, please check..."}
+        </span>);
     }
   }
 
@@ -306,7 +329,7 @@ class AddBusinessRule extends Component {
                       onChange={
                         (event) => {
                           let newState = { ...this.state };
-                          newState.form.business_rule = event.target.value;
+                          newState.form.business_rule = event.target.value.replace(/\,/g,'');
                           this.setState(newState);
                         }
                       }
@@ -573,6 +596,10 @@ class AddBusinessRule extends Component {
               </form>
             </div>
           </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
         </div>
       )
     }
@@ -587,37 +614,46 @@ class AddBusinessRule extends Component {
   handleSubmit(event) {
     console.log('inside submit', this.state.form);
     event.preventDefault();
-    this.flatenTags();
-    let data = {
-      table_name: "business_rules",
-      update_info: this.state.form
-    };
+    if(this.state.dataFieldsTags.length==0){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i> No source column attribute added! Please check and add applicable column attributes for the rule!
+        </span>);
 
-    // add audit info to the data part
-    data['change_type'] = this.state.requestType == 'add' ? 'INSERT' : 'UPDATE';
+    } else {
+      this.flatenTags();
+      let data = {
+        table_name: "business_rules",
+        update_info: this.state.form
+      };
 
-    let audit_info = {
-      id: this.state.form.id,
-      table_name: data.table_name,
-      change_type: data.change_type,
-      change_reference: `Rule: ${this.state.form.business_rule} of Source: ${this.state.form.source_id}`,
-      maker: this.props.login_details.user,
-      maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
-      group_id: this.props.groupId,
-    };
-    Object.assign(audit_info, this.state.audit_form);
+      // add audit info to the data part
+      data['change_type'] = this.state.requestType == 'add' ? 'INSERT' : 'UPDATE';
 
-    data['audit_info'] = audit_info;
+      let audit_info = {
+        id: this.state.form.id,
+        table_name: data.table_name,
+        change_type: data.change_type,
+        change_reference: `Rule: ${this.state.form.business_rule} of Source: ${this.state.form.source_id}`,
+        maker: this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.props.groupId,
+      };
+      Object.assign(audit_info, this.state.audit_form);
 
-    console.log('inside submit', this.state.form);
-    if (this.state.requestType == "add") {
-      this.props.insertBusinessRule(data, this.state.ruleIndex);
+      data['audit_info'] = audit_info;
+
+      console.log('inside submit', this.state.form);
+      if (this.state.requestType == "add") {
+        this.props.insertBusinessRule(data, this.state.ruleIndex);
+      }
+      else {
+        this.props.updateBusinessRule(data);
+      }
+
+      this.props.handleClose(event);
     }
-    else {
-      this.props.updateBusinessRule(data);
-    }
-
-    this.props.handleClose(event);
   }
 }
 function mapStateToProps(state) {

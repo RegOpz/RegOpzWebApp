@@ -10,8 +10,11 @@ import {
   actionExportXlsx,
   actionExportRulesXlsx,
   //actionFetchReportChangeHistory,
-  actionUpdateRuleData
+  // actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
+import {
+  actionUpdateReportParameter,
+} from '../../actions/ReportRulesRepositoryAction';
 import {
   //actionFetchDates,
   // actionFetchReportCatalog,
@@ -24,7 +27,8 @@ import {
   actionFetchReportData,
   actionRepoDrillDown,
   actionFetchReportCatalog,
-  actionFetchRepoReportChangeHistory
+  actionFetchRepoReportChangeHistory,
+  actionFetchReportBusinessRules,
 } from '../../actions/ReportRulesRepositoryAction';
 import {
   actionLeftMenuClick,
@@ -43,7 +47,7 @@ import AddReportAggRules from './AddReportAggRules';
 import AddReportRules from './AddReportRules';
 import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
-import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
+import ReportBusinessRules from '../MaintainReportRulesRepository/RepositoryReportBusinessRules';
 import CopyReportTemplate from '../MaintainReportRulesRepository/CopyReportRules';
 require('react-datepicker/dist/react-datepicker.css');
 
@@ -170,6 +174,7 @@ class MaintainFixedFormatReportRules extends Component {
   componentWillReceiveProps(nextProps){
     this.gridDataViewReport=nextProps.gridDataViewReport;
     this.changeHistory=nextProps.change_history;
+    this.reportBusinessRules=nextProps.cell_rules;
     this.country = this.props.country ? this.props.country
                   :
                   (this.props.login_details.domainInfo.tenant_id != "regopz" ?
@@ -378,7 +383,7 @@ class MaintainFixedFormatReportRules extends Component {
       this.setState({
         display: "showReportBusinessRules"
         },
-        ()=>{this.props.fetchReportChangeHistory(this.state.reportId)}
+        ()=>{this.props.fetchReportBusinessRules(this.state.reportId)}
       );
     }
   }
@@ -423,7 +428,7 @@ class MaintainFixedFormatReportRules extends Component {
   handleSaveParameterClick(report_info){
     // TODO
     console.log("handleSaveParameterClick...",report_info);
-    this.props.updateReportParameter(this.state.reportId,report_info)
+    this.props.updateReportParameter(report_info,this.state.reportId)
     this.handleEditParameterClick();
   }
 //Made By Me..
@@ -555,7 +560,11 @@ class MaintainFixedFormatReportRules extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
-                      const permissions=[{"permission": "View Business Rules Repository"}];
+                      const {permission} = this.props.login_details;
+                      const filter = this.businessRuleFilterParam;
+                      let isRulesComponent = permission.find(function(p){return p.component.match(/Business Rules Repository/);});
+                      const permissions=[{"permission": isRulesComponent ? "View Business Rules Repository" : null}];
+                      // const permissions=[{"permission": "View Business Rules Repository"}];
                       content.push(
                           <ViewBusinessRules
                             country = { this.state.country }
@@ -564,6 +573,7 @@ class MaintainFixedFormatReportRules extends Component {
                             flagRuleDrillDown={true}
                             sourceId={this.state.country}
                             ruleFilterParam={this.businessRuleFilterParam}
+                            origin={"FIXEDFORMAT"}
                           />
                       );
                   } else if (this.state.showCellChangeHistory && this.props.change_history) {
@@ -631,6 +641,7 @@ class MaintainFixedFormatReportRules extends Component {
                         reportDetails={this.state.selectedReport}
                         handleCancel={this.handleEditParameterClick}
                         handleSubmit={this.handleSaveParameterClick}
+                        domainType={"master"}
                       />
                     );
               break;
@@ -799,6 +810,9 @@ const mapDispatchToProps = (dispatch) => {
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
       dispatch(actionFetchRepoReportChangeHistory(report_id,sheet_id,cell_id));
     },
+    fetchReportBusinessRules:(report_id,sheet_id,cell_id) => {
+      dispatch(actionFetchReportBusinessRules(report_id,sheet_id,cell_id));
+    },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
     },
@@ -814,8 +828,8 @@ const mapDispatchToProps = (dispatch) => {
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
-    updateReportParameter:(id, data) => {
-      dispatch(actionUpdateRuleData(id, data));
+    updateReportParameter:(data,report) => {
+      dispatch(actionUpdateReportParameter(data,report));
     },
   }
 }

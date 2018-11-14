@@ -100,7 +100,7 @@ class ViewReport extends Component {
       { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
       { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
       { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
+      { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'Yes', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
       { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
       { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
     ];
@@ -184,6 +184,7 @@ class ViewReport extends Component {
       this.currentPage = 0;
       this.selectedViewColumns=[];
       this.gridDataViewReport=undefined;
+      this.report_type = item.report_type;
       this.setState({
           display: "showReportGrid",
           reportId: item.report_id,
@@ -308,6 +309,8 @@ class ViewReport extends Component {
         return !this.writeOnly;
       case "Delete":
         return (!this.writeOnly || !this.state.itemEditable);
+      case "Business Rules":
+        return this.report_type=="TRANSACTION";
       default:
         console.log("No specific checkDisabled has been defined for ",item);
     }
@@ -370,7 +373,7 @@ class ViewReport extends Component {
           showCellChangeHistory: false,
           },
           this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell,
-                              this.state.selectedRecord.report_snapshot)
+                              this.state.selectedRecord.report_snapshot,this.state.selectedRecord.report_type)
         );
       }
     }
@@ -482,7 +485,8 @@ class ViewReport extends Component {
       this.setState({
         display: "showReportBusinessRules"
         },
-        ()=>{this.props.drillDown(this.state.reportId,undefined,undefined,this.state.selectedRecord.report_snapshot)}
+        ()=>{this.props.drillDown(this.state.reportId,undefined,undefined,this.state.selectedRecord.report_snapshot,
+                                  this.state.selectedRecord.report_type)}
       );
     }
   }
@@ -737,7 +741,7 @@ class ViewReport extends Component {
             let item = this.state.selectedRecord;
             if (this.state.selectedRecord){
                 return <AccessDenied
-                        component={"View Report for " + item.report_id + "]"
+                        component={"View Report for [" + item.report_id + "]"
                                               + " [Report Type: " + item.report_type + "] "}/>
             }
             break;
@@ -777,7 +781,7 @@ class ViewReport extends Component {
                             }
                             return(
                                 <h2>View Report <small>{' Report '}</small>
-                                  <small><i className="fa fa-file-text"></i></small>
+                                  <small><i className={"fa fa-file-text " + this.getaccTypeColor(this.state.selectedRecord.access_type)}></i></small>
                                   <small>{this.state.reportId + ' [Version: ' + this.state.selectedRecord.version + ' @' + this.state.selectedRecord.report_create_date + ']'}</small>
                                   <small>{' as on Business Date: ' + moment(this.state.businessDate).format("DD-MMM-YYYY")}</small>
                                 </h2>
@@ -842,6 +846,15 @@ class ViewReport extends Component {
                             </label>
                           </ul>
                         }
+                        {
+                          this.state.display &&
+                          this.state.selectedRecord &&
+                          <ul className="nav navbar-right panel_toolbox">
+                            <div className={" label bg-" + this.getaccTypeColor(this.state.selectedRecord.access_type)}>
+                              {this.state.selectedRecord.access_type?this.state.selectedRecord.access_type:"No access"}
+                            </div>
+                          </ul>
+                        }
                       </div>
                     <div className="clearfix"></div>
                 </div>
@@ -881,8 +894,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchTransReportData:(report_id, reporting_date, version)=>{
       dispatch(actionFetchTransReportData(report_id, reporting_date, version))
     },
-    drillDown:(report_id,sheet,cell,report_snapshot) => {
-      dispatch(actionDrillDown(report_id,sheet,cell,report_snapshot));
+    drillDown:(report_id,sheet,cell,report_snapshot,report_type) => {
+      dispatch(actionDrillDown(report_id,sheet,cell,report_snapshot,report_type));
     },
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
       dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));

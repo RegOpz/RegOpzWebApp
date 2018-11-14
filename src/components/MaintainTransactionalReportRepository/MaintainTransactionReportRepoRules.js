@@ -10,7 +10,7 @@ import {
   actionExportXlsx,
   actionExportRulesXlsx,
   // actionFetchReportChangeHistory,
-  actionUpdateRuleData
+  // actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import {
   //actionFetchDates,
@@ -32,6 +32,9 @@ import {
   actionTransExportXlsx,
 } from '../../actions/TransactionReportAction';
 import {
+  actionUpdateReportParameter,
+} from '../../actions/ReportRulesRepositoryAction';
+import {
   actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
 import DatePicker from 'react-datepicker';
@@ -43,11 +46,11 @@ import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import DataReportLinkage from '../ViewData/DataReportLinkage';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
-import DrillDownTransRules from '../DrillDown/DrillDownTransRules';
+import DrillDownTransRules from '../ReportRepositoryDrillDown/DrillDownTransRules';
 import AddTransReportSectionOrder from './AddTransReportSectionOrder';
 import AddTransReportSection from './AddTransReportSection';
 import AddReportTransRules from './AddReportTransRules';
-import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import ViewBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
 import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
 import EditParameters from '../CreateReport/EditParameters';
 import CopyReportTemplate from '../MaintainReportRulesRepository/CopyReportRules';
@@ -58,6 +61,7 @@ class MaintainTransactionReportRules extends Component {
     super(props)
     this.state = {
       sources:null,
+      country: null,
       itemEditable: true,
       reportId: null,
       reportingDate: null,
@@ -216,6 +220,7 @@ class MaintainTransactionReportRules extends Component {
     this.gridDataViewReport=undefined;
     this.setState({
         display: "showReportGrid",
+        country: item.country,
         reportId: item.report_id,
         reportingDate: item.reporting_date,
         businessDate: item.as_of_reporting_date,
@@ -406,7 +411,7 @@ class MaintainTransactionReportRules extends Component {
           showAggRuleDetails: false,
           showCellChangeHistory: true
         },
-        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.section_id)}
+        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.section_id,"master")}
       );
     }
 
@@ -426,7 +431,7 @@ class MaintainTransactionReportRules extends Component {
       this.setState({
         display: "showHistory"
         },
-        ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+        ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName,null,"master")}
       );
     }
   }
@@ -518,7 +523,7 @@ class MaintainTransactionReportRules extends Component {
   handleSaveParameterClick(report_info){
     // TODO
     console.log("handleSaveParameterClick...",report_info);
-    this.props.updateReportParameter(this.state.reportId,report_info)
+    this.props.updateReportParameter(report_info,this.state.reportId)
     this.handleEditParameterClick();
   }
 
@@ -561,7 +566,7 @@ class MaintainTransactionReportRules extends Component {
 
       console.log("delete call...", data, rule.id);
 
-      this.props.deleteTransReportRules(data, rule.id);
+      this.props.deleteTransReportRules(data, rule.id,"master");
       // this.setState({showAuditModal:false});
     }
     this.setState({showAuditModal:false, display: "showReportGrid"},
@@ -669,11 +674,17 @@ class MaintainTransactionReportRules extends Component {
                           />
                       );
                   } else if (this.state.showDrillDownCalcBusinessRules) {
+                      const {permission} = this.props.login_details;
+                      const filter = this.businessRuleFilterParam;
+                      let isRulesComponent = permission.find(function(p){return p.component.match(/Business Rules Repository/);});
+                      const permissions=[{"permission": isRulesComponent ? "View Business Rules Repository" : null}];
                       content.push(
                           <ViewBusinessRules
+                            country = { this.state.country }
+                            privileges={ permissions }
                             showBusinessRuleGrid={true}
                             flagRuleDrillDown={true}
-                            sourceId={this.businessRuleFilterParam.source_id}
+                            sourceId={this.state.country}
                             ruleFilterParam={this.businessRuleFilterParam}
                           />
                       );
@@ -698,7 +709,7 @@ class MaintainTransactionReportRules extends Component {
                       onSelect={(key) => {
                           let sheetName = this.gridDataViewReport[key].sheet;
                           this.setState({selectedAuditSheet:key},
-                          ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
+                          ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName,null,"master")}
                         );
                           //this.renderTabs(key);
                       }}
@@ -742,6 +753,7 @@ class MaintainTransactionReportRules extends Component {
                         reportDetails={this.state.selectedReport}
                         handleCancel={this.handleEditParameterClick}
                         handleSubmit={this.handleSaveParameterClick}
+                        domainType={"master"}
                       />
                     );
               break;
@@ -930,8 +942,8 @@ const mapDispatchToProps = (dispatch) => {
     drillDown:(report_id,sheet,cell,domain_type) => {
       dispatch(actionFetchTransReportSecRules(report_id,sheet,cell,domain_type));
     },
-    fetchReportChangeHistory:(report_id,sheet_id,section_id) => {
-      dispatch(actionFetchTransReportChangeHistory(report_id,sheet_id,section_id));
+    fetchReportChangeHistory:(report_id,sheet_id,section_id,domain_type) => {
+      dispatch(actionFetchTransReportChangeHistory(report_id,sheet_id,section_id,domain_type));
     },
     exportCSV:(table_name,business_ref,sql) => {
       dispatch(actionExportCSV(table_name,business_ref,sql));
@@ -948,11 +960,11 @@ const mapDispatchToProps = (dispatch) => {
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
-    updateReportParameter:(id, data) => {
-      dispatch(actionUpdateRuleData(id, data));
+    updateReportParameter:(data,report) => {
+      dispatch(actionUpdateReportParameter(data,report));
     },
-    deleteTransReportRules:(Data,id) => {
-      dispatch(actionDeleteTransReportRules(Data,id));
+    deleteTransReportRules:(Data,id,domain_type) => {
+      dispatch(actionDeleteTransReportRules(Data,id,domain_type));
     },
   }
 }

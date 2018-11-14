@@ -7,52 +7,76 @@ import moment from 'moment';
 class DrillDownTransRules extends Component {
   constructor(props){
     super(props);
+    this.secDetails = this.props.cellRules;
     this.cellRules = this.props.cellRules.secRules;
+    this.secOrders = this.props.cellRules.secOrders;
     this.section = this.props.cellRules.section;
     this.sectionColumns = this.props.cellRules.secColumns;
     this.readOnly = this.props.readOnly;
     this.selectedCell = this.props.selectedCell;
     this.reportingDate = this.props.reportingDate;
-    this.showRulesPanel = true;
+    this.state={showRulesPanel : true};
     this.collapseIcon = "fa-chevron-up";
     //this.renderChangeHistory = this.renderChangeHistory.bind(this);
     this.renderOrderBy = this.renderOrderBy.bind(this);
     this.renderCalcRules = this.renderCalcRules.bind(this);
     this.renderCalcRulesBtn = this.renderCalcRulesBtn.bind(this);
-
     this.handleCollapse = this.handleCollapse.bind(this);
+    this.disabledelete=(this.secOrders.length == 0 && this.cellRules.length ==0)||
+                        (this.secOrders.length > 0 && this.secOrders.findIndex(x=>x.dml_allowed=='N')!=-1)||
+                        (this.cellRules.length > 0 && this.cellRules.findIndex(x=>x.dml_allowed=='N')!=-1)
+                        ?
+                        true:false;
   }
 
   componentWillReceiveProps(nextProps){
       //TODO
-      this.cellRules = nextProps.cellRules.secRules;
+      this.secDetails = nextProps.cellRules;
+      console.log("nextProps cellRules",nextProps.cellRules)
+      //this.cellRules = nextProps.cellRules.secRules;
+      //this.secOrders = nextProps.cellRules.secOrders;
       this.readOnly = nextProps.readOnly;
       this.selectedCell = nextProps.selectedCell;
       this.section = nextProps.cellRules.section;
-      this.sectionColumns = nextProps.cellRules.secColumns;
-
+      if(nextProps.cellRules)
+      {
+        this.sectionColumns = nextProps.cellRules.secColumns;
+        this.secOrders = nextProps.cellRules.secOrders;
+        this.cellRules = nextProps.cellRules.secRules;
+        this.disabledelete=(this.secOrders.length == 0 && this.cellRules.length ==0)||
+                            (this.secOrders.length > 0 && this.secOrders.findIndex(x=>x.dml_allowed=='N')!=-1)||
+                            (this.cellRules.length > 0 && this.cellRules.findIndex(x=>x.dml_allowed=='N')!=-1)
+                            ?
+                            true:false;
+      }
   }
 
   handleCollapse(event) {
-    this.showRulesPanel=!this.showRulesPanel;
-    if(this.showRulesPanel) {
-      this.collapseIcon = "fa-chevron-up";
-    }
-    else {
+    if(this.state.showRulesPanel) {
       this.collapseIcon = "fa-chevron-down";
     }
-    console.log("Clicked in the collapse-link",this.showRulesPanel);
-    this.forceUpdate();
+    else {
+      this.collapseIcon = "fa-chevron-up";
+    }
+    this.setState({showRulesPanel:!this.state.showRulesPanel},
+      ()=>{
+        console.log("Clicked in the collapse-link",this.state.showRulesPanel);
+      }
+    );
+
+    // this.forceUpdate();
   }
 
   render(){
     return(
+          (this.secOrders.length != 0 || this.cellRules.length !=0 || !this.props.showOnlyData) &&
           <div className="x_panel">
             <div className="x_title">
               <h2>Report Cell Rules
               <small> for Section <b>{this.section}</b> of Sheet <b>{this.selectedCell.sheetName}</b></small>
               </h2>
-              <ul className="nav navbar-right panel_toolbox">
+              {!this.props.showOnlyData &&
+                <ul className="nav navbar-right panel_toolbox">
                 <li>
                   <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
                 </li>
@@ -61,38 +85,68 @@ class DrillDownTransRules extends Component {
                     onClick={ this.handleCollapse }><i className= { "fa " + this.collapseIcon}></i></a>
                 </li>
               </ul>
+             }
               <div className="clearfix"></div>
             </div>
             {
-              this.showRulesPanel &&
+              this.state.showRulesPanel &&
               <div>
                 <div className="x_content">
-                  <button
-                    className="btn btn-primary btn-circle btn-sm"
-                    data-toggle="tooltip"
-                    title="Cell Rules Change History"
-                    onClick={
-                      (event)=>{
-                        let item = {
-                            report_id: this.selectedCell.reportId,
-                            cell_id: this.selectedCell.cell,
-                            sheet_name: this.selectedCell.sheetName,
-                        };
-                        this.props.handleCellHistoryClicked(event, item);
-                        this.showRulesPanel=!this.showRulesPanel;
+                  {
+                    this.props.showOnlyData && !this.disabledelete &&
+                    <div>
+                      <h5 className="">
+                        <i className="fa fa-warning"></i>
+                        There are existing rules! The section can only be reset after deleting all existing rules for the selected section!
+                      </h5>
+                      <button type ="button"
+                        className="btn btn-danger btn-sm"
+                        data-toggle="tooltip"
+                        title="Delete Agg and Calc Rules"
+                        onClick={(event)=>{this.props.handleDeleteRules();}}>
+                        <i className="fa fa-trash"></i>
+                        {" Delete Section Rules"}
+                       </button>
+                    </div>
+                  }
+                  {
+                    this.props.showOnlyData &&
+                    this.disabledelete &&
+                    <div>
+                      <h5 className="amber">
+                        <i className="fa fa-warning"></i>
+                        There are section rules pending review! Can not reset the selected section!
+                      </h5>
+                    </div>
+                  }
+                  {!this.props.showOnlyData &&
+                    <button
+                      className="btn btn-primary btn-circle btn-sm"
+                      data-toggle="tooltip"
+                      title="Cell Rules Change History"
+                      onClick={
+                        (event)=>{
+                          let item = {
+                              report_id: this.selectedCell.reportId,
+                              section_id: this.section,
+                              sheet_name: this.selectedCell.sheetName,
+                          };
+                          this.props.handleCellHistoryClicked(event, item);
+                          this.handleCollapse(event);
+                        }
                       }
-                    }
-                    >
-                    <i className="fa fa-history"></i>
-                    {" Change History"}
-                  </button>
+                      >
+                      <i className="fa fa-history"></i>
+                      {" Change History"}
+                    </button>
+                  }
                   <div className="x_panel">
                     <div className="x_title">
                       <h2>Section Order Condition</h2>
                       <div className="clearfix"></div>
                     </div>
                     <div className="x_content">
-                    { this.renderOrderBy(this.cellRules)}
+                    { this.renderOrderBy(this.secDetails)}
                     </div>
                   </div>
                 </div>
@@ -114,13 +168,15 @@ class DrillDownTransRules extends Component {
     );
   }
 
-  renderOrderBy(cellRules) {
-    console.log("Modal linkage data", cellRules);
-    if (cellRules.length == 0 )
+  renderOrderBy(secDetails) {
+    console.log("Modal linkage data", secDetails);
+    if (secDetails.secOrders && secDetails.secOrders.length == 0 )
+    {
       return (
         <div>
           <h5>No Ordering Details defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
           {
+              !this.props.showOnlyData&&
               ((addRulesBtn) => {
                   if (addRulesBtn) {
                       return(
@@ -130,22 +186,8 @@ class DrillDownTransRules extends Component {
                             className="btn btn-primary btn-sm"
                             onClick={
                               (event)=>{
-                                let item = {
-                                    id: null,
-                                    comp_agg_ref: cellRules.comp_agg_ref,
-                                    comp_agg_rule: null,
-                                    reporting_scale: null,
-                                    rounding_option: null,
-                                    valid_from: null,
-                                    valid_to: null,
-                                    last_updated_by: null,
-                                    report_id: this.selectedCell.reportId,
-                                    cell_id: this.selectedCell.cell,
-                                    sheet_id: this.selectedCell.sheetName,
-                                    dml_allowed: 'Y'
-                                };
-                                this.props.handleAggeRuleClicked(event, item);
-                                this.showRulesPanel=!this.showRulesPanel;
+                                this.props.handleAggeRuleClicked(event, secDetails);
+                                this.handleCollapse();
                               }
                             }
                           >
@@ -156,25 +198,103 @@ class DrillDownTransRules extends Component {
               })(this.props.addRulesBtn)
           }
         </div>
-      )
+      );
+    }
     else {
       // TODO
+      let secOrders = secDetails.secOrders;
+      return (
+              <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
+                <div className="row">
+                <table className="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>SL#</th>
+                      <th>Order Ref</th>
+                      <th>Order Logic</th>
+                      <th>In Use</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      secOrders.length > 0 && secOrders.map((item,index)=>{
+                        return(
+                          (item.in_use =="Y" ||
+                          (item.in_use !="X" && item.dml_allowed != 'X') ||
+                          this.reportingDate ) &&
+                          <tr>
+                            <td><strong>{index+1}</strong></td>
+                            <td>
+                              <small>{item.cell_agg_ref}</small>
+                              <div>
+                                {!this.props.showOnlyData&&
+                                  <button
+                                  type="button"
+                                  className="btn btn-link btn-xs"
+                                  onClick={
+                                      (event)=>{
+                                        let secDetailsRule = {...secDetails};
+                                        secDetailsRule.secOrders = item;
+                                        this.props.handleAggeRuleClicked(event, secDetailsRule);
+                                        this.handleCollapse();
+                                      }
+                                    }
+                                  >
+                                  <i className="fa fa-cube" data-toggle="tooltip" title="Order Details"></i>
+                                </button>
+                              }
+                              </div>
+                            </td>
+                            <td>
+                              <small>
+                              {
+                                ((cell_agg_render_ref)=>{
+                                  let orderDetails = JSON.parse(cell_agg_render_ref);
+                                  let elements=[];
+                                  Object.keys(orderDetails).map((element,index)=>{
+                                    if (element == "sortorder"){
+                                      orderDetails.sortorder.map((col,index)=>{
+                                        elements.push(<div>{col.column + " : " + (col.order=="ASC"? "Ascending":"Descending")}</div>)
+                                      })
+                                    } else {
+                                      elements.push(<div>{element + " : " + orderDetails[element]}</div>)
+                                    }
+                                  })
+                                  return elements;
+                                })(item.cell_agg_render_ref)
+                              }
+                              </small>
+                            </td>
+                            <td>
+                              <Label bsStyle={item.in_use == "Y" ? "success": "warning"}>{item.in_use}</Label>
+                            </td>
+                          </tr>
+                        )
+                      })
+                    }
+                  </tbody>
+                </table>
+                </div>
+              </div>
+          );
     }
   }
 
   renderCalcRules(cellRules) {
     console.log("Modal linkage data renderCalcRules", cellRules);
-    if (cellRules.length == 0 )
+    if (cellRules.length == 0 ){
       return (
         <div>
           <h5>No Source Calculation Rule defined for  {this.selectedCell.cell} of {this.selectedCell.sheetName}!</h5>
           <div>
           {
-              this.renderCalcRulesBtn()
+            this.renderCalcRulesBtn()
           }
           </div>
         </div>
-      )
+      );
+      ///this.setState({calc_rules:false});
+    }
     else {
       let item = cellRules;
       return (
@@ -196,23 +316,29 @@ class DrillDownTransRules extends Component {
               let cellCalc = JSON.parse(item.cell_calc_render_ref)
               console.log("After parsing JSON string...", cellCalc);
               return(
+                (item.in_use=="Y" ||
+                (item.in_use !="X" && item.dml_allowed != 'X') ||
+                this.reportingDate ) &&
                 <tr>
                   <td>{item.source_id}</td>
                   <td>
                     <small>{item.cell_calc_ref}</small>
                     <div>
-                      <button
-                        type="button"
-                        className="btn btn-link btn-xs"
-                        onClick={
-                          (event)=>{
-                            this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "edit");
-                            //this.showRulesPanel=!this.showRulesPanel;
-                            this.handleCollapse(event);
-                          }
-                        }>
-                        <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
-                      </button>
+                      {
+                        !this.props.showOnlyData &&
+                        <button
+                          type="button"
+                          className="btn btn-link btn-xs "
+                          onClick={
+                            (event)=>{
+                              this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "edit");
+                              //this.showRulesPanel=!this.showRulesPanel;
+                              this.handleCollapse(event);
+                            }
+                          }>
+                          <i className="fa fa-cube" data-toggle="tooltip" title="Data Details"></i>
+                        </button>
+                      }
                       {
                         this.props.addRulesBtn &&
                         <button
@@ -231,18 +357,25 @@ class DrillDownTransRules extends Component {
                         </button>
                       }
                       {
-                        this.props.addRulesBtn && item.in_use == 'Y' &&
+                        this.props.addRulesBtn &&
+                        item.dml_allowed == 'Y' &&
+                        item.in_use == 'Y' &&
                         <button
                           type="button"
                           className="btn btn-link amber btn-xs"
                           onClick={
                             (event)=>{
-                              let newItem = item;
-                              newItem.cell_calc_ref = moment().format('YYYYMMDDHHMMSS');
+                              // let newItem = item;
+                              // newItem.cell_calc_ref = moment().format('YYYYMMDDHHMMSS');
                               // this.props.handleCalcRuleClicked(event, item,this.sectionColumns, "copy");
                               //this.showRulesPanel=!this.showRulesPanel;
                               // TODO Delete rule to be added later
-                              this.handleCollapse(event);
+                              let toDeleteItem = {
+                                rule: item,
+                                table_name: "report_dyn_trans_calc_def_master"
+                              }
+                              this.props.handleDeleteClick(toDeleteItem);
+                              // this.handleCollapse(event);
                             }
                           }>
                           <i className="fa fa-close" data-toggle="tooltip" title="Delete Rule"></i>
@@ -250,34 +383,37 @@ class DrillDownTransRules extends Component {
                       }
                     </div>
                   </td>
-                  <td><small>{Object.keys(cellCalc.calc).map(col=>{
-                      return(
-                        <p>{col} : {cellCalc.calc[col].column}</p>)
-                    })}</small></td>
+                  <td>
+                    <small>
+                      {
+                        Object.keys(cellCalc.calc).map(col=>{
+                          return(cellCalc.calc[col].column && <p>{col} : {cellCalc.calc[col].column}</p>)
+                        })
+                      }
+                    </small>
+                  </td>
                   <td>
                     <small>{cellCalc.rule}</small>
-                    <button
-                      type="button"
-                      className="btn btn-link btn-xs"
-                      onClick={
-                        (event)=>{
-                          let calcBusinessRuleFilter = {
-                                  report_id: item.report_id,
-                                  sheet_id: item.sheet_id,
-                                  cell_id: item.cell_id,
-                                  reporting_date: this.reportingDate,
-                                  source_id: item.source_id,
-                                  cell_calc_ref: item.cell_calc_ref,
-                                  rules: cellCalc.rule,
-                                  page: 0
-                                }
-                          this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
-                          //this.showRulesPanel=!this.showRulesPanel;
-                          this.handleCollapse(event);
-                        }
-                      }>
-                      <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
-                    </button>
+                    {
+                      !this.props.showOnlyData&&
+                      <button
+                        type="button"
+                        className="btn btn-link btn-xs"
+                        onClick={
+                          (event)=>{
+                            let calcBusinessRuleFilter = {
+                                    id: 'business_rule',
+                                    value: cellCalc.rule.split(',').filter(item => item !== ""),
+                                    cell_calc_ref: item.cell_calc_ref
+                                  }
+                            this.props.handleBusinessRuleClicked(event,calcBusinessRuleFilter);
+                            //this.showRulesPanel=!this.showRulesPanel;
+                            this.handleCollapse(event);
+                          }
+                        }>
+                        <i className="fa fa-shield" data-toggle="tooltip" title="Rule Details"></i>
+                      </button>
+                    }
                   </td>
                   <td>
                     {
@@ -348,6 +484,7 @@ class DrillDownTransRules extends Component {
                       sheet_id: this.selectedCell.sheetName,
                       section_id: this.section,
                     };
+                    console.log("add rule trnas ",rule)
                     this.props.handleCalcRuleClicked(event, rule, this.sectionColumns,"add");
                     //this.showRulesPanel=!this.showRulesPanel;
                     this.handleCollapse(event);

@@ -6,6 +6,7 @@ export let FETCH_DATES = "FETCH_DATES";
 export let FETCH_REPORT_BY_DATE = "FETCH_REPORT_BY_DATE";
 export let FETCH_DRILLDOWN_REPORT = "FETCH_DRILLDOWN_REPORT";
 export let FETCH_DRILLDOWN_RULES_REPORT = "FETCH_DRILLDOWN_RULES_REPORT";
+export let FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT = 'FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT';
 export let FETCH_TABLE_DATA_REPORT = "FETCH_TABLE_DATA_REPORT";
 export let FETCH_SOURCE = "FETCH_SOURCE";
 export let VIEW_DATA_FETCH_REPORT_LINKAGE = "VIEW_DATA_FETCH_REPORT_LINKAGE";
@@ -53,12 +54,16 @@ export function actionFetchDrillDownReport(drill_info) {
 }
 
 // TODO:
-export function actionFetchDrillDownRulesReport(rules, source_id, page,business_date,qualified_data_version) {
-  console.log('In the action drilldown fetch rules ', rules, source_id, page,business_date,qualified_data_version);
+export function actionFetchDrillDownRulesReport(rules, source_id, page,business_date,qualified_data_version,origin) {
+  console.log('In the action drilldown fetch rules ', rules, source_id, page,business_date,qualified_data_version,origin);
+  let type=FETCH_DRILLDOWN_RULES_REPORT;
   let url = BASE_URL + `business-rules/drill-down-rules?source_id=${source_id}&rules=${rules}&page=${page}`;
   url += "&business_date=" + business_date + "&qualified_data_version=" + qualified_data_version;
+  if(origin == "FIXEDFORMAT"){
+    type = FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT;
+  }
   return {
-    type: FETCH_DRILLDOWN_RULES_REPORT,
+    type: type,
     payload: axios.get(url),
   }
 }

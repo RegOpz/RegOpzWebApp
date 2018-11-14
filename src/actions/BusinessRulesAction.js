@@ -7,10 +7,12 @@ export let INSERT_RULES = 'INSERT_RULES';
 export let DELETE_RULES = 'DELETE_RULES';
 export let UPDATE_RULES = 'UPDATE_RULES';
 export let FETCH_REPORT_LINKAGE = 'FETCH_REPORT_LINKAGE';
+export let FETCH_FIXEDFORMAT_REPORT_LINKAGE = 'FETCH_FIXEDFORMAT_REPORT_LINKAGE';
 export let EXPORT_RULES_CSV = "EXPORT_RULES_CSV";
 
 // TODO:
-export function actionFetchBusinessRules(source_id,page, order) {
+export function actionFetchBusinessRules(source_id,page, order,origin) {
+  let type = FETCH_RULES;
   var url = BASE_URL + "business-rules/" + page;
   url = source_id ? url + "/" + source_id : url;
   //console.log(url,source_id);
@@ -21,7 +23,7 @@ export function actionFetchBusinessRules(source_id,page, order) {
   }
   const request = axios.get(url);
   return {
-    type: FETCH_RULES,
+    type: type,
     payload: request
   }
 }
@@ -62,11 +64,15 @@ export function actionDeleteBusinessRule(data,item, at) {
 }
 
 // TODO:
-export function actionFetchReportLinkage(source_id,rules) {
+export function actionFetchReportLinkage(source_id,rules, origin) {
+  let type = FETCH_REPORT_LINKAGE;
 	const url = BASE_URL + "business-rule/linkage-multiple?source_id=" + source_id + "&rules=" + rules;
 	const request = axios.get(url);
+  if(origin == "FIXEDFORMAT"){
+    type = FETCH_FIXEDFORMAT_REPORT_LINKAGE;
+  }
 	return {
-		type: FETCH_REPORT_LINKAGE,
+		type: type,
 		payload: request
 	}
 }

@@ -7,7 +7,9 @@ export let FETCH_REPOSITORY_REPORT_TEMPLATE = 'FETCH_REPOSITORY_REPORT_TEMPLATE'
 export let FETCH_REPOSITORY_REPORT_DRILLDOWN = 'FETCH_REPOSITORY_REPORT_DRILLDOWN';
 export let INSERT_REPOSITORY_REPORT_RULE = 'INSERT_REPOSITORY_REPORT_RULE';
 export let UPDATE_REPOSITORY_REPORT_RULE = 'UPDATE_REPOSITORY_REPORT_RULE';
+export let UPDATE_REPOSITORY_REPORT_PARAMETER = 'UPDATE_REPOSITORY_REPORT_PARAMETER';
 export let FETCH_REPOSITORY_REPORT_CHANGE_HISTORY = 'FETCH_REPOSITORY_REPORT_CHANGE_HISTORY';
+export let FETCH_REPOSITORY_REPORT_RULES = 'FETCH_REPOSITORY_REPORT_RULES';
 
 
 const url = BASE_URL + "report-rules-repo" ;
@@ -42,6 +44,18 @@ export function actionRepoDrillDown(report_id, sheet_id, cell_id) {
   }
 }
 
+
+export function actionFetchReportBusinessRules(report_id, sheet_id, cell_id) {
+  let curl = url + "/master-report-business-rules_ep?report_id=" + encodeURI(report_id);
+  curl += "&sheet_id=" + encodeURI(sheet_id)
+  curl += "&cell_id=" + encodeURI(cell_id)
+  const request = axios.get(curl);
+  return {
+    type: FETCH_REPOSITORY_REPORT_RULES,
+    payload: request
+  }
+}
+
 export function actionInsertRuleData(data) {
   let curl = url + "/report/report-rule";
   const request = axios.post(curl,data);
@@ -56,6 +70,15 @@ export function actionUpdateRuleData(data) {
   const request = axios.put(curl,data);
   return {
     type: UPDATE_REPOSITORY_REPORT_RULE,
+    payload: request
+  }
+}
+
+export function actionUpdateReportParameter(data,report) {
+  let curl = url + "/report/report-parameters/" + encodeURIComponent(report);
+  const request = axios.put(curl,data);
+  return {
+    type: UPDATE_REPOSITORY_REPORT_PARAMETER,
     payload: request
   }
 }

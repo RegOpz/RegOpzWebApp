@@ -404,7 +404,7 @@ class DrillDownTransRules extends Component {
                             let calcBusinessRuleFilter = {
                                     report_id: item.report_id,
                                     sheet_id: item.sheet_id,
-                                    cell_id: item.cell_id,
+                                    cell_id: item.section_id,
                                     reporting_date: this.reportingDate,
                                     source_id: item.source_id,
                                     cell_calc_ref: item.cell_calc_ref,
@@ -416,7 +416,7 @@ class DrillDownTransRules extends Component {
                             this.handleCollapse(event);
                           }
                         }>
-                        <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
+                        <i className="fa fa-shield" data-toggle="tooltip" title="Rule Details"></i>
                       </button>
                     }
                   </td>

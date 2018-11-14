@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { Label } from 'react-bootstrap';
+import moment from 'moment';
 
 
 class DrillDownRules extends Component {
@@ -132,9 +133,9 @@ class DrillDownRules extends Component {
                                     comp_agg_rule: null,
                                     reporting_scale: null,
                                     rounding_option: null,
-                                    valid_from: null,
-                                    valid_to: null,
-                                    last_updated_by: null,
+                                    // valid_from: null,
+                                    // valid_to: null,
+                                    // last_updated_by: null,
                                     report_id: this.selectedCell.reportId,
                                     cell_id: this.selectedCell.cell,
                                     sheet_id: this.selectedCell.sheetName,
@@ -154,7 +155,7 @@ class DrillDownRules extends Component {
         </div>
       )
     else {
-      let item = cellRules.comp_agg_rules[0];
+      // let item = cellRules.comp_agg_rules[0];
       return (
       <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
         <div className="row">
@@ -169,41 +170,48 @@ class DrillDownRules extends Component {
             </tr>
           </thead>
           <tbody>
-
-            <tr>
-              <td>1</td>
-              <td>
-                <small>{item.comp_agg_ref}</small>
-                  <button
-                    type="button"
-                    className="btn btn-link btn-xs"
-                    onClick={
-                      (event)=>{
-                        this.props.handleAggeRuleClicked(event, {...item});
-                        //this.showRulesPanel = !this.showRulesPanel;
-                        this.handleCollapse(event);
+            {
+              cellRules.comp_agg_rules.map((item,index)=>{
+                return(
+                  (item.in_use =="Y" ||
+                  (item.in_use !="X" && item.dml_allowed != 'X') ||
+                  this.reportingDate ) &&
+                  <tr>
+                    <td>{index}</td>
+                    <td>
+                      <small>{item.comp_agg_ref}</small>
+                        <button
+                          type="button"
+                          className="btn btn-link btn-xs"
+                          onClick={
+                            (event)=>{
+                              this.props.handleAggeRuleClicked(event, {...item});
+                              //this.showRulesPanel = !this.showRulesPanel;
+                              this.handleCollapse(event);
+                            }
+                          }>
+                          <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
+                        </button>
+                    </td>
+                    <td>{item.rounding_option}</td>
+                    <td>{item.reporting_scale}</td>
+                    <td>
+                      {
+                        ((in_use) => {
+                          if (in_use == 'Y') {
+                            return (
+                              <Label bsStyle="success">{in_use}</Label>
+                            );
+                          } else {
+                            return (<Label bsStyle="warning">{in_use}</Label>);
+                          }
+                        })(item.in_use)
                       }
-                    }>
-                    <i className="fa fa-bank" data-toggle="tooltip" title="Aggegartion Details"></i>
-                  </button>
-              </td>
-              <td>{item.rounding_option}</td>
-              <td>{item.reporting_scale}</td>
-              <td>
-                {
-                  ((in_use) => {
-                    if (in_use == 'Y') {
-                      return (
-                        <Label bsStyle="success">{in_use}</Label>
-                      );
-                    } else {
-                      return (<Label bsStyle="warning">{in_use}</Label>);
-                    }
-                  })(item.in_use)
-                }
-              </td>
-            </tr>
-
+                    </td>
+                  </tr>
+                )
+              })
+            }
           </tbody>
         </table>
         </div>
@@ -227,6 +235,7 @@ class DrillDownRules extends Component {
       )
     else {
       let item = cellRules.cell_rules;
+      console.log("item....",item)
       return (
       <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
         <div className="row">
@@ -244,6 +253,9 @@ class DrillDownRules extends Component {
           {
             item.map((item,index)=>{
               return(
+                (item.in_use =="Y" ||
+                (item.in_use !="X" && item.dml_allowed != 'X') ||
+                this.reportingDate ) &&
                 <tr>
                   <td>{item.source_id}</td>
                   <td>
@@ -312,14 +324,20 @@ class DrillDownRules extends Component {
                       </button>
                     }
                     {
-                      this.props.addRulesBtn && item.in_use == 'Y' &&
+                      this.props.addRulesBtn &&
+                      item.dml_allowed == 'Y' &&
+                      item.in_use == 'Y' &&
                       <button
                         type="button"
                         className="btn btn-link amber btn-xs"
                         onClick={
                           (event)=>{
                             // TODO handledelete to be implemented later
-                            //this.props.handleDeleteRule(item);
+                            let toDeleteItem = {
+                              rule: item,
+                              table_name: "report_calc_def"
+                            }
+                            this.props.handleDeleteClick(toDeleteItem);
                           }
                         }>
                         <i className="fa fa-remove" data-toggle="tooltip" title="Delete Rule"></i>
@@ -333,9 +351,9 @@ class DrillDownRules extends Component {
                   </td>
                   <td>
                     <small>{item.cell_business_rules.replace(/,/g,' ')}</small>
-                    <button
-                      type="button"
-                      className="btn btn-link btn-xs"
+                    <button className="btn btn-link btn-xs"
+                      data-toggle="tooltip"
+                      title={"Rule Details"}
                       onClick={
                         (event)=>{
                           let calcBusinessRuleFilter = {
@@ -347,8 +365,9 @@ class DrillDownRules extends Component {
                           //this.showRulesPanel=!this.showRulesPanel;
                           this.handleCollapse(event);
                         }
-                      }>
-                      <i className="fa fa-bank" data-toggle="tooltip" title="Rule Details"></i>
+                      }
+                    >
+                      <i className="fa fa-shield"></i>
                     </button>
                   </td>
                   <td>

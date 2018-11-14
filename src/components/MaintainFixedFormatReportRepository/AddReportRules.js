@@ -15,6 +15,7 @@ import {
   actionInsertRuleData,
   actionUpdateRuleData
 } from '../../actions/ReportRulesRepositoryAction';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 class AddReportRules extends Component {
   constructor(props) {
@@ -150,11 +151,21 @@ class AddReportRules extends Component {
             });
             this.setState({rulesTags: rulesTags});
           } else {
-            alert("[" + tag + "] - The rule already added, please check...")
+            this.modalAlert.isDiscardToBeShown = false;
+            this.modalAlert.open(
+              <span className="">
+                <i className="fa fa-warning amber"></i>
+                {" Business rule [ " + tag + " ] already added, please check..."}
+              </span>);
           }
         }
         else{
-          alert("Not a valid rule, please check...",tag)
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+            <span className="">
+              <i className="fa fa-warning amber"></i>
+              {" [ " + tag + " ] is not a valid business rule, please check..."}
+            </span>);
         }
 
     }
@@ -391,6 +402,10 @@ class AddReportRules extends Component {
               </form>
             </div>
           </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
         </div>
       )
     }
@@ -399,36 +414,46 @@ class AddReportRules extends Component {
   handleSubmit(event){
     console.log('inside submit',this.state.form);
     event.preventDefault();
-    this.flatenTags();
+    if(this.state.rulesTags.length==0){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i> No report rule defined! Please check and add applicable business rules!
+        </span>);
 
-    let data = {
-      table_name:"report_calc_def_master",
-      update_info:this.state.form
-    };
-    data['change_type'] = this.ruleIndex === -1 || this.ruleIndex === -2 ? "INSERT" : "UPDATE";
+    } else {
 
-    let audit_info={
-      id:this.state.form.id,
-      table_name:data.table_name,
-      change_type:data.change_type,
-      change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id}`,
-      maker: this.props.login_details.user,
-      maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
-      group_id: this.props.groupId,
-    };
-    Object.assign(audit_info,this.state.audit_form);
+      this.flatenTags();
 
-    data['audit_info']=audit_info;
+      let data = {
+        table_name:"report_calc_def_master",
+        update_info:this.state.form
+      };
+      data['change_type'] = this.ruleIndex === -1 || this.ruleIndex === -2 ? "INSERT" : "UPDATE";
 
-    console.log('inside submit',this.state.form);
-    if(data['change_type'] == "INSERT"){
-      this.props.insertRuleData(data);
+      let audit_info={
+        id:this.state.form.id,
+        table_name:data.table_name,
+        change_type:data.change_type,
+        change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id}`,
+        maker: this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.props.groupId,
+      };
+      Object.assign(audit_info,this.state.audit_form);
+
+      data['audit_info']=audit_info;
+
+      console.log('inside submit',this.state.form);
+      if(data['change_type'] == "INSERT"){
+        this.props.insertRuleData(data);
+      }
+      else if (data['change_type'] == "UPDATE"){
+        this.props.updateRuleData(data);
+      }
+
+      this.props.handleClose();
     }
-    else if (data['change_type'] == "UPDATE"){
-      this.props.updateRuleData(data);
-    }
-
-    this.props.handleClose();
   }
 }
 function mapStateToProps(state){

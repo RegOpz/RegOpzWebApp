@@ -387,7 +387,8 @@ class ViewDataComponentV2 extends Component {
       return this.state.filtered.length != 0 && !this.state.isFilterChanged ? this.reactTableData() : [];
     }
     if(this.state.selectedItem.access_type=="Restricted"){
-      // TODO
+      // TODO: for now return all the data of the feed
+      return this.reactTableData();
     }
   }
 
@@ -996,7 +997,7 @@ class ViewDataComponentV2 extends Component {
                         <div className="row">
                           <ul className="nav navbar-right panel_toolbox">
                             <div className={" label bg-" + this.getaccTypeColor(this.state.selectedItem.access_type)}>
-                              {this.state.selectedItem.access_type}
+                              {this.state.selectedItem.access_type?this.state.selectedItem.access_type:"No access"}
                             </div>
                           </ul>
                         </div>

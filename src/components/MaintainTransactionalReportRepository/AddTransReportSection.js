@@ -96,13 +96,14 @@ class AddTransReportSection extends Component {
             form.sectionRange = null;
             this.setState({form: form, openDataGridCollapsible: true});
           }
-          console.log("Inside componentWillReceiveProps nextprops2",nextProps.cellRules);
+          console.log("Inside componentWillReceiveProps nextprops2",nextProps.cell_rules);
           if(nextProps.cell_rules){
             let content=[];
             nextProps.cell_rules.secOrders.length > 0 && nextProps.cell_rules.secOrders.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
             this.secOrders=content;
             content=[];
             nextProps.cell_rules.secRules.length > 0 && nextProps.cell_rules.secRules.map((item,index)=>{(item.dml_allowed!='X')&&content.push(item)});
+            console.log("Inside componentWillReceiveProps nextprops2 this.secRules",content);
             this.secRules=content;
             this.undefineSection = this.secOrders.length == 0 && this.secRules.length == 0?false:true;
           }
@@ -479,7 +480,7 @@ class AddTransReportSection extends Component {
       {
         if(item.dml_allowed =="Y")
         {
-          let audit_info={table_name:"report_dyn_trans_agg_def",
+          let audit_info={table_name:"report_dyn_trans_agg_def_master",
                           change_reference: 'Transaction Section Order for ' + report_id +
                                             '->' + sheet_id + '->' + item.cell_agg_ref,
                           change_type: "DELETE",
@@ -489,7 +490,7 @@ class AddTransReportSection extends Component {
                           group_id:group_id};
           let data={id:item.id,
                     change_type:"DELETE",
-                    table_name:"report_dyn_trans_agg_def",
+                    table_name:"report_dyn_trans_agg_def_master",
                     audit_info:audit_info
                   };
           content.push(data);
@@ -505,7 +506,7 @@ class AddTransReportSection extends Component {
     {
         if(item.dml_allowed =="Y")
         {
-          let audit_info={table_name:"report_dyn_trans_calc_def",
+          let audit_info={table_name:"report_dyn_trans_calc_def_master",
                           change_reference: 'Transaction Section Data Rule for ' + report_id +
                                             '->' + sheet_id + '->Source ID:' +item.source_id+
                                             '->'+item.cell_calc_ref,
@@ -516,7 +517,7 @@ class AddTransReportSection extends Component {
                           group_id:group_id};
           let data={id:item.id,
                     change_type:"DELETE",
-                    table_name:"report_dyn_trans_calc_def",
+                    table_name:"report_dyn_trans_calc_def_master",
                     audit_info:audit_info
                   };
           content.push(data);
@@ -528,7 +529,8 @@ class AddTransReportSection extends Component {
     if(flag==false)
     {
       let newData={data:content};
-      this.props.deleteTransReportRules(newData);
+      console.log("deleting secRules.map items....final ",newData );
+      this.props.deleteTransReportRules(newData,null,"master");
       this.props.handleClose();
     }
   }
@@ -555,8 +557,8 @@ const mapDispatchToProps = (dispatch) => {
     fetchTransReportSecDef:(reportId,sheetId,cellId,domain_type) => {
       dispatch(actionFetchTransReportSecDef(reportId,sheetId,cellId,domain_type));
     },
-    deleteTransReportRules:(newData) => {
-      dispatch(actionDeleteTransReportRules(newData));
+    deleteTransReportRules:(newData,id,domain_type) => {
+      dispatch(actionDeleteTransReportRules(newData,id,domain_type));
     },
   };
 }

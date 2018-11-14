@@ -27,7 +27,9 @@ class RuleReportLinkage extends Component {
     return(
           <div className="x_panel">
             <div className="x_title">
-              <h2>Report Linkage<small> for Business Rules </small><small>{this.state.ruleReference}</small></h2>
+              <h2>Report Linkage
+                <small>{" for Business Rules " + (this.state.ruleReference ? this.state.ruleReference : "usage ")}</small>
+              </h2>
               <ul className="nav navbar-right panel_toolbox">
                 <li>
                   <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
@@ -153,64 +155,7 @@ class RuleReportLinkage extends Component {
             style={{height: this.state.pageSize >= 20 ? "74vh" : "100%"}}
           />
       )
-      // return (
-      //   <table className="table table-hover">
-      //     <thead>
-      //       <tr>
-      //         <th>#</th>
-      //         <th>Report</th>
-      //         <th>Sheet</th>
-      //         <th>Cell</th>
-      //         <th>InUse</th>
-      //         <th>Rules</th>
-      //       </tr>
-      //     </thead>
-      //     <tbody>
-      //       {
-      //         linkageData.map(function (item, index) {
-      //           let cell_business_rules = item.cell_business_rules.toString().split(",");
-      //           const selectedRules = selectedRulesAsString.toString().split(",");
-      //           return (
-      //             <tr>
-      //               <th scope="row">{index + 1}</th>
-      //               <td>{item.report_id}</td>
-      //               <td>{item.sheet_id}</td>
-      //               <td>{item.cell_id}</td>
-      //               <td>
-      //                 {
-      //                   ((in_use) => {
-      //                     if (in_use == 'Y') {
-      //                       return (
-      //                         <Label bsStyle="success">{in_use}</Label>
-      //                       );
-      //                     } else {
-      //                       return (<Label bsStyle="warning">{in_use}</Label>);
-      //                     }
-      //                   })(item.in_use)
-      //                 }
-      //               </td>
-      //               <td><p>{
-      //                 ((rules, selectedRules) => {
-      //                   let rule_list = [];
-      //                   rules.map(function (rule, index) {
-      //                     if (selectedRules.indexOf(rule) == -1) {
-      //                       rule_list.push(rule);
-      //                       rule_list.push(" ");
-      //                     } else {
-      //                       rule_list.push(<Label bsStyle="primary">{rule}</Label>);
-      //                       rule_list.push(" ");
-      //                     }
-      //                   })
-      //                   return rule_list;
-      //                 })(cell_business_rules, selectedRules)
-      //               }</p></td>
-      //             </tr>
-      //           )
-      //         })
-      //       }
-      //     </tbody>
-      //   </table>
-      // )
+
     }
   }
 

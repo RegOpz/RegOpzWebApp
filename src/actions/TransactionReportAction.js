@@ -103,16 +103,16 @@ export function actionFetchTransReportSecRules(reportId,sheetId,cellId,domain_ty
   }
 }
 
-export function actionDeleteTransReportRules(data,id){
+export function actionDeleteTransReportRules(data,id,domain_type){
   let url = BASE_URL + "transactionalReport/trans-report-rule/";
   let request = null;
   if (id){
-    url += id;
+    url += id + (domain_type ? "?domain_type="+domain_type : "");
     console.log("actionDeleteTransReportRules delete only one rule ...",id,data);
     request = axios.put(url, data);
   }
   else{
-    url += "bulk-process";
+    url += "bulk-process" + (domain_type ? "?domain_type="+domain_type : "");
     console.log("actionDeleteTransReportRules delete bulk rules ...",data);
     request = axios.post(url, data);
   }
@@ -123,10 +123,11 @@ export function actionDeleteTransReportRules(data,id){
   }
 }
 
-export function actionFetchTransReportChangeHistory(report_id, sheet_id, section_id) {
+export function actionFetchTransReportChangeHistory(report_id, sheet_id, section_id,domain_type) {
   let url = BASE_URL + "transactionalReport/audit-list?report_id=" + report_id;
   url = url + (sheet_id ? "&sheet_id=" + sheet_id : "");
   url = url + (section_id ? "&section_id=" + section_id : "");
+  url = url + (domain_type ? "&domain_type=" + domain_type : "");
   return {
     type: FETCH_TRANS_REPORT_CHANGE_HISTORY,
     payload: axios.get(url)

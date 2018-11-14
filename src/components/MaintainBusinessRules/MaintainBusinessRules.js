@@ -137,15 +137,19 @@ class MaintainBusinessRules extends Component {
       console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
                                           this.ruleFilterParam.page,this.ruleFilterParam.business_date,
-                                          this.ruleFilterParam.qualified_data_version);
+                                          this.ruleFilterParam.qualified_data_version,
+                                          this.props.origin);
     } else {
       this.props.fetchSources();
     }
   }
 
   componentWillReceiveProps(nextProps){
-    if (this.gridData != nextProps.gridBusinessRulesData){
-      this.gridData=nextProps.gridBusinessRulesData;
+    console.log("this.props.origin....", this.props.origin);
+    if ((this.props.origin!="FIXEDFORMAT" && this.gridData != nextProps.gridBusinessRulesData) ||
+        (this.props.origin=="FIXEDFORMAT" && this.gridData != nextProps.gridBusinessRulesData_fixed)
+      ){
+      this.gridData=(this.props.origin=="FIXEDFORMAT" ? nextProps.gridBusinessRulesData_fixed : nextProps.gridBusinessRulesData);
       this.currentPage = undefined;
       this.setState({loading: false,
                      selectedItem: nextProps.selectedItem ? nextProps.selectedItem : this.state.selectedItem,
@@ -154,7 +158,7 @@ class MaintainBusinessRules extends Component {
     }
 
     this.changeHistory=nextProps.change_history;
-    this.reportLinkage=nextProps.report_linkage;
+    this.reportLinkage=(this.props.origin=="FIXEDFORMAT" ? nextProps.report_linkage_fixed : nextProps.report_linkage);
     //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
     //this.flagDataDrillDown = false;
     if(nextProps.flagRuleDrillDown && this.ruleFilterParam.cell_calc_ref != nextProps.ruleFilterParam.cell_calc_ref ){
@@ -163,7 +167,8 @@ class MaintainBusinessRules extends Component {
       this.ruleFilterParam = nextProps.ruleFilterParam;
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
                                           this.ruleFilterParam.page,this.ruleFilterParam.business_date,
-                                          this.ruleFilterParam.qualified_data_version);
+                                          this.ruleFilterParam.qualified_data_version,
+                                          this.props.origin);
     }
     if(this.props.leftmenu){
      this.setState({
@@ -289,7 +294,8 @@ class MaintainBusinessRules extends Component {
       return this.state.filtered.length != 0 ? this.gridData.rows : [];
     }
     if(this.state.selectedItem.ruleaccess_type=="Restricted"){
-      // TODO
+      // TODO: for now just return the data
+      return this.gridData.rows;
     }
   }
 
@@ -361,7 +367,8 @@ class MaintainBusinessRules extends Component {
     if(this.flagRuleDrillDown){
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
                                           fetchPage,this.ruleFilterParam.business_date,
-                                          this.ruleFilterParam.qualified_data_version);
+                                          this.ruleFilterParam.qualified_data_version,
+                                          this.props.origin);
     } else {
       this.props.fetchBusinesRules(this.state.sourceId,fetchPage);
     }
@@ -450,7 +457,7 @@ class MaintainBusinessRules extends Component {
       if(this.selectedItems.length < 1){
         // this.modalAlert.isDiscardToBeShown = false;
         // this.modalAlert.open("Please select atleast one record");
-        this.props.fetchReportLinkage(this.state.sourceId);
+        this.props.fetchReportLinkage(this.state.sourceId,null,this.props.origin);
         //console.log("Repot Linkage",this.props.report_linkage);
         this.setState({ display: "showReportLinkage" });
       } else {
@@ -460,7 +467,7 @@ class MaintainBusinessRules extends Component {
           selectedKeys += (selectedKeys ? ',' + item.business_rule : item.business_rule)
         })
         this.selectedKeys = selectedKeys;
-        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys);
+        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.props.origin);
         //console.log("Repot Linkage",this.props.report_linkage);
         this.setState({ display: "showReportLinkage" });
       }
@@ -630,7 +637,7 @@ class MaintainBusinessRules extends Component {
               <div className="row">
                 <ul className="nav navbar-right panel_toolbox">
                   <div className={" label bg-" + this.getaccTypeColor(this.state.selectedItem.ruleaccess_type)}>
-                    {this.state.selectedItem.ruleaccess_type}
+                    {this.state.selectedItem.ruleaccess_type? this.state.selectedItem.ruleaccess_type : "No access"}
                   </div>
                 </ul>
               </div>
@@ -980,11 +987,11 @@ const mapDispatchToProps = (dispatch) => {
     fetchSources:(sourceId) => {
       dispatch(actionFetchSources(sourceId));
     },
-    fetchBusinesRules: (source_id,page, order) => {
-      dispatch(actionFetchBusinessRules(source_id,page, order))
+    fetchBusinesRules: (source_id,page, order, origin) => {
+      dispatch(actionFetchBusinessRules(source_id,page, order, origin))
     },
-    fetchDrillDownRulesReport:(rules,source_id,page,busines_date,qualified_data_version)=>{
-      dispatch(actionFetchDrillDownRulesReport(rules,source_id,page,busines_date,qualified_data_version))
+    fetchDrillDownRulesReport:(rules,source_id,page,busines_date,qualified_data_version,origin)=>{
+      dispatch(actionFetchDrillDownRulesReport(rules,source_id,page,busines_date,qualified_data_version,origin))
     },
     insertBusinessRule: (data, at) => {
       dispatch(actionInsertBusinessRule(data, at))
@@ -995,8 +1002,8 @@ const mapDispatchToProps = (dispatch) => {
     updateBusinessRule: (data) => {
       dispatch(actionUpdateBusinessRule(data))
     },
-    fetchReportLinkage: (sourceId,selectedKeys) => {
-      dispatch(actionFetchReportLinkage(sourceId,selectedKeys))
+    fetchReportLinkage: (sourceId,selectedKeys,origin) => {
+      dispatch(actionFetchReportLinkage(sourceId,selectedKeys,origin))
     },
     fetchAuditList: (idList, tableName, sourceId) => {
       dispatch(actionFetchAuditList(idList, tableName, sourceId));
@@ -1016,7 +1023,9 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.view_data_store.sources,
     gridBusinessRulesData: state.business_rules.gridBusinessRulesData,
-    report_linkage:state.report_linkage,
+    gridBusinessRulesData_fixed: state.business_rules.gridBusinessRulesData_fixedformat,
+    report_linkage:state.business_rules.report_linkage,
+    report_linkage_fixed:state.business_rules.report_linkage_fixedformat,
     change_history:state.def_change_store.audit_list,
     login_details:state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,

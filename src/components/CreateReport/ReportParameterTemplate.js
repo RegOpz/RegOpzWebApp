@@ -56,7 +56,7 @@ import './CreateReport.css';
     // TODO
     if(nextProps.report_def_catalog && this.state.reportId) {
       let reportTemplate=nextProps.report_def_catalog[0].report[0];
-      if (this.reportParameters.report_id!=reportTemplate.report_id){
+      if (this.reportParameters && this.reportParameters.report_id!=reportTemplate.report_id){
           this.reportParameters= reportTemplate;
           this.setState({
             additionalParameters:[]},

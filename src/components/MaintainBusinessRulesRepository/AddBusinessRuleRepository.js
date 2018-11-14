@@ -73,10 +73,10 @@ const asyncValidate = (values, dispatch) => {
      });
 }
 
-const normaliseContactNumber = value => value && value.replace(/[^\d]/g, '');
+const normaliseRule = value => value && value.replace(/\,/g, '');
 
 const validate = (values) => {
-    const errors = {};
+    let errors = {};
     console.log("Inside validate", values);
 
     Object.keys(values).forEach((item) => {
@@ -177,7 +177,7 @@ class AddBusinessRuleRepository extends Component {
                 type= { "text" }
                 component={renderField}
                 label={ "Rule Tag" }
-                normalize={ null}
+                normalize={ normaliseRule }
                 readOnly={ this.readOnly || this.requestType == "update" }
               />
               <Field

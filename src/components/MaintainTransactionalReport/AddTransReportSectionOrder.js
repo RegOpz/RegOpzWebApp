@@ -6,6 +6,7 @@ import moment from 'moment';
 import {
   actionTransReportInsertRule,
   actionTransReportUpdateRule } from '../../actions/TransactionReportAction';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 const renderField = ({ input,index, label, handleDelete, moveRow,maxIndex, formSecElements, type, optionList, readOnly, meta: { touched, error }}) => (
     <div className="form-group">
@@ -206,7 +207,7 @@ class AddTransReportSectionOrder extends Component {
                     <button type="button" className="btn btn-primary" onClick={ this.props.handleClose }>Cancel</button>
                     {
                       !this.viewOnly &&
-                      <button type="submit" className="btn btn-success" >Submit</button>
+                      <button type="submit" className="btn btn-success" disabled={pristine}>Submit</button>
                     }
                   </div>
                 </div>
@@ -214,51 +215,64 @@ class AddTransReportSectionOrder extends Component {
               </div>
             </div>
           </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
         </div>
       )
     }
 
     handleFormSubmit(data) {
+        event.preventDefault();
         console.log("inside handleFormSubmit",data, JSON.stringify(data));
-        let content=[];
-        this.state.formSecElements.map((col)=>{content.push({column:col,order:data.hasOwnProperty(col)?data[col]:"ASC"})})
-        let cell_agg_render_ref={ranktype:data.ranktype?data.ranktype:null,
-                                rankvalue:data.rankvalue?data.rankvalue:null,
-                                sortorder:content};
-        let update_info={id:null,
-                         report_id:this.props.selectedCell.reportId,
-                         sheet_id:this.props.selectedCell.sheetName,
-                         section_id:this.props.secDetails.section,
-                         cell_agg_ref:data.cell_agg_ref,
-                         cell_agg_render_ref:JSON.stringify(cell_agg_render_ref),
-                         comp_agg_extern_ref: data.comp_agg_extern_ref,
-                         cell_agg_decsription: data.cell_agg_decsription,
-                       };
-        let audit_info={id:null,
-                        table_name:"report_dyn_trans_agg_def",
-                        change_reference: 'Transaction Section Order for ' + update_info.report_id +
-                                          '->' + update_info.sheet_id + '->' + data.cell_agg_ref,
-                        change_type: this.change_type,
-                        maker:this.props.login_store.user,
-                        maker_tenant_id:this.props.login_store.domainInfo.tenant_id,
-                        comment:data.comment,
-                        group_id:this.props.groupId
-                        };
-        let form_submitted={
-                            table_name: "report_dyn_trans_agg_def",
-                            change_type: this.change_type,
-                            update_info:update_info,
-                            audit_info:audit_info
+        if (this.state.formSecElements.length==0){
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+            <span className="">
+              <i className="fa fa-warning amber"></i> Section order should include atleast one of the available columns for ordering!
+            </span>);
+        } else {
+          let content=[];
+          this.state.formSecElements.map((col)=>{content.push({column:col,order:data.hasOwnProperty(col)?data[col]:"ASC"})})
+          let cell_agg_render_ref={ranktype:data.ranktype?data.ranktype:null,
+                                  rankvalue:data.rankvalue?data.rankvalue:null,
+                                  sortorder:content};
+          let update_info={id:null,
+                           report_id:this.props.selectedCell.reportId,
+                           sheet_id:this.props.selectedCell.sheetName,
+                           section_id:this.props.secDetails.section,
+                           cell_agg_ref:data.cell_agg_ref,
+                           cell_agg_render_ref:JSON.stringify(cell_agg_render_ref),
+                           comp_agg_extern_ref: data.comp_agg_extern_ref,
+                           cell_agg_decsription: data.cell_agg_decsription,
+                         };
+          let audit_info={id:null,
+                          table_name:"report_dyn_trans_agg_def",
+                          change_reference: 'Transaction Section Order for ' + update_info.report_id +
+                                            '->' + update_info.sheet_id + '->' + data.cell_agg_ref,
+                          change_type: this.change_type,
+                          maker:this.props.login_store.user,
+                          maker_tenant_id:this.props.login_store.domainInfo.tenant_id,
+                          comment:data.comment,
+                          group_id:this.props.groupId
                           };
-        console.log("newData to be submitted for ",this.change_type,form_submitted);
-        if (this.change_type == "INSERT"){
-          this.props.insertTransOrder(form_submitted);
+          let form_submitted={
+                              table_name: "report_dyn_trans_agg_def",
+                              change_type: this.change_type,
+                              update_info:update_info,
+                              audit_info:audit_info
+                            };
+          console.log("newData to be submitted for ",this.change_type,form_submitted);
+          if (this.change_type == "INSERT"){
+            this.props.insertTransOrder(form_submitted);
+          }
+          else {
+            let id = this.props.secDetails.secOrders.id;
+            this.props.updateTransOrder(id,form_submitted);
+          }
+          this.props.handleClose();
         }
-        else {
-          let id = this.props.secDetails.secOrders.id;
-          this.props.updateTransOrder(id,form_submitted);
-        }
-        this.props.handleClose();
     }
 
     handleDelete(element) {

@@ -16,6 +16,7 @@ import {
   actionUpdateRuleData
 } from '../../actions/MaintainReportRuleAction';
 import CellCalcRuleAssist from './CellCalcRuleAssist';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 class AddReportRules extends Component {
   constructor(props) {
@@ -71,7 +72,7 @@ class AddReportRules extends Component {
                       rulesTags: [],
                     },
                   ()=>{
-                    if(this.state.form.source_id){
+                    if(this.state.form.source_id!=null){
                       this.props.fetchSourceColumnList(null, this.state.form.source_id);
                       this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
                     }
@@ -106,8 +107,10 @@ class AddReportRules extends Component {
                             rulesTags: [],
                           },
                         ()=>{
-                          this.props.fetchSourceColumnList(null, this.state.form.source_id);
-                          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                          if(this.state.form.source_id!=null){
+                            this.props.fetchSourceColumnList(null, this.state.form.source_id);
+                            this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                          }
                           this.initialiseFormFields();
                         });
           } else {
@@ -160,12 +163,22 @@ class AddReportRules extends Component {
             });
             this.setState({rulesTags: rulesTags});
           } else {
-            alert("[" + tag + "] - The rule already added, please check...")
+            this.modalAlert.isDiscardToBeShown = false;
+            this.modalAlert.open(
+              <span className="">
+                <i className="fa fa-warning amber"></i>
+                {" Business rule [ " + tag + " ] already added, please check..."}
+              </span>);
           }
 
         }
         else{
-          alert("[" + tag + "] - Not a valid rule, please check...")
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+            <span className="">
+              <i className="fa fa-warning amber"></i>
+              {" [ " + tag + " ] is not a valid business rule, please check..."}
+            </span>);
         }
 
     }
@@ -210,9 +223,9 @@ class AddReportRules extends Component {
 
   }
 
-  handleEditCalcRule(selectedRule){
-    console.log("handleEditCalcRule parameters...",selectedRule);
-    let isOpen = (this.state.display == "editCellRule");
+  handleEditCalcRule(selectedRule,donotCheckAlreadyOpen){
+    console.log("handleEditCalcRule parameters...",selectedRule,donotCheckAlreadyOpen);
+    let isOpen = donotCheckAlreadyOpen ? false : (this.state.display == "editCellRule");
     if(isOpen){
         this.setState({display: null, selectedRule: null});
     }
@@ -358,18 +371,25 @@ class AddReportRules extends Component {
                               required="requried"
                               onChange={
                                 (event) => {
-                                  let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
                                   let form=this.state.form;
                                   form.source_id = event.target.value;
-                                  this.setState({display: false, form:form});
-                                  console.log('Source ID............',this.state.form.source_id);
-                                  this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-                                  console.log('table name in change event',table_name);
-                                  this.props.fetchSourceColumnList(table_name,null);
+                                  form.aggregation_ref = null;
+                                  form.aggregation_func = null;
+                                  this.setState({display: false, form:form, rulesTags: []});
+                                  if(event.target.value){
+                                    let table_name = (event.target.options[event.target.selectedIndex].getAttribute('target'));
+                                    console.log('Source ID............',this.state.form.source_id);
+                                    this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                                    console.log('table name in change event',table_name);
+                                    this.props.fetchSourceColumnList(table_name,null);
+                                    this.handleEditCalcRule(null,true);
+                                  } else {
+                                    this.handleEditCalcRule();
+                                  }
                                 }
                               }
                             >
-                              <option value="">Choose option</option>
+                              <option key={9999999999} target={"Choose option"} value="">Choose option</option>
                               {
                                 source_suggestion.map(function(item,index){
                                   return(
@@ -428,9 +448,9 @@ class AddReportRules extends Component {
                     <button
                       type="button"
                       className="btn btn-primary btn-xs"
-                      disabled={!this.state.form.source_id || this.viewOnly}
+                      disabled={!this.state.form.source_id.toString() || this.viewOnly}
                       onClick={(event)=>{
-                        this.handleEditCalcRule();
+                        this.handleEditCalcRule(null,true);
                       }}
                       >
                       Edit
@@ -439,6 +459,8 @@ class AddReportRules extends Component {
                 }
                 {
                   this.state.display=="editCellRule" &&
+                  this.props.source_table_columns &&
+                  this.state.form.source_id.toString() !="" &&
                   <CellCalcRuleAssist
                     {...this.state.form}
                     sourceColumns={this.props.source_table_columns}
@@ -508,6 +530,10 @@ class AddReportRules extends Component {
               </form>
             </div>
           </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
         </div>
       )
     }
@@ -516,36 +542,46 @@ class AddReportRules extends Component {
   handleSubmit(event){
     console.log('inside submit',this.state.form);
     event.preventDefault();
-    this.flatenTags();
+    if(this.state.rulesTags.length==0){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i> No report rule defined! Please check and add applicable business rules!
+        </span>);
 
-    let data = {
-      table_name:"report_calc_def",
-      update_info:this.state.form
-    };
-    data['change_type'] = this.ruleIndex === -1 || this.ruleIndex === -2 ? "INSERT" : "UPDATE";
+    } else {
 
-    let audit_info={
-      id:this.state.form.id,
-      table_name:data.table_name,
-      change_type:data.change_type,
-      change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id} [ Source: ${this.state.form.source_id} ]`,
-      maker: this.props.login_details.user,
-      maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
-      group_id: this.props.groupId,
-    };
-    Object.assign(audit_info,this.state.audit_form);
+      this.flatenTags();
 
-    data['audit_info']=audit_info;
+      let data = {
+        table_name:"report_calc_def",
+        update_info:this.state.form
+      };
+      data['change_type'] = this.ruleIndex === -1 || this.ruleIndex === -2 ? "INSERT" : "UPDATE";
 
-    console.log('inside submit',this.state.form);
-    if(data['change_type'] == "INSERT"){
-      this.props.insertRuleData(data);
+      let audit_info={
+        id:this.state.form.id,
+        table_name:data.table_name,
+        change_type:data.change_type,
+        change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id} [ Source: ${this.state.form.source_id} ]`,
+        maker: this.props.login_details.user,
+        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
+        group_id: this.props.groupId,
+      };
+      Object.assign(audit_info,this.state.audit_form);
+
+      data['audit_info']=audit_info;
+
+      console.log('inside submit',this.state.form);
+      if(data['change_type'] == "INSERT"){
+        this.props.insertRuleData(data);
+      }
+      else if (data['change_type'] == "UPDATE"){
+        this.props.updateRuleData(this.state.form.id,data);
+      }
+
+      this.props.handleClose();
     }
-    else if (data['change_type'] == "UPDATE"){
-      this.props.updateRuleData(this.state.form.id,data);
-    }
-
-    this.props.handleClose();
   }
 }
 function mapStateToProps(state){

@@ -16,13 +16,14 @@ import ReportParameterTemplate from './ReportParameterTemplate';
     this.country=this.props.reportDetails.country;
     this.reportId=this.props.reportDetails.report_id;
     this.reportDetails = this.props.maintainReportParameter? undefined : this.props.reportDetails;
+    this.domain_type = this.props.domainType ? this.props.domainType : undefined;
 
   }
 
   componentWillMount(){
     // TODO
     if(this.props.maintainReportParameter){
-      this.props.fetchReportTemplateList(this.reportId, this.country);
+      this.props.fetchReportTemplateList(this.reportId, this.country, this.domain_type);
     }
   }
 
@@ -57,8 +58,8 @@ function mapStateToProps(state){
 
 const mapDispatchToProps=(dispatch)=>{
   return{
-    fetchReportTemplateList:(reports,country)=>{
-        dispatch(actionFetchReportTemplate(reports,country))
+    fetchReportTemplateList:(reports,country,domain_type)=>{
+        dispatch(actionFetchReportTemplate(reports,country,domain_type))
     },
   };
 }

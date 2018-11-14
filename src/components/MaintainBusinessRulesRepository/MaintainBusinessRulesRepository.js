@@ -8,13 +8,14 @@ import moment from 'moment';
 import ReactTable from 'react-table';
 import { actionFetchAuditList } from '../../actions/DefChangeAction';
 import {
-  actionFetchReportLinkage,
+  // actionFetchReportLinkage,
   actionExportCSV,
 } from '../../actions/BusinessRulesAction';
 import {
   actionFetchBusinessRules,
   actionDeleteBusinessRule,
   actionCopyBusinessRuleToTenant,
+  actionFetchMasterReportLinkage,
 } from '../../actions/BusinessRulesRepositoryAction';
 import {
   actionFetchCountries
@@ -171,7 +172,7 @@ class MaintainBusinessRulesRepository extends Component {
     }
 
     this.changeHistory=nextProps.change_history;
-    this.reportLinkage=nextProps.report_linkage;
+    this.reportLinkage=(this.props.origin=="FIXEDFORMAT" ? nextProps.report_linkage_fixed : nextProps.report_linkage);
     this.tenantCopyResult=nextProps.tenantCopyResult;
     //console.log("Inside componentWillReceiveProps of ViewDataComponentV2",this.isNextPropRun);
     //this.flagDataDrillDown = false;
@@ -424,8 +425,10 @@ class MaintainBusinessRulesRepository extends Component {
       this.selectedKeys = '';
     } else {
       if(this.selectedItems.length < 1){
-        this.modalAlert.isDiscardToBeShown = false;
-        this.modalAlert.open("Please select atleast one record");
+        // this.modalAlert.isDiscardToBeShown = false;
+        // this.modalAlert.open("Please select atleast one record");
+        this.props.fetchReportLinkage(this.state.sourceId,null,this.props.origin);
+        this.setState({ display: "showReportLinkage" });
       } else {
         let selectedKeys='';
         console.log("Inside handleReportLinkClick .. items", this.selectedItems);
@@ -433,7 +436,7 @@ class MaintainBusinessRulesRepository extends Component {
           selectedKeys += (selectedKeys ? ',' + item.business_rule : item.business_rule)
         })
         this.selectedKeys = selectedKeys;
-        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys);
+        this.props.fetchReportLinkage(this.state.sourceId,selectedKeys,this.props.origin);
         //console.log("Repot Linkage",this.props.report_linkage);
         this.setState({ display: "showReportLinkage" });
       }
@@ -583,7 +586,9 @@ class MaintainBusinessRulesRepository extends Component {
       data["audit_info"]=this.auditInfo;
       data["update_info"]=this.selectedItems[0];
 
-      this.props.deleteBusinessRule(data);
+      this.setState({showAuditModal:false},
+                     this.props.deleteBusinessRule(data)
+                   );
       // this.setState({showAuditModal:false});
     }
 
@@ -600,12 +605,14 @@ class MaintainBusinessRulesRepository extends Component {
                           "group_id": this.groupId
                         };
       // console.log("INSERTTENANT data...", data);
-      this.props.copyBusinessRuleToTenant(data,this.tenantSource.sourceId)
+      this.setState({showAuditModal:false},
+                     ()=>{
+                       this.handleTenantCopyResultClick();
+                       this.props.copyBusinessRuleToTenant(data,this.tenantSource.sourceId);
+                     }
+                   );
     }
 
-   this.setState({showAuditModal:false},
-                  this.handleTenantCopyResultClick()
-                );
   this.operationName=null;
 
   }
@@ -928,8 +935,8 @@ const mapDispatchToProps = (dispatch) => {
     deleteBusinessRule: (item) => {
       dispatch(actionDeleteBusinessRule(item))
     },
-    fetchReportLinkage: (sourceId,selectedKeys) => {
-      dispatch(actionFetchReportLinkage(sourceId,selectedKeys))
+    fetchReportLinkage: (sourceId,selectedKeys,origin) => {
+      dispatch(actionFetchMasterReportLinkage(sourceId,selectedKeys,origin))
     },
     fetchAuditList: (idList, tableName, sourceId) => {
       dispatch(actionFetchAuditList(idList, tableName,sourceId));
@@ -950,7 +957,8 @@ function mapStateToProps(state){
     dataCatalog: state.sharedData.countries,
     gridBusinessRulesData: state.business_rules_repo.gridBusinessRulesData,
     tenantCopyResult: state.business_rules_repo.message,
-    report_linkage:state.report_linkage,
+    report_linkage: state.business_rules_repo.report_linkage,
+    report_linkage_fixed: state.business_rules_repo.report_linkage_fixedformat,
     change_history:state.def_change_store.audit_list,
     login_details:state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,

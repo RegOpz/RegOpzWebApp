@@ -22,6 +22,7 @@ import {
 } from '../../actions/TransactionReportAction';
 import TransSecColumnRule from './TransSecColumnRule';
 import TransColMapAssist from './TransColMapAssist';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 class AddReportTransRules extends Component {
   constructor(props) {
@@ -91,8 +92,10 @@ class AddReportTransRules extends Component {
                       rulesTags: [],
                       aggRefTags: []},
                   ()=>{
-                    this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-                    this.props.fetchSourceColumnList(null,this.state.form.source_id);
+                    if(this.state.form.source_id!=null){
+                      this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                      this.props.fetchSourceColumnList(null,this.state.form.source_id);
+                    }
                     this.initialiseFormFields();
                     this.populateDynDataColumns();
                   });
@@ -161,8 +164,10 @@ class AddReportTransRules extends Component {
                             renderRef: renderRef
                           },
                         ()=>{
-                          this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
-                          this.props.fetchSourceColumnList(null,this.state.form.source_id);
+                          if(this.state.form.source_id!=null){
+                            this.props.fetchBusinessRulesBySourceId(this.state.form.source_id);
+                            this.props.fetchSourceColumnList(null,this.state.form.source_id);
+                          }
                           this.initialiseFormFields();
                           this.populateDynDataColumns();
                         });
@@ -290,11 +295,21 @@ class AddReportTransRules extends Component {
             });
             this.setState({rulesTags: rulesTags});
           } else {
-            alert("[" + tag + "] - The rule already added, please check...")
+            this.modalAlert.isDiscardToBeShown = false;
+            this.modalAlert.open(
+              <span className="">
+                <i className="fa fa-warning amber"></i>
+                {" Business rule [ " + tag + " ] already added, please check..."}
+              </span>);
           }
         }
         else{
-          alert("Not a valid rule, please check...",tag)
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+            <span className="">
+              <i className="fa fa-warning amber"></i>
+              {" [ " + tag + " ] is not a valid business rule, please check..."}
+            </span>);
         }
 
     }
@@ -672,6 +687,10 @@ class AddReportTransRules extends Component {
               </form>
             </div>
           </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
         </div>
       )
     }
@@ -701,80 +720,77 @@ class AddReportTransRules extends Component {
   handleSubmit(event){
     console.log('inside submit',this.state.form);
     event.preventDefault();
-    this.flatenTags();
-
-    // let data = {
-    //   table_name:"report_calc_def",
-    //   update_info:this.state.form
-    // };
-    // data['change_type'] = this.ruleIndex === -1 ? "INSERT" : "UPDATE";
-    //
-    // let audit_info={
-    //   id:this.state.form.id,
-    //   table_name:data.table_name,
-    //   change_type:data.change_type,
-    //   change_reference:`Rule: ${this.state.form.cell_calc_ref} of : ${this.state.form.report_id}->${this.state.form.sheet_id}->${this.state.form.cell_id} [ Source: ${this.state.form.source_id} ]`,
-    //   maker: this.props.login_details.user,
-    // };
-    // Object.assign(audit_info,this.state.audit_form);
-    //
-    // data['audit_info']=audit_info;
-    //
-    // console.log('inside submit',this.state.form);
-    // if(data['change_type'] == "INSERT"){
-    //   this.props.insertRuleData(data);
-    // }
-    // else if (data['change_type'] == "UPDATE"){
-    //   this.props.updateRuleData(this.state.form.id,data);
-    // }
-    let change_type = [-1,-2].includes(this.ruleIndex) ? "INSERT" : "UPDATE";
     let calc = {};
+    let isAanyColumnMapped = false;
     this.state.dynamicDataColumns.map(element=>{
+      if (element.mapped_column || element.mapped_column !=""){
+        isAanyColumnMapped = true;
+      }
       calc[element.col_id]={column:element.mapped_column}
     })
-    let calcRenderRef = {
-                rule:this.state.form.cell_business_rules,
-                calc: calc
-              };
-    calcRenderRef = JSON.stringify(calcRenderRef);
-    console.log("calcRenderRef",calcRenderRef);
-    let update_info={id:this.state.form.id,
-                    report_id: this.state.form.report_id,
-                    sheet_id: this.state.form.sheet_id,
-                    section_id: this.state.form.section_id,
-                    source_id:this.state.form.source_id ,
-                    cell_calc_ref: this.state.form.cell_calc_ref,
-                    cell_calc_render_ref:calcRenderRef,
-                    cell_calc_extern_ref:this.state.form.cell_calc_extern_ref,
-                    cell_calc_decsription:this.state.form.cell_calc_decsription,
-                   };
-   let audit_info={id:null,
-                   table_name:"report_dyn_trans_calc_def",
-                   change_reference: 'Transaction Section Data Rule for ' + update_info.report_id +
-                                     '->' + update_info.sheet_id + '-> Source ID: ' + update_info.source_id +
-                                     '->' + this.state.form.cell_calc_ref,
-                   change_type: change_type,
-                   maker:this.props.login_details.user,
-                   maker_tenant_id:this.props.login_details.domainInfo.tenant_id,
-                   comment:this.state.audit_form.comment,
-                   group_id:this.props.groupId
-                   };
-    let data={
-              table_name: "report_dyn_trans_calc_def",
-              change_type: change_type,
-              update_info:update_info,
-              audit_info:audit_info
-            }
-    if (change_type=="INSERT"){
-      // INSERT
-      this.props.insertRuleData(data);
+    if(this.state.rulesTags.length==0){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i> No report rule defined! Please check and add applicable business rules!
+        </span>);
+
+    } else if (!isAanyColumnMapped){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i> No source column values defined! Please check and define column values before saving the changes!
+        </span>);
     } else {
-      // UPDATE
-      this.props.updateRuleData(this.state.form.id,data);
+
+      this.flatenTags();
+
+      let change_type = [-1,-2].includes(this.ruleIndex) ? "INSERT" : "UPDATE";
+
+      let calcRenderRef = {
+                  rule:this.state.form.cell_business_rules,
+                  calc: calc
+                };
+      calcRenderRef = JSON.stringify(calcRenderRef);
+      console.log("calcRenderRef",calcRenderRef);
+      let update_info={id:this.state.form.id,
+                      report_id: this.state.form.report_id,
+                      sheet_id: this.state.form.sheet_id,
+                      section_id: this.state.form.section_id,
+                      source_id:this.state.form.source_id ,
+                      cell_calc_ref: this.state.form.cell_calc_ref,
+                      cell_calc_render_ref:calcRenderRef,
+                      cell_calc_extern_ref:this.state.form.cell_calc_extern_ref,
+                      cell_calc_decsription:this.state.form.cell_calc_decsription,
+                     };
+     let audit_info={id:null,
+                     table_name:"report_dyn_trans_calc_def",
+                     change_reference: 'Transaction Section Data Rule for ' + update_info.report_id +
+                                       '->' + update_info.sheet_id + '-> Source ID: ' + update_info.source_id +
+                                       '->' + this.state.form.cell_calc_ref,
+                     change_type: change_type,
+                     maker:this.props.login_details.user,
+                     maker_tenant_id:this.props.login_details.domainInfo.tenant_id,
+                     comment:this.state.audit_form.comment,
+                     group_id:this.props.groupId
+                     };
+      let data={
+                table_name: "report_dyn_trans_calc_def",
+                change_type: change_type,
+                update_info:update_info,
+                audit_info:audit_info
+              }
+      if (change_type=="INSERT"){
+        // INSERT
+        this.props.insertRuleData(data);
+      } else {
+        // UPDATE
+        this.props.updateRuleData(this.state.form.id,data);
+      }
+
+
+      this.props.handleClose();
     }
-
-
-    this.props.handleClose();
   }
 }
 function mapStateToProps(state){

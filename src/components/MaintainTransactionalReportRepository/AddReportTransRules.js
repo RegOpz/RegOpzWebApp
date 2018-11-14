@@ -13,6 +13,7 @@ import {
   actionTransReportInsertRule
 } from '../../actions/TransactionReportAction';
 import TransSecColumnRule from './TransSecColumnRule';
+import ModalAlert from '../ModalAlert/ModalAlert';
 
 class AddReportTransRules extends Component {
   constructor(props) {
@@ -230,11 +231,21 @@ class AddReportTransRules extends Component {
             });
             this.setState({rulesTags: rulesTags});
           } else {
-            alert("[" + tag + "] - The rule already added, please check...")
+            this.modalAlert.isDiscardToBeShown = false;
+            this.modalAlert.open(
+              <span className="">
+                <i className="fa fa-warning amber"></i>
+                {" Business rule [ " + tag + " ] already added, please check..."}
+              </span>);
           }
         }
         else{
-          alert("Not a valid rule, please check...",tag)
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+            <span className="">
+              <i className="fa fa-warning amber"></i>
+              {" [ " + tag + " ] is not a valid business rule, please check..."}
+            </span>);
         }
 
   }
@@ -509,6 +520,10 @@ class AddReportTransRules extends Component {
               </form>
             </div>
           </div>
+          <ModalAlert
+            ref={(modalAlert) => {this.modalAlert = modalAlert}}
+            onClickOkay={this.handleModalOkayClick}
+          />
         </div>
       )
     }
@@ -529,55 +544,66 @@ class AddReportTransRules extends Component {
   handleSubmit(event){
     console.log('inside submit',this.state.form);
     event.preventDefault();
-    this.flatenTags();
-
-    let change_type = [-1,-2].includes(this.ruleIndex) ? "INSERT" : "UPDATE";
     let calc = {};
     this.state.dynamicDataColumns.map(element=>{
       calc[element.col_id]={column:element.mapped_column}
     })
-    let calcRenderRef = {
-                rule:this.state.form.cell_business_rules,
-                calc: calc
-              };
-    calcRenderRef = JSON.stringify(calcRenderRef);
-    console.log("calcRenderRef",calcRenderRef);
-    let update_info={id:this.state.form.id,
-                    report_id: this.state.form.report_id,
-                    sheet_id: this.state.form.sheet_id,
-                    section_id: this.state.form.section_id,
-                    cell_calc_ref: this.state.form.cell_calc_ref,
-                    cell_calc_render_ref:calcRenderRef,
-                    cell_calc_extern_ref:this.state.form.cell_calc_extern_ref,
-                    cell_calc_decsription:this.state.form.cell_calc_decsription,
-                   };
-   let audit_info={id:null,
-                   table_name:"report_dyn_trans_calc_def_master",
-                   change_reference: 'Transaction Section Data Rule for ' + update_info.report_id +
-                                     '->' + update_info.sheet_id +
-                                     '->' + this.state.form.cell_calc_ref,
-                   change_type: change_type,
-                   maker:this.props.login_details.user,
-                   maker_tenant_id:this.props.login_details.domainInfo.tenant_id,
-                   comment:this.state.audit_form.comment,
-                   group_id:this.props.groupId
-                   };
-    let data={
-              table_name: "report_dyn_trans_calc_def_master",
-              change_type: change_type,
-              update_info:update_info,
-              audit_info:audit_info
-            }
-    if (change_type=="INSERT"){
-      // INSERT
-      this.props.insertRuleData(data,"master");
+    if(this.state.rulesTags.length==0){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i> No report rule defined! Please check and add applicable business rules!
+        </span>);
+
     } else {
-      // UPDATE
-      this.props.updateRuleData(this.state.form.id,data,"master");
+
+      this.flatenTags();
+
+      let change_type = [-1,-2].includes(this.ruleIndex) ? "INSERT" : "UPDATE";
+
+      let calcRenderRef = {
+                  rule:this.state.form.cell_business_rules,
+                  calc: calc
+                };
+      calcRenderRef = JSON.stringify(calcRenderRef);
+      console.log("calcRenderRef",calcRenderRef);
+      let update_info={id:this.state.form.id,
+                      report_id: this.state.form.report_id,
+                      sheet_id: this.state.form.sheet_id,
+                      section_id: this.state.form.section_id,
+                      cell_calc_ref: this.state.form.cell_calc_ref,
+                      cell_calc_render_ref:calcRenderRef,
+                      cell_calc_extern_ref:this.state.form.cell_calc_extern_ref,
+                      cell_calc_decsription:this.state.form.cell_calc_decsription,
+                     };
+     let audit_info={id:null,
+                     table_name:"report_dyn_trans_calc_def_master",
+                     change_reference: 'Transaction Section Data Rule for ' + update_info.report_id +
+                                       '->' + update_info.sheet_id +
+                                       '->' + this.state.form.cell_calc_ref,
+                     change_type: change_type,
+                     maker:this.props.login_details.user,
+                     maker_tenant_id:this.props.login_details.domainInfo.tenant_id,
+                     comment:this.state.audit_form.comment,
+                     group_id:this.props.groupId
+                     };
+      let data={
+                table_name: "report_dyn_trans_calc_def_master",
+                change_type: change_type,
+                update_info:update_info,
+                audit_info:audit_info
+              }
+      if (change_type=="INSERT"){
+        // INSERT
+        this.props.insertRuleData(data,"master");
+      } else {
+        // UPDATE
+        this.props.updateRuleData(this.state.form.id,data,"master");
+      }
+
+
+      this.props.handleClose();
     }
-
-
-    this.props.handleClose();
   }
 }
 function mapStateToProps(state){

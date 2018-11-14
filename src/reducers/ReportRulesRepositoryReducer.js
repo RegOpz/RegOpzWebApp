@@ -5,7 +5,9 @@ import {
   FETCH_REPOSITORY_REPORT_DRILLDOWN,
   INSERT_REPOSITORY_REPORT_RULE,
   UPDATE_REPOSITORY_REPORT_RULE,
+  UPDATE_REPOSITORY_REPORT_PARAMETER,
   FETCH_REPOSITORY_REPORT_CHANGE_HISTORY,
+  FETCH_REPOSITORY_REPORT_RULES,
 } from '../actions/ReportRulesRepositoryAction';
 
 // TODO:
@@ -19,11 +21,12 @@ export default function(state=[], action) {
       return Object.assign({}, state, {
         capturedTemplate: action.payload.data
       });
-    case FETCH_REPOSITORY_REPORT_DRILLDOWN:
+    case FETCH_REPOSITORY_REPORT_DRILLDOWN: case FETCH_REPOSITORY_REPORT_RULES:
       return Object.assign({}, state, {
         cellRules: action.payload.data
       });
     case INSERT_REPOSITORY_REPORT_RULE: case UPDATE_REPOSITORY_REPORT_RULE:
+    case UPDATE_REPOSITORY_REPORT_PARAMETER:
       return { ...state, message: action.payload.data };
     case FETCH_REPOSITORY_REPORT_CHANGE_HISTORY:
       return Object.assign({}, state, {

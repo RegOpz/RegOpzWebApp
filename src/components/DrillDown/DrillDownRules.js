@@ -400,7 +400,7 @@ class DrillDownRules extends Component {
                     }
                     {
                       (
-                        this.props.addRulesBtn ||
+                        !qd ||
                         (qd && !Object.keys(qd).includes(item.source_id.toString()))
                       ) &&
                       <div>

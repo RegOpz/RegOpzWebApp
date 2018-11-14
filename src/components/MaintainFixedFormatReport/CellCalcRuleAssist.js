@@ -115,7 +115,7 @@ class CellCalcRuleAssist extends Component {
               <button
                 type="button"
                 className="btn btn-warning btn-xs"
-                onClick={this.props.handleEditCalcRule}
+                onClick={()=>{this.props.handleEditCalcRule()}}
                 >
                 Validate
               </button>
@@ -244,7 +244,7 @@ class CellCalcRuleAssist extends Component {
                     <li>
                       <a
                         className="close-link"
-                        onClick={this.props.handleEditCalcRule}
+                        onClick={()=>{this.props.handleEditCalcRule()}}
                         title="To mapping list">
                         <i className="fa fa-close"></i>
                       </a>
@@ -288,7 +288,7 @@ class CellCalcRuleAssist extends Component {
                         <button
                           type="button"
                           className="btn btn-default btn-xs"
-                          onClick={this.props.handleEditCalcRule}
+                          onClick={()=>{this.props.handleEditCalcRule()}}
                           >
                           Cancel
                         </button>

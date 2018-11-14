@@ -11,7 +11,9 @@ import {
   INSERT_REPOSITORY_RULES,
   UPDATE_REPOSITORY_RULES,
   DELETE_REPOSITORY_RULES,
-  COPY_REPOSITORY_RULES_TO_TENANT
+  COPY_REPOSITORY_RULES_TO_TENANT,
+  FETCH_MASTER_REPORT_LINKAGE,
+  FETCH_MASTER_FIXEDFORMAT_REPORT_LINKAGE,
 } from '../actions/BusinessRulesRepositoryAction';
 
 // TODO:
@@ -25,6 +27,10 @@ export default function(state=[], action) {
       return Object.assign({}, state, {
         gridBusinessRulesData: action.payload.data
       });
+    case FETCH_MASTER_REPORT_LINKAGE:
+      return Object.assign({}, state, { report_linkage: action.payload.data });
+    case FETCH_MASTER_FIXEDFORMAT_REPORT_LINKAGE:
+      return Object.assign({}, state, { report_linkage_fixedformat: action.payload.data });
     case INSERT_REPOSITORY_RULES: case UPDATE_REPOSITORY_RULES: case DELETE_REPOSITORY_RULES:
     case COPY_REPOSITORY_RULES_TO_TENANT:
     	return { ...state, message: action.payload.data };

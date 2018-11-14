@@ -4,10 +4,13 @@ import {
   INSERT_RULES,
   DELETE_RULES,
   UPDATE_RULES,
-  EXPORT_RULES_CSV
+  EXPORT_RULES_CSV,
+  FETCH_REPORT_LINKAGE,
+  FETCH_FIXEDFORMAT_REPORT_LINKAGE,
 } from '../actions/BusinessRulesAction';
 import {
-  FETCH_DRILLDOWN_RULES_REPORT
+  FETCH_DRILLDOWN_RULES_REPORT,
+  FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT,
 } from '../actions/ViewDataAction';
 
 // TODO:
@@ -18,9 +21,21 @@ export default function(state=[], action) {
       return Object.assign({}, state, {
         gridBusinessRulesData: action.payload.data
       });
+    case FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT:
+      return Object.assign({}, state, {
+        gridBusinessRulesData_fixedformat: action.payload.data
+      });
     case FETCH_DRILLDOWN_RULES_REPORT:
       return Object.assign({}, state, {
         gridBusinessRulesData: action.payload.data
+      });
+    case FETCH_REPORT_LINKAGE:
+      return Object.assign({}, state, {
+        report_linkage: action.payload.data
+      });
+    case FETCH_FIXEDFORMAT_REPORT_LINKAGE:
+      return Object.assign({}, state, {
+        report_linkage_fixedformat: action.payload.data
       });
     case INSERT_RULES: case UPDATE_RULES: case DELETE_RULES:
     	return { ...state, message: action.payload.data };

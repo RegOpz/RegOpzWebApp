@@ -7,6 +7,8 @@ export let INSERT_REPOSITORY_RULES = 'INSERT_REPOSITORY_RULES';
 export let UPDATE_REPOSITORY_RULES = 'UPDATE_REPOSITORY_RULES';
 export let DELETE_REPOSITORY_RULES = 'DELETE_REPOSITORY_RULES';
 export let COPY_REPOSITORY_RULES_TO_TENANT = 'COPY_REPOSITORY_RULES_TO_TENANT';
+export let FETCH_MASTER_REPORT_LINKAGE = 'FETCH_MASTER_REPORT_LINKAGE';
+export let FETCH_MASTER_FIXEDFORMAT_REPORT_LINKAGE = 'FETCH_MASTER_FIXEDFORMAT_REPORT_LINKAGE';
 
 const url = BASE_URL + "business-rules-repo" ;
 // TODO:
@@ -58,11 +60,15 @@ export function actionDeleteBusinessRule(item) {
 }
 
 // TODO:
-export function actionFetchReportLinkage(source_id,rules) {
-	const url = BASE_URL + "business-rule/linkage-multiple?source_id=" + source_id + "&rules=" + rules;
+export function actionFetchMasterReportLinkage(source_id,rules, origin) {
+  let type = FETCH_MASTER_REPORT_LINKAGE;
+	const url = BASE_URL + "business-rules-repo/master-business-rule-linkage-multiple?country=" + source_id + "&rules=" + rules;
 	const request = axios.get(url);
+  if(origin=="FIXEDFORMAT"){
+    type = FETCH_MASTER_FIXEDFORMAT_REPORT_LINKAGE;
+  }
 	return {
-		type: FETCH_REPORT_LINKAGE,
+		type: type,
 		payload: request
 	}
 }
