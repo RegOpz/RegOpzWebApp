@@ -28,6 +28,7 @@ import ReportRulesRepositoryReducer from './ReportRulesRepositoryReducer';
 import ShredDataReducer from './SharedDataReducer';
 import OperationLogReducer from './OperationLogReducer';
 import PasswordRecoveryReducer from './PasswordRecoveryReducer';
+import FreeFormatReportReducer from './FreeFormatReportReducer';
 
 const rootReducer = combineReducers({
   user_details: UsersReducer,
@@ -60,6 +61,7 @@ const rootReducer = combineReducers({
   sharedData: ShredDataReducer,
   operation_log_store: OperationLogReducer,
   passwordRecovery: PasswordRecoveryReducer,
+  freeFormatReport: FreeFormatReportReducer,
 });
 
 export const store=createStore(rootReducer);

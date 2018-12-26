@@ -358,7 +358,7 @@ class ReportCatalogList extends Component {
                           className="btn btn-link btn-xs"
                           onClick={
                             (event)=>{
-                              this.props.handleReportClick(item)
+                              // this.props.handleReportClick(item)
                             }
                           }
                           >

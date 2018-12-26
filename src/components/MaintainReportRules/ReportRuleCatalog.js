@@ -80,7 +80,7 @@ class ReportCatalogList extends Component {
 
           if (filterText !== null || this.constantFilter !== null) {
               let newFilterText = (filterText ? filterText : "")
-              console.log("Filtertext.....", newFilterText)
+              console.log("Filtertext.....", newFilterText, this.constantFilter)
               let matchText = RegExp(`(${newFilterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
               dataCatalog.forEach(item => {
                   let report_list = item.report.filter(item =>
@@ -227,7 +227,7 @@ class ReportCatalogList extends Component {
                         className="btn btn-link btn-xs"
                         onClick={
                           (event)=>{
-                            this.props.handleReportClick(item)
+                            // this.props.handleReportClick(item)
                           }
                         }
                         >
@@ -292,7 +292,7 @@ class ReportCatalogList extends Component {
                           title={item.report_description}
                           onClick={
                             (event)=>{
-                              this.props.handleReportClick(item)
+                              // this.props.handleReportClick(item)
                             }
                           }
                           >

@@ -155,7 +155,7 @@ class SecQuestionRecovery extends Component {
             content.push(
               <Field
                 name={"ans_" + q.id.toString()}
-                type="text"
+                type="password"
                 component={renderField}
                 secQuestion={true}
                 label={q.question + "?"}

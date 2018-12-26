@@ -14,6 +14,7 @@ import {
 } from '../../actions/MaintainReportRuleAction';
 import MaintainFixedFormatReportRules from '../MaintainFixedFormatReport/MaintainFixedFormatReportRules';
 import MaintainTransactionReportRules from '../MaintainTransactionalReport/MaintainTransactionReportRules';
+import MaintainFreeFormatReportRules from '../MaintainFreeFormatReport/MaintainFreeFormatReportRules';
 
 class MaintainReportRules extends Component {
   constructor(props){
@@ -83,13 +84,12 @@ class MaintainReportRules extends Component {
             <Tab
               key={2}
               eventKey={2}
-              title={"Dynamic Aggregation"}
+              title={"Free Format"}
             >
-              <div className="x_panel">
-                <div className="x_content">
-                  <h4><i className="fa fa-cogs"></i> <i className="fa fa-wrench"></i>  Build in progress ....</h4>
-                </div>
-              </div>
+              <MaintainFreeFormatReportRules
+                privileges={this.props.privileges}
+                groupId={this.groupId}
+                />
             </Tab>
           </Tabs>
         </div>

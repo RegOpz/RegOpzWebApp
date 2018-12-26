@@ -30,7 +30,7 @@ class TenantLeftMenu extends Component {
                               <a href="#/dashboard/maintain-report-rules" onClick={this.handleLeftMenuClick}>Report Rules</a>
                           </li>
                           <li>
-                              <a href="#">Data Reteintion</a>
+                              <a href="#">Data Retention</a>
                           </li>
                       </ul>
                   </li>

@@ -1,0 +1,203 @@
+:root {
+  $color: black;
+}
+.reg_col {
+    display: table-cell;
+    text-align: center;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    height: 36px;
+    vertical-align: middle;
+    user-select: none;
+}
+
+.reg_col_first {
+    display: table-cell;
+    text-align: center;
+    background-color: #fff;
+    border-right: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+}
+
+.reg_grid_row_marker_holder {
+    width: 30px;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+
+.rowMarker {
+    text-align: center;
+    background-color: #fff;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    float: left;
+    height: 30px;
+    overflow: hidden;
+    user-select: none;
+    /*resize: vertical;*/
+}
+
+.rowMarker:first-child {
+    border-top: 1px solid #ddd;
+}
+
+.rowMarker>span {
+    display: block;
+    width: 30px;
+}
+
+.reg_col>span {
+    display: block;
+    width: 100px;
+}
+
+.reg_col_first>span {
+    display: block;
+    width: 30px;
+}
+
+.reg_gridHolder {
+    height: 87vh;
+    position: relative;
+}
+
+.data_grid_container {
+    overflow: auto;
+    height: 69vh;
+    position: relative;
+    resize:vertical;
+}
+
+.reg_header {
+    float: left;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.reg_grid_drawing_container {
+    width: 100%;
+    background-color: #ffffff;
+    position: relative;
+    left: 32px;
+}
+
+.reg_horizontal_line {
+    height: 30px;
+    border-bottom: 1px solid #ddd;
+    background-color: white;
+}
+
+.reg_horizontal_line_holder {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    left: 0;
+}
+
+.reg_vertical_line_holder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.reg_vertical_line {
+    float: left;
+    width: 101px;
+    height: 100%;
+    border-right: 1px solid #ddd;
+}
+
+.reg_cell {
+    position: absolute;
+    width: 100px;
+    height: 29px;
+    top: 0;
+    left: 0;
+    background-color: white;
+    color: #3F3F92;
+    display: table;
+}
+
+.reg_cell_text {
+      text-align: center;
+}
+
+.reg_cell_number {
+    text-align: right;
+}
+
+.reg_cell_selected {
+    border: 1px solid red;
+}
+
+.reg_cell>span {
+    display: table-cell;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: break-word;
+    word-break:break-all;
+}
+
+.reg_sheet_buttons_holder {
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+.rightClickContextMenu {
+    width: 220px;
+    height: 250px;
+    background-color: blue;
+    position: absolute;
+    display: none;
+}
+
+.mb-10 {
+    margin-bottom: 3px;
+}
+
+.reg_ops_button_holder {
+    background-color: #f7f7f7;
+}
+
+.breadcrumb {
+  margin-bottom: 2px;
+}
+
+.table-content-wrap {
+  word-break: break-all;
+}
+
+.htEdittools {
+  border:1px solid #dddddd94;
+  margin: 1px;
+}
+
+.htEdittools:hover {
+  background: #cccccc4a;
+}
+
+.htEdittools li button:hover {
+  background: #cccccc4a;
+}
+
+.htSheetName {
+  width:100px;
+  color: orange;
+  text-overflow: ellipsis;
+  border:none;
+  border-bottom:1px solid blue;
+}
+
+.swatches-picker div {
+  /*  Override the padding and margins of the react-color default values */
+  padding: 0px !important;
+  margin: 1px !important;
+}

@@ -79,5 +79,5 @@ div.ReactTags__suggestions ul li.ReactTags__activeSuggestion {
 }
 
 .form-container {
-  min-height: 90vh;
+  min-height: 100%;
 }

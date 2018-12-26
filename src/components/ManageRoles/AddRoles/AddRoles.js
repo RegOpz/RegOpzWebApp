@@ -237,7 +237,11 @@ class AddRolesComponent extends Component {
         if (this.buttonClicked == 'Cancel') {
             this.handleClose();
         } else {
-            this.setState({ showAuditModal: true });
+            if(this.modalAlert.isDiscardToBeShown){
+              this.setState({ showAuditModal: true });
+            } else {
+              this.handleClose();
+            }
         }
     }
 
@@ -289,16 +293,28 @@ class AddRolesComponent extends Component {
                 console.log("Submiting form data:", formData);
                 this.props.submitForm(formData)
             } else {
-                console.log("Nothing to commit, no data found!");
+                console.log("Nothing to commit, no changes found!");
             }
         }
         this.handleClose();
     }
 
     renderSubmitRole() {
+      let components = [];
+      this.components.map((item,index)=>{
+          let permissions=item.permissions.filter(p=>(["EDITED"].includes(p.status)));
+          if (permissions.length > 0) {
+            components.push({
+              component: item.component,
+              permissions: permissions
+            });
+          }
+      })
+      let sources = this.sources.filter(p=>(p.status=="EDITED"));
+      let reports = this.reports.filter(p=>(p.status=="EDITED"));
 
-      if (this.dataSource != null) {
-          let formData = { ...this.dataSource, role: this.state.role} ;
+      if (components.length > 0 || sources.length >0 || reports.length > 0) {
+          let formData = { components: this.components, sources: this.sources, reports: this.reports , role: this.state.role} ;
           return(
             <div className="row">
               <div className="col-md-10">
@@ -310,7 +326,8 @@ class AddRolesComponent extends Component {
             </div>
           );
         } else {
-            return("Nothing to commit, no data found!");
+            this.modalAlert.isDiscardToBeShown = false;
+            return("Nothing to commit, no changes found!");
         }
     }
 }

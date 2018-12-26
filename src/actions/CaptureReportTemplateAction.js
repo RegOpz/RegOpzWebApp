@@ -21,7 +21,7 @@ export function actionLoadTemplateFile(formElement,reportType) {
         url += 'TBC-dynAgg';
         break;
       case 'COMPOSIT':
-        url += 'TBC-composit';
+        url += 'free-format-report';
         break;
       default:
         break;
