@@ -3,6 +3,7 @@ import { BASE_URL } from '../Constant/constant';
 
 export let FETCH_CAPTURED_FREE_FORMAT_REPORT = 'FETCH_CAPTURED_FREE_FORMAT_REPORT';
 export let UPDATE_CAPTURED_FREE_FORMAT_REPORT = 'UPDATE_CAPTURED_FREE_FORMAT_REPORT';
+export let VALIDATE_SECTION_FREE_FORMAT_REPORT = 'VALIDATE_SECTION_FREE_FORMAT_REPORT';
 
 // TODO:
 export function actionFetchFreeFormatReportData(report_id, reporting_date, version,report_snapshot,report_parameters) {
@@ -35,6 +36,17 @@ export function actionUpdateFreeFormatReportData(report_id,reportData) {
   //console.log(request);
   return {
     type: UPDATE_CAPTURED_FREE_FORMAT_REPORT,
+    payload: request
+  }
+}
+
+// Update only the report def of free format report
+export function actionValidateSectionDAG(sections) {
+  let url = BASE_URL + "free-format-report/validate-section";
+  const request = axios.put(url,sections);
+  //console.log(request);
+  return {
+    type: VALIDATE_SECTION_FREE_FORMAT_REPORT,
     payload: request
   }
 }

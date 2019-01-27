@@ -378,6 +378,7 @@ class RegOpzReportGrid extends Component {
       let colWidths={};
       let sheetStyles={};
       let mergedCells = [];
+      let sections = [];
       // Get the data
       let sheetData = ht.getData();
       // Get col width and row rowHeights
@@ -391,9 +392,11 @@ class RegOpzReportGrid extends Component {
       sheetStyles = this.getSheetTdStyles(rowCount,colCount,ht);
       // get the merged cell info
       mergedCells = ht.getPlugin('mergeCells').mergedCellsCollection.mergedCells;
+      // get sections for the sheet
+      sections = data.sections;
 
       // add these elements to the workbook
-      reportWorkBook.push({rowHeights, colWidths, sheetData, sheetStyles, mergedCells, sheet: data.sheet})
+      reportWorkBook.push({rowHeights, colWidths, sheetData, sheetStyles, mergedCells, sections, sheet: data.sheet})
     })
 
     console.log("tdStyleSave output...",reportWorkBook,(JSON.stringify(reportWorkBook)).length*2, (JSON.stringify(this.gridData)).length*2);
@@ -534,6 +537,7 @@ class RegOpzReportGrid extends Component {
               colWidths: Array(10).fill(90),
               rowHeights: Array(10).fill(25),
               merged_cells: [],
+              sections: [],
               sheet_styles:{ style_classes: {}, td_styles: []},
               sheet: null
             }

@@ -149,7 +149,7 @@ class AddBusinessRule extends Component {
     if (this.state.fieldsSuggestions.indexOf(tag) != -1) {
       if (dataFieldsTags.map(function(r){return r.text;}).indexOf(tag) == -1){
         dataFieldsTags.push({
-            id: dataFieldsTags.length + 1,
+            id: tag,
             text: tag
         });
         this.setState({ dataFieldsTags: dataFieldsTags });
@@ -214,7 +214,7 @@ class AddBusinessRule extends Component {
       let dataFieldsTagsArray = data_fields_list ? data_fields_list.split(',') : [];
       dataFieldsTagsArray.map((item, index) => {
         if (item != '') {
-          this.state.dataFieldsTags.push({ id: index + 1, text: item });
+          this.state.dataFieldsTags.push({ id: item, text: item });
         }
       })
     }

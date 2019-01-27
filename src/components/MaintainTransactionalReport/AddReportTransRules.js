@@ -290,7 +290,7 @@ class AddReportTransRules extends Component {
         if (this.state.rulesSuggestions.indexOf(tag) != -1){
           if (rulesTags.map(function(r){return r.text;}).indexOf(tag) == -1){
             rulesTags.push({
-                id: rulesTags.length + 1,
+                id: tag,
                 text: tag
             });
             this.setState({rulesTags: rulesTags});
@@ -333,7 +333,7 @@ class AddReportTransRules extends Component {
       handleAggRefAddition(tag) {
           let aggRefTags = this.state.aggRefTags;
           aggRefTags.push({
-              id: aggRefTags.length + 1,
+              id: tag,
               text: tag
           });
           this.setState({aggRefTags: aggRefTags});
@@ -378,14 +378,14 @@ class AddReportTransRules extends Component {
           let rulesTagsArray=cell_business_rules.split(',');
           rulesTagsArray.map((item,index)=>{
             if(item!=''){
-              this.state.rulesTags.push({id:index+1,text:item});
+              this.state.rulesTags.push({id:item,text:item});
             }
           })
           console.log("Rules Tags........:",this.state.rulesTags);
           //this.state.rulesTags = [{id:1,text: this.state.form.cell_business_rules}];
         //}
         //if(this.state.aggRefTags.length == 0){
-          this.state.aggRefTags.push({id:1,text: this.state.form.aggregation_ref});
+          this.state.aggRefTags.push({id:this.state.form.aggregation_ref,text: this.state.form.aggregation_ref});
         //}
 
         // Now populate the dynamicDataColumns:[]

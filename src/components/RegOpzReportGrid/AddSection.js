@@ -1,10 +1,14 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import { bindActionCreators, dispatch } from 'redux';
+import { createStore, bindActionCreators, dispatch } from 'redux';
 import { WithContext as ReactTags } from 'react-tag-input';
 import _ from 'lodash';
 import ModalAlert from '../ModalAlert/ModalAlert';
+import {
+  actionValidateSectionDAG
+} from '../../actions/FreeFormatReportAction';
+
 
 class AddSection extends Component {
   constructor(props) {
@@ -30,6 +34,7 @@ class AddSection extends Component {
     this.handleSave = this.handleSave.bind(this);
 
     this.searchAnywhere = this.searchAnywhere.bind(this);
+    this.validateSection = this.validateSection.bind(this);
 
 
   }
@@ -51,7 +56,8 @@ class AddSection extends Component {
         this.selectedSection = nextProps.selectedSection;
       if (this.selectedSection){
         // Populate the selected section values
-        this.selectedSection.section_position.map((tag,index)=>{sectionTags.push({id: index+1, text: tag})})
+        sectionTags=[];
+        this.selectedSection.section_position.map((tag,index)=>{sectionTags.push({id: tag, text: tag})})
         section_id = this.selectedSection.section_id;
         section_type = this.selectedSection.section_type;
         console.log("Inside selected section creation 1",range,'|',this.selectedSection.range);
@@ -62,13 +68,13 @@ class AddSection extends Component {
         section_type = '';
         range = '';
       }
-      sectionSuggestions = [];
-      this.sections.map((sec,index)=>{
-        console.log("sec.section_position.indexOf(section_id)",_.isEqual(sec, this.selectedSection),sec.section_position.indexOf(section_id))
-        if(!_.isEqual(sec, this.selectedSection) && sec.section_position.indexOf(section_id)==-1){sectionSuggestions.push(sec.section_id)}
-      });
 
     }
+    sectionSuggestions = [];
+    this.sections.map((sec,index)=>{
+      console.log("sec.section_position.indexOf(section_id)",_.isEqual(sec, this.selectedSection),sec.section_position.indexOf(section_id))
+      if(!_.isEqual(sec, this.selectedSection)){sectionSuggestions.push(sec.section_id)}
+    });
     this.setState({range,sectionSuggestions,sectionTags,section_id,section_type});
 
   }
@@ -101,7 +107,7 @@ class AddSection extends Component {
     if (this.state.sectionSuggestions.indexOf(tag) != -1) {
       if (sectionTags.map(function(r){return r.text;}).indexOf(tag) == -1){
         sectionTags.push({
-            id: sectionTags.length + 1,
+            id: tag,
             text: tag
         });
         this.setState({ sectionTags: sectionTags });
@@ -119,7 +125,7 @@ class AddSection extends Component {
       this.modalAlert.open(
         <span className="">
           <i className="fa fa-warning amber"></i>
-          {" [ " + tag + " ] is not a valid source column attribute, please check..."}
+          {" [ " + tag + " ] is not a valid section id reference, please check..."}
         </span>);
     }
   }
@@ -193,6 +199,30 @@ class AddSection extends Component {
     return !invalidSectionID;
   }
 
+  validateSection(section){
+    let sections = [...this.sections];
+
+    if(this.selectedSection && this.selectedSection.section_id!=''){
+      // update all the references of the section id (if any) for the amended section
+      sections.map((sec,index)=>{
+        if(sec.section_id==this.selectedSection.section_id){
+          sections.splice(index,1,section);
+        } else {
+          let indexOfSecRef = sec.section_position.indexOf(this.selectedSection.section_id);
+          if(indexOfSecRef != -1){
+            sections[index].section_position.splice(indexOfSecRef,1,this.state.section_id);
+          }
+        }
+      })
+    } else {
+      sections.push(section)
+
+    }
+
+    return sections;
+
+  }
+
   handleSave(event){
     event.preventDefault();
     // First check whether range selected is conflicting with other sections
@@ -204,26 +234,42 @@ class AddSection extends Component {
         section_position : this.state.sectionTags.map((r)=>{return r.text}),
         ht_range: this.selectedCellRange,
       };
-      if(this.selectedSection && this.selectedSection.section_id!=''){
-        // update all the references of the section id (if any) for the amended section
-        this.sections.map((sec,index)=>{
-          if(sec.section_id==this.selectedSection.section_id){
-            this.sections.splice(index,1,section);
-          } else {
-            let indexOfSecRef = sec.section_position.indexOf(this.selectedSection.section_id);
-            if(indexOfSecRef != -1){
-              this.sections[index].section_position.splice(indexOfSecRef,1,this.state.section_id);
+      // Add a section validation for newly created/amended section for the report tab
+      let sections = this.validateSection(section);
+      this.props.validateSectionDAG(sections)
+      .then((action)=>{
+        console.log("Only after then After await async call", status,action);
+        if(action.error){
+          // TODO
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+            <span className="">
+              <i className="fa fa-warning amber"></i>
+              {action.payload.response.data.msg}
+            </span>);
+        }
+        else if(this.selectedSection && this.selectedSection.section_id!=''){
+          // update all the references of the section id (if any) for the amended section
+          this.sections.map((sec,index)=>{
+            if(sec.section_id==this.selectedSection.section_id){
+              this.sections.splice(index,1,section);
+            } else {
+              let indexOfSecRef = sec.section_position.indexOf(this.selectedSection.section_id);
+              if(indexOfSecRef != -1){
+                this.sections[index].section_position.splice(indexOfSecRef,1,this.state.section_id);
+              }
             }
-          }
-        })
-        // Directly assign the new values for the section in the sections object
-        this.setState({range: '', sectionTags: [], section_id: '', section_type: ''},
-                      ()=>{this.props.handleSave(null)});
+          })
+          // Directly assign the new values for the section in the sections object
+          this.setState({range: '', sectionTags: [], section_id: '', section_type: ''},
+                        ()=>{this.props.handleSave(null)});
 
-      } else {
-        this.setState({range: '', sectionTags: [], section_id: '', section_type: ''},
-                      ()=>{this.props.handleSave(section)});
-      }
+        } else {
+          this.setState({range: '', sectionTags: [], section_id: '', section_type: ''},
+                        ()=>{this.props.handleSave(section)});
+        }
+      })
+      console.log("After await async call", status);
     }
   }
 
@@ -359,9 +405,9 @@ function mapStateToProps(state) {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    // fetchSources: (sourceId) => {
-    //   dispatch(actionFetchSources(sourceId));
-    // },
+    validateSectionDAG: (sections) => {
+      return dispatch(actionValidateSectionDAG(sections));
+    },
   }
 }
 const VisibleAddSection = connect(
