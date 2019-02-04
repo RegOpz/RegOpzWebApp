@@ -182,7 +182,38 @@
 
 .htEdittools:hover {
   background: #cccccc4a;
+  box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.30), 0 6px 3px 0 rgba(0, 0, 0, 0.23);
 }
+
+.btn-group .dropdown ul {
+  box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.30), 0 6px 3px 0 rgba(0, 0, 0, 0.23);
+}
+
+.btn-group .dropdown:hover .dropdown-menu {
+  display: block;
+  /* box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.30), 0 6px 3px 0 rgba(0, 0, 0, 0.23); */
+  max-height: 300px;
+  opacity: 1;
+}
+
+.btn-group .dropdown .dropdown-menu {
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    transition: all .5s ease-in-out;
+
+    max-height: 0;
+    display: block;
+    overflow: hidden;
+    opacity: 0;
+}
+
+.btn-group .dropdown.open .dropdown-menu {
+    max-height: 300px;
+    opacity: 1;
+}
+
 
 .htEdittools li button:hover {
   background: #cccccc4a;
