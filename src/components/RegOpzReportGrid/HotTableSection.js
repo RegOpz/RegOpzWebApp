@@ -20,6 +20,7 @@ class HotTableSection extends Component {
     this.alphaSequence = this.alphaSequence.bind(this);
     this.renderSections = this.renderSections.bind(this);
     this.handleSave = this.handleSave.bind(this);
+    this.generateSectionId=this.generateSectionId.bind(this);
 
   }
 
@@ -102,6 +103,19 @@ class HotTableSection extends Component {
     );
   }
 
+  generateSectionId(){
+    let sec_count=1;
+    this.data.sections.map((sec,index)=>{
+      sec_count+=1;
+    });
+     let sec_id='S'+((num,size)=>{
+         var s = num+"";
+         while (s.length < size) s = "0" + s;
+         return s;
+       })(sec_count,2);
+    return sec_id;
+  }
+
   render(){
 
         return(
@@ -115,9 +129,10 @@ class HotTableSection extends Component {
                   <li>
                     <a className="fa fa-plus" onClick={
                         ()=>{
+                          let secId=this.generateSectionId()
                           this.ht.hotInstance.deselectCell();
                           this.selectedCellRange=[];
-                          let selectedSection={section_id:'',section_type:'',range:'',section_position:[],ht_range:[]}
+                          let selectedSection={section_id:secId,section_type:'',range:'',section_position:[],ht_range:[]}
                           this.setState({selectedSection});
                         }
                       }

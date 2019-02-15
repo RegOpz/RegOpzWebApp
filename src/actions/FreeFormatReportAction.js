@@ -31,8 +31,8 @@ export function actionFetchFreeFormatReportData(report_id, reporting_date, versi
 
 // Update only the report def of free format report
 export function actionUpdateFreeFormatReportData(report_id,reportData) {
-  let url = BASE_URL + "free-format-report/report/" + report_id;
-  const request = axios.put(url,reportData);
+  let url = BASE_URL + "free-format-report/capture-template-hot/" + report_id;
+  const request = axios.post(url,reportData);
   //console.log(request);
   return {
     type: UPDATE_CAPTURED_FREE_FORMAT_REPORT,
