@@ -2,6 +2,11 @@ const webpack = require('webpack'),
       path    = require('path'),
       env     = process.env,
       PACKAGE = require('./package.json')
+// const HtmlWebPackPlugin = require("html-webpack-plugin");
+// const htmlWebpackPlugin = new HtmlWebPackPlugin({
+//   // template: "./index.html",
+//   // filename: "./js/index.html"
+// });
 
 var BUILD_DIR = path.resolve(__dirname, 'js')
 var PUBLIC_DIR = path.resolve(__dirname)
@@ -16,7 +21,8 @@ module.exports = {
     output: {
         path: BUILD_DIR,
         publicPath: '/',
-        filename: 'bundle.js'
+        filename: 'bundle.js',
+        globalObject: 'this'
     },
     module: {
         loaders: [
@@ -63,6 +69,13 @@ module.exports = {
         dns: 'empty'
     },
     plugins: env.NODE_ENV !== 'developement' ? [
+        new webpack.DefinePlugin({
+          env: {
+              API_SERVER: JSON.stringify(env.API_SERVER),
+            }
+          }),
+        new webpack.HotModuleReplacementPlugin(),
+        // htmlWebpackPlugin,
         new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
         new webpack.optimize.DedupePlugin(),
         new webpack.optimize.UglifyJsPlugin({
@@ -83,8 +96,16 @@ module.exports = {
                 comments: false
             }
         }),
-        new webpack.BannerPlugin(banner, { entryOnly: true })
-    ] : [],
+        new webpack.BannerPlugin(banner, { entryOnly: true }),
+    ] : [
+      new webpack.DefinePlugin({
+        env: {
+          API_SERVER: JSON.stringify(env.API_SERVER),
+        }
+      }),
+      new webpack.HotModuleReplacementPlugin(),
+      // htmlWebpackPlugin,
+    ],
     devServer: {
         inline: true,
         historyApiFallback: true,

@@ -40,6 +40,7 @@ import EditUsers from './components/ManageUsers/ModifyUser/ModifyUser';
 import Profile from './components/Profile/Profile';
 import authenticate from './components/Authentication/authenticate';
 import ManageDataChange from './components/ManageDataChange/ManageDataChange';
+import ManageJobs from './components/ManageJobs/ManageJobs';
 import LoadData from './components/MaintainSources/LoadData';
 import NotificationSystem from 'react-notification-system';
 import ManageSubscribers from './components/ManageSubscribers/ManageSubscribers';
@@ -167,6 +168,7 @@ ReactDOM.render(
                     <Route path="variance-analysis" name="Variance Analysis" component={authenticate(VarianceAnalysis)} />
                     <Route path="workflow/manage-def-change" name="Manage Definition Change" component={authenticate(withRouter(ManageDefChange))} />
                     <Route path="workflow/manage-data-change" name="Manage Data Change" component={authenticate(withRouter(ManageDataChange))} />
+                    <Route path="workflow/manage-job" name="Manage Data Change" component={authenticate(withRouter(ManageJobs))} />
                     <Route path="manage-roles" name="Manage Roles" component={authenticate(ManageRoles)} />
                     <Route path="manage-users" name="Manage Users" component={authenticate(ManageUsers)} />
                     <Route path="password-policy" name="Password Policy" component={authenticate(PasswordPolicy)} />

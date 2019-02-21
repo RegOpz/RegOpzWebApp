@@ -94,6 +94,9 @@ class TenantLeftMenu extends Component {
                           <li>
                              <a href="#/dashboard/workflow/manage-data-change"> Data Change</a>
                           </li>
+                          <li>
+                             <a href="#/dashboard/workflow/manage-job"> Jobs</a>
+                          </li>
                       </ul>
                   </li>
                   <li>
