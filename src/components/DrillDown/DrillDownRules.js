@@ -43,6 +43,7 @@ class DrillDownRules extends Component {
   }
 
   render(){
+    console.log("selected Cell ... ", this.selectedCell)
     return(
           <div className="x_panel">
             <div className="x_title">

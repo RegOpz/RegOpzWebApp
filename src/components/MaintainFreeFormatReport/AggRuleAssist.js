@@ -18,11 +18,14 @@ class AggRuleAssist extends Component{
       buttons: []
     };
 
-    this.handleSelectCell=this.handleSelectCell.bind(this);
+    this.cell = null;
+    this.alphaSequence = this.alphaSequence.bind(this);
+    this.handleRefreshSelectCell=this.handleRefreshSelectCell.bind(this);
     this.handleFormFieldClick=this.handleFormFieldClick.bind(this);
   }
 
   componentWillReceiveProps(nextProps){
+    console.log("Next props of select cell....", nextProps.selectedCell)
     let buttons=[];
     if (nextProps.cell_options){
       nextProps.cell_options.comp_agg_rules.map((item,index)=>{
@@ -31,9 +34,9 @@ class AggRuleAssist extends Component{
             buttons.push({
                 title: item.cell_id + " Aggregation Rule: " + item.comp_agg_rule,
                 name: item.comp_agg_ref,
-                iconClass: 'fa-paperclip',
+                iconClass: 'fa-bullhorn green',
                 checkDisabled: 'No',
-                className: "btn-success",
+                className: "btn-default",
               })
           }
         });
@@ -43,9 +46,9 @@ class AggRuleAssist extends Component{
             buttons.push({
                 title: item.cell_id + " Rule: " + item.cell_business_rules + " Aggregation: " + item.aggregation_func + "(" + item.aggregation_ref +")",
                 name: item.cell_calc_ref,
-                iconClass: 'fa-tag',
+                iconClass: 'fa-tag blue',
                 checkDisabled: 'No',
-                className: "btn-info",
+                className: "btn-default",
               })
           });
 
@@ -61,13 +64,31 @@ class AggRuleAssist extends Component{
 
   }
 
-  handleSelectCell(data){
-    console.log("Inside handleSelect",data);
-    if(data.cell){
-      //this.buttons=[];
-      //console.log("inside if handleSelectCell",data);
-      this.props.drillDown(data.reportId,data.sheetName,data.cell);
+  alphaSequence(i) {
+      return i < 0
+          ? ""
+          : this.alphaSequence((i / 26) - 1) + String.fromCharCode((65 + i % 26) + "");
+  }
+
+  handleRefreshSelectCell(event){
+    event.stopPropagation();
+    const { reportGrid } = this.props;
+    let sheetName = reportGrid.gridData[reportGrid.key].sheet;
+    let reportId = reportGrid.report_id;
+    let selectedCell = reportGrid.ht.hotInstance.getSelectedLast();
+    this.cell = null;
+    let cellRef = null;
+    selectedCell = selectedCell ? selectedCell : [undefined,undefined,undefined,undefined];
+    if(selectedCell){
+      let [startrow,startcol,endrow,endcol]=selectedCell;
+      this.cell = this.alphaSequence(startcol)+(startrow+1);
+      // console.log("Inside handleRefreshSelectCell",this.cell, cellRef, selectedCell,startrow,startcol,endrow,endcol,reportGrid.key);
+      cellRef = reportGrid.gridData[reportGrid.key].cell_refs[startrow][startcol]
+      // console.log("Selected cell ref...", this.selectedCell.cellRef);
+      this.props.drillDown(reportId,sheetName,cellRef);
     }
+    // console.log("Inside handleRefreshSelectCell",this.cell, cellRef, selectedCell);
+
 }
 
   handleFormFieldClick(event,element){
@@ -91,6 +112,7 @@ class AggRuleAssist extends Component{
 
 
   render(){
+    const { reportGrid } = this.props;
     console.log("Inside render AggRuleAssist");
     return (
       <div className="row form-container">
@@ -106,7 +128,7 @@ class AggRuleAssist extends Component{
                   <div className="clearfix"></div>
               </div>
 
-              <div className="col-md-8 col-sm-8 col-xs-12">
+              <div className="col-md-12 col-sm-12 col-xs-12">
                 <div className="x_content">
                   <div className="form-group">
                     <textarea
@@ -142,16 +164,17 @@ class AggRuleAssist extends Component{
                     <button
                       type="button"
                       className="btn btn-primary btn-xs"
-                      onClick={this.props.handleEditAggRule}
+                      onClick={()=>{}}
                       >
                       Validate
                     </button>
                     <button
                       type="button"
-                      className="btn btn-info btn-xs"
-                      onClick={()=>{this.setState({openDataGridCollapsible:!this.state.openDataGridCollapsible});}}
+                      className="btn btn-dark btn-xs"
+                      onClick={this.handleRefreshSelectCell}
                       >
-                      {(this.state.openDataGridCollapsible?"Hide":"Show" )+"  grid"}
+                      <i className="fa fa-refresh"></i>
+                       &nbsp;References
                     </button>
                   </div>
 
@@ -169,35 +192,28 @@ class AggRuleAssist extends Component{
                   </div>
                 </div>
               }
-
-              {
-                this.props.gridData &&
-                <div className="col col-md-12">
-                  <div className="form-group">
-                    <Panel
-                      collapsible
-                      bsClass=""
-                      expanded={this.state.openDataGridCollapsible}
-                      >
-                        <RegOpzFlatGridActionButtons
-                          editable={this.writeOnly}
-                          checkDisabled={this.checkDisabled}
-                          buttons={this.state.buttons}
-                          dataNavigation={false}
-                          buttonClicked={this.handleFormFieldClick.bind(this)}
-                        />
-                        <RegOpzReportGrid
-                          gridData={this.props.gridData}
-                          report_id={this.props.report_id}
-                          handleSelectCell={this.handleSelectCell}
-                        />
-                    </Panel>
-                  </div>
+              <div className="col col-md-12 col-xs-12">
+                <div className="form-group">
+                  <Panel
+                    collapsible
+                    bsClass=""
+                    expanded={this.state.openDataGridCollapsible}
+                    >
+                    {
+                      this.cell &&
+                      <p>{"Available calculations and aggegations of cell " + this.cell
+                         + " which can be used to create formula for "+ this.props.comp_agg_ref }</p>
+                    }
+                      <RegOpzFlatGridActionButtons
+                        editable={this.writeOnly}
+                        checkDisabled={this.checkDisabled}
+                        buttons={this.state.buttons}
+                        dataNavigation={false}
+                        buttonClicked={this.handleFormFieldClick.bind(this)}
+                      />
+                  </Panel>
                 </div>
-              }
-
-
-
+              </div>
             </div>
           </div>
         </div>

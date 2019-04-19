@@ -159,7 +159,7 @@ class ManageRolesComponent extends Component {
                 role_list.push(
                   <div key={-1} className="col-md-4 col-sm-4 col-xs-12">
                     <div
-                      className="x_panel tile fixed_height_320 x_panel_blank overflow_hidden"
+                      className="x_panel tile fixed_height_320 x_panel_blank role_panel overflow_hidden"
                       style={{ "cursor": "pointer" }}
                       onClick={() => this.handleEditButtonClicked(null) }
                     >

@@ -135,7 +135,7 @@ class MaintainBusinessRules extends Component {
     }
     else if(this.flagRuleDrillDown){
       console.log("Inside componentWillMount of MaintainBusinessRules",this.ruleFilterParam);
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.cell_business_rules,this.ruleFilterParam.source_id,
                                           this.ruleFilterParam.page,this.ruleFilterParam.business_date,
                                           this.ruleFilterParam.qualified_data_version,
                                           this.props.origin);
@@ -165,7 +165,7 @@ class MaintainBusinessRules extends Component {
       console.log("Inside componentWillReceiveProps of MaintainBusinessRules",this.ruleFilterParam);
       this.flagRuleDrillDown = nextProps.flagRuleDrillDown;
       this.ruleFilterParam = nextProps.ruleFilterParam;
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.cell_business_rules,this.ruleFilterParam.source_id,
                                           this.ruleFilterParam.page,this.ruleFilterParam.business_date,
                                           this.ruleFilterParam.qualified_data_version,
                                           this.props.origin);
@@ -895,11 +895,24 @@ class MaintainBusinessRules extends Component {
               break;
           case "showHistory":
               return(
-                  <DefAuditHistory
-                    data={ this.changeHistory }
-                    historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
-                    handleClose={this.handleHistoryClick}
-                    />
+                <div className="x_panel">
+                  <div className="x_title">
+                    <h2>Change History<small> Time Line </small></h2>
+                    <ul className="nav navbar-right panel_toolbox">
+                      <li>
+                        <a className="close-link" onClick={()=>{this.handleHistoryClick()}}><i className="fa fa-close"></i></a>
+                      </li>
+                    </ul>
+                    <div className="clearfix"></div>
+                  </div>
+                  <div className="x_content">
+                    <DefAuditHistory
+                      data={ this.changeHistory }
+                      historyReference={ this.selectedKeys != "undefined" ? "for keys: " + this.selectedKeys : "for All" }
+                      handleClose={this.handleHistoryClick}
+                      />
+                  </div>
+                </div>
               );
               break;
           case "accessDenied":

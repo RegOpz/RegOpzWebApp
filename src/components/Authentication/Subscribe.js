@@ -92,6 +92,7 @@ class Subscribe extends Component {
     componentDidMount() {
         document.body.classList.add('subscribe');
         document.title = "RegOpz Subscription";
+        document.getElementsByName('tenant_id')[0].focus();
     }
 
     render() {

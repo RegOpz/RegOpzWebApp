@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { createStore, bindActionCreators, dispatch } from 'redux';
-import { WithContext as ReactTags } from 'react-tag-input';
+import { WithOutContext as ReactTags } from 'react-tag-input';
 import _ from 'lodash';
 import ModalAlert from '../ModalAlert/ModalAlert';
 import {
@@ -27,6 +27,8 @@ class AddSection extends Component {
     this.sections = this.props.sections;
     this.selectedSection = this.props.selectedSection;
     this.selectedCellRange = this.props.selectedCellRange;
+
+    this.generateSectionId = this.generateSectionId.bind(this);
     this.alphaSequence = this.alphaSequence.bind(this);
 
     this.handleSectionsDelete = this.handleSectionsDelete.bind(this);
@@ -54,22 +56,24 @@ class AddSection extends Component {
       }
       if(!_.isEqual(this.selectedSection,nextProps.selectedSection)){
         this.selectedSection = nextProps.selectedSection;
-      if (this.selectedSection){
-        // Populate the selected section values
-        sectionTags=[];
-        this.selectedSection.section_position.map((tag,index)=>{sectionTags.push({id: tag, text: tag})})
-        section_id = this.selectedSection.section_id;
-        section_type = this.selectedSection.section_type;
-        console.log("Inside selected section creation 1",range,'|',this.selectedSection.range);
-        range = range=='' ? this.selectedSection.range : range;
-        console.log("Inside selected section creation",range,'|',this.selectedSection.range);
-      } else {
-        section_id = '';
-        section_type = '';
-        range = '';
+        if (this.selectedSection && this.selectedSection.section_id != ''){
+          // Populate the selected section values
+          sectionTags=[];
+          this.selectedSection.section_position.map((tag,index)=>{sectionTags.push({id: tag, text: tag})})
+          section_id = this.selectedSection.section_id;
+          section_type = this.selectedSection.section_type;
+          console.log("Inside selected section creation 1",range,'|',this.selectedSection.range);
+          range = range=='' ? this.selectedSection.range : range;
+          console.log("Inside selected section creation",range,'|',this.selectedSection.range);
+        } else {
+          section_id = this.generateSectionId();
+          section_type = '';
+          range = '';
+          sectionTags= [];
+          console.log("section id generated ", this.state.section_id);
+        }
       }
 
-    }
     sectionSuggestions = [];
     this.sections.map((sec,index)=>{
       console.log("sec.section_position.indexOf(section_id)",_.isEqual(sec, this.selectedSection),sec.section_position.indexOf(section_id))
@@ -91,6 +95,20 @@ class AddSection extends Component {
       return i < 0
           ? ""
           : this.alphaSequence((i / 26) - 1) + String.fromCharCode((65 + i % 26) + "");
+  }
+
+  generateSectionId(){
+    console.log("this.generateSectionId() called ....", this.sections)
+    let sec_count=1;
+    this.sections.map((sec,index)=>{
+      sec_count+=1;
+    });
+     let sec_id='S'+((num,size)=>{
+         var s = num+"";
+         while (s.length < size) s = "0" + s;
+         return s;
+       })(sec_count,2);
+    return sec_id;
   }
 
   handleSectionsDelete(i) {
@@ -225,8 +243,22 @@ class AddSection extends Component {
 
   handleSave(event){
     event.preventDefault();
-    // First check whether range selected is conflicting with other sections
-    if(! this.isRangeConflict() && this.isValidSectionId()){
+    // First check whether section id and section range is defined
+    if(! this.state.section_id || ! this.state.range){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <span className="">
+          <i className="fa fa-warning amber"></i>
+          {
+            ! this.state.section_id ?
+            " No section id generated, Please click \"Add New Section\" and try adding section again ..."
+            :
+            " No cell range has been selected, please select the cell range nad try adding section again ...."
+          }
+        </span>);
+    }
+    else if(! this.isRangeConflict() && this.isValidSectionId()){
+      // then check whether range selected is conflicting with other sections
       let section = {
         range: this.state.range,
         section_id : this.state.section_id,
@@ -279,8 +311,8 @@ class AddSection extends Component {
       <div className="x_panel">
         <div className="x_title">
           <h2>{
-            this.state.range
-          }<small> Manage section details</small></h2>
+            this.state.section_id + (this.state.range ? " for " + this.state.range : "")
+          }<small>{(this.state.range ? "Manage" : "Add") +" section details"}</small></h2>
 
           <div className="clearfix"></div>
         </div>
@@ -289,37 +321,6 @@ class AddSection extends Component {
           onSubmit={this.handleSave}
         >
 
-            <div className="col-md-6 col-sm-6 col-xs-12 form-group has-feedback">
-              <input
-                value={this.state.range}
-                placeholder="range"
-                readOnly={false}
-                type="text"
-                title={"Section Cell Range"}
-                required={true}
-                className="form-control has-feedback-left"
-              />
-            <span className="fa fa-crop form-control-feedback left" aria-hidden="true"></span>
-            </div>
-            <div className="col-md-6 col-sm-6 col-xs-12 form-group has-feedback">
-              <input
-                id="sectionId"
-                value={this.state.section_id}
-                placeholder="Section ID"
-                readOnly={false}
-                type="text"
-                maxLength={20}
-                required={true}
-                title={"Enter Section ID"}
-                className="form-control has-feedback-left"
-                onChange={
-                  (e)=>{
-                    this.setState({section_id: e.target.value});
-                  }
-                }
-              />
-            <span className="fa fa-paperclip form-control-feedback left" aria-hidden="true"></span>
-            </div>
 
             <div className="col-md-6 col-sm-6 col-xs-12 form-group has-feedback">
               <select
@@ -374,6 +375,7 @@ class AddSection extends Component {
               <li>
                 <button  type="submit" className="btn btn-xs btn-success"
                   title="Save Changes"
+                  disabled={this.state.section_id =='' || this.state.range == ''}
                   >
                   <i className="fa fa-save "></i>
                 </button>

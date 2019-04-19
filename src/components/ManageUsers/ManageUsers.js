@@ -126,7 +126,7 @@ class ManageUsersComponent extends Component {
           console.log(index, "From ManageUsers", item);
           user_list.push(
               <div key={index} className="col-md-4 col-sm-4 col-xs-12 profile_details">
-                <div className="well profile_view">
+                <div className="well profile_view user_panel">
                   <div className="col-sm-12">
                     <h4 className="brief">
                       <i>User Details</i>

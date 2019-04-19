@@ -74,15 +74,23 @@ class DataSourceList extends Component {
       if(typeof this.dataCatalog != 'undefined' && this.dataCatalog.length ){
         let linkageData = this.associateRulePermission(this.dataCatalog);
         const { filterText } = this.state;
-        if (filterText != null) {
-            let matchText = RegExp(`(${filterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+        let newFilterText = (filterText ? filterText.replace(/ +/g,' ')
+                                                    .replace(/^ +/,'')
+                                                    .replace(/\\/g,'\\\\')
+                                          : "")
+        if (newFilterText != null) {
+          let matchText = RegExp(`(${newFilterText.toString()
+                                                  .toLowerCase()
+                                                  .replace(/[,+&\:\ ]+$/,'')
+                                                  .replace(/[,+&\:\ ]/g,'|')})`,
+                                  'i');
             console.log("matchText",matchText, linkageData);
             linkageData = linkageData.filter(element =>
                 element.source_id.toString().match(matchText) ||
-                element.source_file_name.match(matchText) ||
+                (element.source_file_name ? element.source_file_name.match(matchText) : null) ||
                 (element.ruleaccess_type ? element.ruleaccess_type.match(matchText):null) ||
-                element.source_description.match(matchText) ||
-                element.source_table_name.match(matchText) ||
+                (element.source_description ? element.source_description.match(matchText) : null) ||
+                (element.source_table_name ? element.source_table_name.match(matchText) : null) ||
                 (element.country ? element.country.match(matchText):null)
             );
         }

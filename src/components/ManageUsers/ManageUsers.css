@@ -5,3 +5,7 @@
 .info_value {
     padding-left: 20px;
 }
+
+.user_panel:hover {
+  box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.30), 0 6px 3px 0 rgba(0, 0, 0, 0.23);
+}

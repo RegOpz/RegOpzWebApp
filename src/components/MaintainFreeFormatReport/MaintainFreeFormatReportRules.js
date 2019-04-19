@@ -1,267 +1,279 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import { bindActionCreators, dispatch } from 'redux';
-import { Link } from 'react-router';
-import { Tab, Tabs } from 'react-bootstrap';
+import moment from 'moment';
 import _ from 'lodash';
+// Leftmenu click to refresh the rightside details pane
 import {
-  actionFetchReportTemplate,
-  actionExportXlsx,
-  actionExportRulesXlsx,
-  actionFetchReportChangeHistory,
-  actionUpdateRuleData,
-  actionDeleteRuleData
-} from '../../actions/MaintainReportRuleAction';
-import {
-  //actionFetchDates,
-  actionFetchReportCatalog,
-  //actionFetchReportLinkage,
-  //actionFetchDataChangeHistory,
-  actionExportCSV,
-  actionApplyRules,
-} from '../../actions/ViewDataAction';
-import {
-  // actionFetchReportData,
-  actionDrillDown
-} from '../../actions/CaptureReportAction';
+  actionLeftMenuClick,
+} from '../../actions/LeftMenuAction';
+// Free format report actions
 import {
   actionFetchFreeFormatReportData,
   actionUpdateFreeFormatReportData
 } from '../../actions/FreeFormatReportAction';
+// DragObjects related modules
 import {
-  actionLeftMenuClick,
-} from '../../actions/LeftMenuAction';
-import DatePicker from 'react-datepicker';
-import moment from 'moment';
-import RegOpzReportGrid from '../RegOpzReportGrid/RegOpzReportGrid';
-import RegOpzFlatGridActionButtons from '../RegOpzFlatGrid/RegOpzFlatGridActionButtons';
+	DropTarget,
+	ConnectDropTarget,
+	DropTargetMonitor,
+} from 'react-dnd';
+import ItemTypes from '../DragObjects/ItemTypes';
+import Box from '../DragObjects/Box';
+// Other components for free format report maintenance
 import ReportCatalogList from '../MaintainReportRules/ReportRuleCatalog';
+import RegOpzReportGrid from '../RegOpzReportGrid/RegOpzReportGrid';
+import ReportChangeHistory from './ReportChangeHistory';
+import ReportCellDetails from './ReportCellDetails';
+import LoadingForm from '../Authentication/LoadingForm';
+import AccessDenied from '../Authentication/AccessDenied';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
-import DataReportLinkage from '../ViewData/DataReportLinkage';
-import DefAuditHistory from '../AuditModal/DefAuditHistory';
-import DrillDownRules from '../DrillDown/DrillDownRules';
-import AddReportAggRules from './AddReportAggRules';
-import AddReportRules from './AddReportRules';
-import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
-import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
-import EditParameters from '../CreateReport/EditParameters';
-import authenticate from '../Authentication/authenticate';
-import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
-require('react-datepicker/dist/react-datepicker.css');
+
+
+// DnD related methods
+const boxTarget = {
+	drop(props, monitor, component) {
+		// console.log("inside boxTarget",component)
+		if (!component) {
+			return
+		}
+		const item = monitor.getItem();
+		const delta = monitor.getDifferenceFromInitialOffset();
+    const left = Math.round(item.left + delta.x) < 0 ? 0 : Math.round(item.left + delta.x);
+		const top = Math.round(item.top + delta.y) < -50 ? -50 : Math.round(item.top + delta.y);
+
+		component.moveBox(item.id, left, top);
+	},
+}
+
+function collect(connect, monitor) {
+  return {
+    connectDropTarget: connect.dropTarget(),
+    isOver: monitor.isOver()
+  };
+}
+
+const Boxes = {
+  editTools:  { isMoveBoxExternal: true, moveBoxComponent: 'reportGrid',
+                  id: 'editTools', key: 'editTools', left: 0, top: 0,
+                  hideSourceOnDrag:false, isResizeAllowed:false,
+                  className: '', isMaximized: false,isAlwaysOnTop:true ,
+                  isBringToFront: false },
+  editSection:  { isMoveBoxExternal: true, moveBoxComponent: 'reportGrid',
+                  id: 'editSection', key: 'editSection', left: 10, top:60,
+                  hideSourceOnDrag: false, isResizeAllowed:true,
+                  className: 'col-md-6 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                  isBringToFront: false, isOpen: false },
+  history : { isMoveBoxExternal: false, moveBoxComponent: this ,
+                 id: 'history', key: 'history', left: 10, top:60,
+                 hideSourceOnDrag: false, isResizeAllowed:true,
+                 className: 'col-md-9 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                 isBringToFront: false, isOpen: false },
+ details : { isMoveBoxExternal: false, moveBoxComponent: this ,
+                id: 'details', key: 'details', left: 10, top:60,
+                hideSourceOnDrag: false, isResizeAllowed:true,
+                className: 'col-md-6 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                isBringToFront: false, isOpen: false },
+  parameters : { isMoveBoxExternal: false, moveBoxComponent: this ,
+                 id: 'parameters', key: 'parameters', left: 10, top:60,
+                 hideSourceOnDrag: false, isResizeAllowed:true,
+                 className: 'col-md-6 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                 isBringToFront: false, isOpen: false },
+  allRules : { isMoveBoxExternal: false, moveBoxComponent: this ,
+                 id: 'allRules', key: 'allRules', left: 10, top:60,
+                 hideSourceOnDrag: false, isResizeAllowed:true,
+                 className: 'col-md-9 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                 isBringToFront: false, isOpen: false },
+};
 
 class MaintainFreeFormatReportRules extends Component {
   constructor(props){
     super(props)
     this.state = {
-      sources:null,
-      itemEditable: true,
-      reportId: null,
-      reportingDate: null,
-      businessDate: null,
-      selectedAuditSheet: 0,
-
-      showDrillDownData: false,
-      showAggRuleDetails: false,
-      showDrillDownCalcBusinessRules: false,
-      showCellChangeHistory: false,
-
-      display: false,
+      displayOption: false,
       selectedReport: {},
-      renderStyle: false,
+      // details related variables
+      detailsCell: {},
+      // DnD boxes
+      boxes: Boxes,
     }
 
-    this.pages=0;
-    this.currentPage=0;
-    this.dataSource = null;
-    this.gridDataViewReport=undefined;
-    this.changeHistory=undefined;
-    this.reportBusinessRules=undefined;
-    this.calcRuleFilter = {};
-    this.businessRuleFilterParam = {};
-    this.selectedCell={};
-    this.selectedItems = [];
-    this.selectedIndexOfGrid = 0;
-    this.form_data={};
-    this.selectedViewColumns=[];
-    this.operationName=null;
-    this.aggRuleData = null;
-    this.itemToDelete = null;
-    this.buttons=[
-      { title: 'Refresh', iconClass: 'fa-refresh', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
-      { title: 'Details', iconClass: 'fa-cog', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-      { title: 'History', iconClass: 'fa-history', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      { title: 'Business Rules', iconClass: 'fa-link', checkDisabled: 'No', className: "btn-primary", onClick: this.handleReportBusinessRulesClick.bind(this) },
-      { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
-    ];
-    this.editTools=[
-      // { title: 'Font', iconClass: 'fa-font', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      // { title: 'Text Size', iconClass: 'fa-text-height', checkDisabled: 'No', className: "btn-primary", onClick: this.handleHistoryClick.bind(this) },
-      // { title: 'Font Colour', iconClass: 'fa-paint-brush', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
-      // { title: 'Background Colour', iconClass: 'fa-square', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
-      // { title: 'Bold', iconClass: 'fa-bold', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      // { title: 'Italic', iconClass: 'fa-italic', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      // { title: 'Align Left', iconClass: 'fa-align-left', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      // { title: 'Align Centre', iconClass: 'fa-align-center', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      // { title: 'Align Rigt', iconClass: 'fa-align-right', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
-      // { title: 'Border', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-      // { title: 'Image', iconClass: 'fa-photo', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
-      // { title: 'merge', iconClass: 'fa-th-large', checkDisabled: 'No', className: "btn-primary", onClick: this.handleRefreshGrid.bind(this) },
-      // { title: 'split', iconClass: 'fa-th', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-      // { title: 'Save', iconClass: 'fa-save', checkDisabled: 'No', className: "btn-success", onClick: this.handleDetails.bind(this) },
-    ];
-    this.buttonClassOverride = "None";
+    // Variables for local scope
+    this.openBoxObj = { isOpen: true, left: 0, top: 30 };
+    this.gridDataViewReport = undefined;
 
-    this.renderDynamic = this.renderDynamic.bind(this);
-
-    this.handleReportClick = this.handleReportClick.bind(this);
-    this.fetchDataToGrid = this.fetchDataToGrid.bind(this);
-    this.checkDisabled = this.checkDisabled.bind(this);
-    this.handleCalcRuleClicked = this.handleCalcRuleClicked.bind(this);
-    this.handleBusinessRuleClicked = this.handleBusinessRuleClicked.bind(this);
-    this.handleAggeRuleClicked = this.handleAggeRuleClicked.bind(this);
-    this.handleCellHistoryClicked = this.handleCellHistoryClicked.bind(this);
-    this.handleEditParameterClick = this.handleEditParameterClick.bind(this);
-    this.handleReportRepositoryClick = this.handleReportRepositoryClick.bind(this);
-    this.handleReportBusinessRulesClick = this.handleReportBusinessRulesClick.bind(this);
-
-    this.handleUpdateReportData = this.handleUpdateReportData.bind(this);
-
-    this.handleSaveParameterClick = this.handleSaveParameterClick.bind(this);
-    this.handleSelectCell = this.handleSelectCell.bind(this);
-    this.handleDeleteClick = this.handleDeleteClick.bind(this);
-    this.handleModalOkayClick = this.handleModalOkayClick.bind(this);
-    this.handleAuditOkayClick = this.handleAuditOkayClick.bind(this);
+    // Functions to be used inthe component
     this.alphaSequence = this.alphaSequence.bind(this);
+    this.loadingPage = this.loadingPage.bind(this);
+    this.renderDynamic = this.renderDynamic.bind(this);
+    this.handleReportClick = this.handleReportClick.bind(this);
+    this.handleSelectCell = this.handleSelectCell.bind(this);
+    this.handleToolsButtonClick = this.handleToolsButtonClick.bind(this);
+    this.handleHistoryClick = this.handleHistoryClick.bind(this);
+    this.handleDetailsClick = this.handleDetailsClick.bind(this);
 
-    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
-    this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"}) : null;
+    // DnD related methods
+    this.handleBoxSize = this.handleBoxSize.bind(this);
+    this.handleBringToFront = this.handleBringToFront.bind(this);
+    this.handleClickToOpenBox = this.handleClickToOpenBox.bind(this);
+    this.handleSetBoxObjects = this.handleSetBoxObjects.bind(this);
+    this.renderBoxes = this.renderBoxes.bind(this);
+    this.isSectionDefined = this.isSectionDefined.bind(this);
+    this.handleUpdateReportData = this.handleUpdateReportData.bind(this);
+    this.handleCloseAllClick = this.handleCloseAllClick.bind(this);
+
+    // Grid buttons
+    this.buttons=[
+      // {id: 'details', title: 'Cell Rule Details', onClick: this.handleRefreshGrid.bind(this), toolObj: <i className="fa fa-refresh green"></i>},
+      { id: 'refresh', title: 'Refresh Report', onClick: this.handleReportClick, toolObj: <i className="fa fa-refresh"></i> },
+      { id: 'details', title: 'Cell Rule Details', onClick: this.handleDetailsClick, toolObj: <i className="fa fa-cog green"></i> },
+      { id: 'history', title: 'Report Change History', onClick: this.handleHistoryClick, toolObj: <i className="fa fa-history dark"></i> },
+      { id: 'allRules', title: 'All Report Rules', onClick: this.handleReportBusinessRulesClick, toolObj: <i className="fa fa-link aero"></i> },
+      { id: 'parameters', title: 'Edit Report Parameters', onClick: this.handleEditParameterClick, toolObj: <i className="fa fa-cogs dark"></i> },
+      { id: 'closeAll', title: 'Close All Open Boxes', onClick: this.handleCloseAllClick, toolObj: <i className="fa fa-power-off red"></i> },
+      // { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
+      // { title: 'Export', iconClass: 'fa-table', checkDisabled: 'No', className: "btn-success", onClick: this.handleExportReport.bind(this) },
+      // { title: 'Edit Report Parameters', iconClass: 'fa-cogs', checkDisabled: 'No', className: "btn-warning", onClick: this.handleEditParameterClick.bind(this) },
+    ];
+
+
+    // Check subscription and permissions as required to determine the role of the user and domain
+    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules"];
+    this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules"}) : null;
 
     this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
     this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
   }
 
   componentWillMount() {
-      // Now required to call as it is being called in the first instance of MAINTAIN REPORT RULE CALL
-      // this.props.fetchReportTemplateList();
+      // TODO
   }
 
   componentDidUpdate() {
-    console.log("Dates",this.state.startDate);
+    // When leftmenu clicked refresh right pane
     this.props.leftMenuClick(false);
   }
   componentWillReceiveProps(nextProps){
-    this.gridDataViewReport=nextProps.gridDataViewReport;
-    this.changeHistory=nextProps.change_history;
-    this.reportBusinessRules=nextProps.cell_rules;
-    console.log("nextProps",this.props.leftmenu,this.reportBusinessRules);
+    // Get the data from nextProps
+    // Report grid data for viewing
+    this.gridDataViewReport = nextProps.gridDataViewReport;
+    // Reset all state variables to refresh the right pane
     if(this.props.leftmenu){
+      let boxes = this.state.boxes;
+      Object.keys(boxes).map((id,index)=>{
+        boxes[id].isOpen = false;
+      })
       this.setState({
-        display: false,
-        showDrillDownData: false,
-        showAggRuleDetails: false,
-        showDrillDownCalcBusinessRules: false,
-        showCellChangeHistory: false,
-        renderStyle: false,
+        // TODO
+          boxes: boxes,
+          selectedReport: {},
+          displayOption: false
         },
         ()=>{
-          // Not required as this is fired by maintain report rule left click
-          // this.props.fetchReportTemplateList();
+          // TODO:  if any post refresh right pane
         }
       );
     }
   }
 
-  handleReportClick(item) {
-    console.log("selected item",item);
-    this.currentPage = 0;
-    this.selectedViewColumns=[];
-    this.gridDataViewReport=undefined;
-    this.setState({
-        display: "showReportGrid",
-        reportId: item.report_id,
-        reportingDate: item.reporting_date,
-        businessDate: item.as_of_reporting_date,
-        selectedReport: item,
-     },
-      ()=>{ this.props.fetchReportData(this.state.reportId) }
-    );
+// Set the box position after drag end
+  moveBox(id, left, top){
+    let boxes = this.state.boxes;
+    Object.assign(boxes[id],{left: left, top: top});
+    this.setState({boxes: boxes})
   }
 
-  checkDisabled(item) {
-    console.log("checkDisabled",item );
-    switch (item){
-      case "Add":
-        return !this.writeOnly;
-      case "Copy":
-        return !this.writeOnly;
-      case "Delete":
-        return (!this.writeOnly || !this.state.itemEditable);
-      default:
-        console.log("No specific checkDisabled has been defined for ",item);
-    }
-
+// Box resizing - maximise, restore
+  handleBoxSize(id, boxSizes){
+    let boxes = this.state.boxes;
+    Object.assign(boxes[id],boxSizes);
+    this.setState(boxes);
   }
 
-  handleRefreshGrid(event){
-    //this.selectedItems = this.flatGrid.deSelectAll();
-    //this.currentPage = 0;
-    this.gridDataViewReport=undefined;
-    this.setState({itemEditable:true});
-    this.fetchDataToGrid(event);
+// Bring DnD box to front by setting z-index
+  handleBringToFront(id){
+    let boxes = this.state.boxes;
+    Object.keys(boxes).map(box=> boxes[box].isBringToFront= (box == id ? true: false));
+    this.setState({boxes: boxes });
   }
 
-
-  fetchDataToGrid(event){
-    this.props.fetchReportData(this.state.reportId);
+// Open any DnD box and bring it to front and send all other boxes to the background
+  handleClickToOpenBox(id){
+    let boxes = this.state.boxes;
+    Object.assign(boxes[id],this.openBoxObj);
+    Object.keys(boxes)
+          .map(box=> {
+              boxes[box].isBringToFront= (box == id ? true : false);
+            }
+          );
+    return boxes;
   }
 
-  handleDetails(event){
-    //TODO
-    console.log('Showing the details of the selected cell',this.selectedCell);
-    let isOpen = this.state.display === "showDrillDownRules";
-    if(isOpen){
-      this.setState({
-        display: "showReportGrid",
-        showDrillDownData: false,
-        showDrillDownCalcBusinessRules: false,
-        showAggRuleDetails: false,
-        showCellChangeHistory: false,
-      });
+  // Close all open windows by setting the isOpen flag as false
+  handleCloseAllClick(){
+    let boxes = this.state.boxes;
+    Object.keys(boxes)
+          .map(box=> {
+              boxes[box].isOpen= false;
+            }
+          );
+    this.setState({boxes});
+  }
+
+// Method to manage DnD boxes inside any child component
+  handleSetBoxObjects(boxes){
+    this.setState({boxes});
+  }
+
+  handleReportClick(selectedReport) {
+    selectedReport = selectedReport ? selectedReport : this.state.selectedReport;
+    if(selectedReport.access_type=="No access"){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <div className=" mid_center">
+          <h3><i className="fa fa-warning red"></i>&nbsp;</h3>
+          {"Please note that you do not have access to view report " + selectedReport.report_id + ". Contact administrator for required permission."}
+        </div>);
+      this.setState({displayOption: "accessDenied",selectedReport: selectedReport,});
     } else {
-      //console.log("handleSelectCell",this.selectedCell.cell);
-      if(!this.selectedCell.cell){
-        this.modalAlert.isDiscardToBeShown = false;
-        this.modalAlert.open("Please select a cell for details");
-      } else {
-        //this.buttons=this.dataButtons;
-        this.setState({
-          display: "showDrillDownRules",
-          showDrillDownData: false,
-          showDrillDownCalcBusinessRules: false,
-          showAggRuleDetails: false,
-          showCellChangeHistory: false,
-          },
-          this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cell)
-        );
-      }
+      // Close open DnD boxes
+      let boxes = this.state.boxes;
+      Object.keys(boxes).map((id,index)=>{
+        boxes[id].isOpen = false;
+      })
+      // Reset gridDataViewReport data, so that last instance of the data is not rendered,
+      // and assign the value subsequently through nextProps
+      // selectedReport = selectedReport ? selectedReport : this.state.selectedReport;
+      this.gridDataViewReport=undefined;
+      this.setState({
+          boxes: boxes,
+          selectedReport: selectedReport,
+          displayOption: "showReportGrid"
+       },
+        ()=>{
+          const { report_id } = this.state.selectedReport;
+          this.props.fetchReportData(report_id)
+        }
+      );
     }
-
   }
 
-  handleSelectCell(sheetName, cell_selected){
-    console.log("handleSelectCell ht ref",sheetName, cell_selected);
-    let reportId = this.state.reportId;
+  handleSelectCell(sheetName, cell_selected, sheetIndexKey){
+    let reportId = this.state.selectedReport.report_id;
     this.selectedCell = {reportId, sheetName};
+    this.selectedCellRange = cell_selected ? cell_selected : [undefined,undefined,undefined,undefined];
     if(cell_selected){
       let [startrow,startcol,endrow,endcol]=cell_selected;
       this.selectedCell.cell = this.alphaSequence(startcol)+(startrow+1);
+      this.selectedCell.cellRef = this.gridDataViewReport[sheetIndexKey].cell_refs ?
+                                  this.gridDataViewReport[sheetIndexKey].cell_refs[startrow][startcol]
+                                  :
+                                  null;
     } else {
       this.selectedCell.cell = null;
     }
+    // this.setState({selectedCell: this.selectedCell});
   }
 
   alphaSequence(i) {
@@ -270,518 +282,316 @@ class MaintainFreeFormatReportRules extends Component {
           : this.alphaSequence((i / 26) - 1) + String.fromCharCode((65 + i % 26) + "");
   }
 
-  handleCalcRuleClicked(event,calcRuleFilter){
-    console.log("Clicked calcRuleFilter",calcRuleFilter);
-    this.calcRuleFilter = calcRuleFilter;
-    this.setState({
-        showDrillDownData : true,
-        showDrillDownCalcBusinessRules : false,
-        showAggRuleDetails: false,
-        showCellChangeHistory: false,
-      });
-
-  }
-
-  handleBusinessRuleClicked(event,businessRuleFilterParam){
-    console.log("Clicked businessRule ruleFilterParam",businessRuleFilterParam);
-    this.businessRuleFilterParam = businessRuleFilterParam;
-    this.setState({
-        showDrillDownData : false,
-        showDrillDownCalcBusinessRules : true,
-        showAggRuleDetails: false,
-        showCellChangeHistory: false,
-      });
-
-  }
-
-  handleAggeRuleClicked(event, item){
-    console.log("Clicked aggRuleData ruleFilterParam", item);
-    this.aggRuleData = item;
-    // TODO AddReportAggRules as form and then pass aggRuleData
-    this.setState({
-        showDrillDownData : false,
-        showDrillDownCalcBusinessRules : false,
-        showAggRuleDetails: true,
-        showCellChangeHistory: false,
-      },
-      ()=>{console.log("aggRuleData",this.aggRuleData)});
-
-  }
-
-  handleCellHistoryClicked(event,item){
-    console.log("Clicked handleCellHistoryClicked",item);
-    let isOpen = this.state.showCellChangeHistory;
-    this.changeHistory=undefined;
-    if(isOpen) {
-      this.setState({
-        showCellChangeHistory: false
-      });
+  // Generic tools button click method
+  handleToolsButtonClick(id) {
+    let boxes  = {...this.state.boxes};
+    if(boxes[id].isOpen) {
+      boxes[id].isOpen = false;
     } else {
-      // TODO AddReportAggRules as form and then pass aggRuleData
-      this.setState({
-          showDrillDownData : false,
-          showDrillDownCalcBusinessRules : false,
-          showAggRuleDetails: false,
-          showCellChangeHistory: true
-        },
-        ()=>{this.props.fetchReportChangeHistory(item.report_id,item.sheet_name,item.cell_id)}
-      );
+      boxes = this.handleClickToOpenBox(id);
     }
-
+    this.setState({boxes});
   }
 
-  handleHistoryClick() {
-    let isOpen = this.state.display === "showHistory";
-    this.changeHistory=undefined;
-    if(isOpen) {
-      this.setState({
-        display: "showReportGrid"
-      });
+  handleHistoryClick(){
+    this.handleToolsButtonClick('history');
+  }
+
+  handleDetailsClick(id){
+    // We facilitate multiple open windows for cell details
+    // thus keep on amending the list of boxes for related cells
+    // Note that this need sto be tested for performance, as we are not unmounting the DOM components
+    if(id){
+      if(this.state.boxes[id] && this.state.boxes[id].isOpen){
+        this.handleToolsButtonClick(id);
+      }
     } else {
-      //this.props.fetchReportChangeHistory(this.state.reportId);
-      //console.log("Repot Linkage",this.props.change_history);
-      let sheetName = this.props.gridDataViewReport[0].sheet;
-      this.setState({
-        display: "showHistory",
-        selectedAuditSheet: 0,
-        },
-        ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
-      );
-    }
-  }
+      // create the unique id of the cell for which details to be displayed
+      id = 'details'+ this.reportGrid.key +this.selectedCell.cell;
 
-  handleReportBusinessRulesClick() {
-    let isOpen = this.state.display === "showReportBusinessRules";
-    this.reportBusinessRules=undefined;
-    if(isOpen) {
-      this.setState({
-        display: "showReportGrid"
-      });
-    } else {
-      this.setState({
-        display: "showReportBusinessRules"
-        },
-        ()=>{this.props.drillDown(this.state.reportId)}
-      );
-    }
-  }
-
-  handleEditParameterClick() {
-    let isOpen = this.state.display === "editParameter";
-    if(isOpen) {
-      this.setState({
-        display: "showReportGrid"
-        },
-        ()=>{
-          this.props.fetchReportTemplateList();
+      if(!this.selectedCell.cell){
+        this.modalAlert.isDiscardToBeShown = false;
+        this.modalAlert.open("Please select a cell for rule details");
+      } else {
+        let { boxes,detailsCell } = {...this.state};
+        // if this cell has not been accessed earlier, create its box element
+        if(!boxes[id]){
+          let newDetailsCell = {};
+          let newDetailsBox = {};
+          newDetailsCell[id] = {...this.selectedCell, section: this.isSectionDefined()};
+          newDetailsBox[id] = {...boxes.details, id: id, key: id };
+          // Add the box element and cell details only if it has valid section def
+          if(newDetailsCell[id].section){
+            Object.assign(detailsCell,newDetailsCell);
+            Object.assign(boxes,newDetailsBox);
+            this.setState({boxes,detailsCell},
+              ()=>{
+                this.handleToolsButtonClick(id);
+              }
+            );
+          }
+        } else {
+          this.handleToolsButtonClick(id);
         }
-      );
-    } else {
-      //this.props.fetchReportChangeHistory(this.state.reportId);
-      //console.log("Repot Linkage",this.props.change_history);
-      this.setState({
-        display: "editParameter"
-        },
-        ()=>{
-          //TODO save in the def catalog
-        }
-      );
+      }
     }
   }
 
-  handleExportCSV(event) {
-    let business_ref = "_source_" + this.state.sourceId + "_COB_" + this.state.businessDate + "_";
-    this.props.exportCSV(this.props.gridDataViewReport.table_name,business_ref,this.props.gridDataViewReport.sql);
-  }
+  isSectionDefined(){
+    let sectionDef = null;
+    let [rowStart,colStart,rowEnd,colEnd] = this.selectedCellRange;
+    // let r1 ={x:[rowStart,rowEnd], y: [colStart,colEnd]}
+    // We only need to check first cell selected if it's a range of cells selected
+    const { key, gridData } = this.reportGrid;
+    gridData[key].sections.map((sec,index)=>{
 
-  handleExportRules(event) {
-    this.props.exportRulesXlsx(this.state.reportId);
-  }
+      let [secRowStart,secColStart,secRowEnd,secColEnd] = sec.ht_range;
+      // If one rectangle is on left side of other
+      if (colStart > secColEnd || secColStart > colStart){
+        // sectionDef = false;
+      }
+      // If one rectangle is above other, please check the > sign here as our report grid
+      // Y axis is inverted (starts at 0 row and increaes as we go down the rows....)
+      else if (rowStart > secRowEnd || secRowStart > rowStart){
+        // sectionDef = false;
+      } else {
+        sectionDef = sec;
+      }
 
-  handleExportReport(event) {
-    let reportingDate = this.state.reportingDate ? this.state.reportingDate : "1900010119000101";
-    this.props.exportXlsx(this.state.reportId, reportingDate,'Y')
-  }
+    })
 
-  handleSaveParameterClick(report_info){
-    // TODO
-    console.log("handleSaveParameterClick...",report_info);
-    this.props.updateReportParameter(this.state.reportId,report_info)
-    this.handleEditParameterClick();
-  }
+    if(!sectionDef){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.open(
+        <div className="mid_center">
+          <span>
+            <i className="fa fa-warning amber"></i>
+            { " No section definition found for "}<b className="red">{this.selectedCell.cell}</b>{"."}
+            <br/>
+            {" Please check and Add section definition, then try to add rules ..."}
+          </span>
+        </div>);
+      }
 
-  handleReportRepositoryClick(){
-    let isOpen = this.state.display === "showReportRepository";
-    if(isOpen) {
-      this.setState({
-        display: false
-        },
-        ()=>{
-          this.props.fetchReportTemplateList();
-        }
-      );
-    } else {
-      //this.props.fetchReportChangeHistory(this.state.reportId);
-      //console.log("Repot Linkage",this.props.change_history);
-      this.setState({
-        display: "showReportRepository"
-        },
-        ()=>{
-          //TODO save in the def catalog
-        }
-      );
-    }
-  }
-
-  handleDeleteClick(rule){
-      this.modalAlert.isDiscardToBeShown = true;
-      this.operationName = "DELETE";
-      this.itemToDelete = rule;
-      this.modalAlert.open(`Do you really want to delete this rule (Rule ID: ${this.itemToDelete.rule.cell_calc_ref}) ?`)
-  }
-
-  handleModalOkayClick(event){
-    // TODO
-    this.modalAlert.isDiscardToBeShown = false;
-    if(this.operationName=='DELETE'){
-      this.setState({showAuditModal:true},
-          ()=>{console.log("showAuditModal",this.state.showAuditModal);});
-    }
-
-  }
-
-  handleAuditOkayClick(auditInfo){
-    //TODO
-    let data={};
-    data["change_type"]=this.operationName;
-    data["table_name"]=this.itemToDelete.table_name;
-    let rule = this.itemToDelete.rule;
-    if (this.operationName=='DELETE'){
-      this.auditInfo={
-        table_name:data["table_name"],
-        change_type:this.operationName,
-        change_reference:`Delete Rule of ${rule.cell_calc_ref} : Report: ${rule.report_id} -> Sheet: ${rule.sheet_id} -> Cell: ${rule.cell_id}`,
-        maker:this.props.login_details.user,
-        maker_tenant_id: this.props.login_details.domainInfo.tenant_id,
-        group_id: this.props.groupId,
-      };
-      Object.assign(this.auditInfo,auditInfo);
-      data["audit_info"]=this.auditInfo;
-      data["id"] = rule.id;
-      // data["update_info"]=rule;
-
-      console.log("delete call...", data, rule.id);
-
-      this.props.deleteRuleData(rule.id,data);
-      // this.setState({showAuditModal:false});
-    }
-    this.setState({showAuditModal:false, display: "showReportGrid"},
-        ()=>{
-          this.itemToDelete = null;
-          // this.handleRefreshGrid(event);
-        }
-      );
+    return sectionDef;
   }
 
   handleUpdateReportData(report_data){
-    this.props.updateReportData(this.state.reportId, report_data);
+    this.props.updateReportData(this.state.selectedReport.report_id, report_data);
   }
 
-  renderDynamic(displayOption) {
-      console.log("renderDynamic...",displayOption);
-      switch (displayOption) {
-          case "showReportGrid":
-              if (this.gridDataViewReport) {
-                  return(
-                      <div>
-                          <RegOpzFlatGridActionButtons
-                            editable={this.writeOnly}
-                            checkDisabled={this.checkDisabled}
-                            buttons={this.buttons}
-                            dataNavigation={false}
-                            pageNo={this.currentPage}
-                            buttonClassOverride={this.buttonClassOverride}
-                          />
-                          <RegOpzFlatGridActionButtons
-                            editable={this.writeOnly}
-                            checkDisabled={this.checkDisabled}
-                            buttons={this.editTools}
-                            dataNavigation={false}
-                            pageNo={this.currentPage}
-                            buttonClassOverride={"Simplified"}
-                            donotDisplayName={true}
-                          />
-                          <RegOpzReportGrid
-                            report_id={this.state.reportId}
-                            reporting_date={this.state.reportingDate}
-                            gridData={this.gridDataViewReport}
-                            handleSelectCell={ this.handleSelectCell.bind(this) }
-                            multiSelectAllowed={true}
-                            renderStyle={this.state.renderStyle}
-                            handleHistoryClick={this.handleHistoryClick}
-                            handleUpdateReportData={this.handleUpdateReportData}
-                            ref={
-                               (flatGrid) => {
-                                 this.flatGrid = flatGrid;
-                               }
-                             }
-                          />
-                      </div>
-                  );
+  // render a DnD box
+  renderBoxes(id){
+    let box = this.state.boxes[id]
+    return(
+          <div
+            onClick={
+              ()=>{
+                this.handleBringToFront(box.id);
               }
+            }
+            onDoubleClick={
+              ()=>{
+                let boxSize = {
+                  isMaximized: !box.isMaximized
+                }
+                this.handleBoxSize(box.id,boxSize)
+              }
+            }>
+            <Box
+                {...box}
+              >
+              { this.renderDynamic(box.id)}
+            </Box>
+          </div>
+        );
+  }
+
+  renderDynamic(displayOption){
+    let detailsId = displayOption;
+    if(displayOption && displayOption.includes("details")){
+      displayOption = "details";
+    }
+    switch(displayOption){
+      case "showReportGrid":
+          const { report_id } = this.state.selectedReport;
+          if (this.gridDataViewReport) {
               return(
-                  <div>
-                    <h4>Loading ....</h4>
+
+                    <RegOpzReportGrid
+                      { ...this.state.selectedReport }
+                      additionalTools = { this.buttons }
+                      gridData={this.gridDataViewReport}
+                      boxes = { this.state.boxes }
+                      moveBox = { this.moveBox }
+                      handleBoxSize = { this.handleBoxSize }
+                      handleBringToFront = { this.handleBringToFront }
+                      handleClickToOpenBox = { this.handleClickToOpenBox }
+                      handleSetBoxObjects = { this.handleSetBoxObjects }
+                      handleSelectCell={ this.handleSelectCell }
+                      handleUpdateReportData={ this.handleUpdateReportData }
+                      ref={
+                         (reportGrid) => {
+                           this.reportGrid = reportGrid;
+                         }
+                       }
+                    />
+
+              );
+          }
+          return(
+              <div>
+                {
+                  this.loadingPage("fa-send", "blue","Opening Report " + report_id)
+                }
+              </div>
+          );
+          break;
+      case "history":
+          return(
+            <ReportChangeHistory
+              history={ this.state.boxes.history }
+              selectedReport={ this.state.selectedReport }
+              gridDataViewReport={ this.gridDataViewReport }
+              handleClose={ this.handleHistoryClick }
+              handleBoxSize = { this.handleBoxSize }
+              handleBringToFront = { this.handleBringToFront }
+              />
+          );
+          break;
+      case "details":
+          if(this.state.detailsCell[detailsId] && this.state.detailsCell[detailsId].section){
+            switch(this.state.detailsCell[detailsId].section.section_type){
+              case "FIXEDFORMAT":
+                return(
+                  <ReportCellDetails
+                    groupId={ this.props.groupId }
+                    viewOnly={ this.viewOnly }
+                    writeOnly={ this.writeOnly }
+                    reportGrid={ this.reportGrid }
+                    details={ this.state.boxes[detailsId] }
+                    selectedCell={ this.state.detailsCell[detailsId] }
+                    handleClose={ this.handleDetailsClick }
+                    handleBoxSize = { this.handleBoxSize }
+                    handleBringToFront = { this.handleBringToFront }
+                    />
+                );
+                break;
+              case "TRANSACTION":
+                return(
+                  <div className="mid_center">
+                    Yet to create component for transaction section! Work in progress ....
                   </div>
-              );
-              break;
-          case "showDrillDownRules":
-              if (this.props.cell_rules) {
-                  let content = [
-                      <DrillDownRules
-                        cellRules = {this.props.cell_rules}
-                        readOnly = {this.readOnly}
-                        addRulesBtn = {this.writeOnly}
-                        selectedCell = {this.selectedCell}
-                        handleClose={ this.handleDetails.bind(this) }
-                        reportingDate={this.state.reportingDate}
-                        handleAggeRuleClicked={ this.handleAggeRuleClicked.bind(this) }
-                        handleCalcRuleClicked={ this.handleCalcRuleClicked.bind(this) }
-                        handleBusinessRuleClicked={ this.handleBusinessRuleClicked.bind(this) }
-                        handleCellHistoryClicked={ this.handleCellHistoryClicked.bind(this) }
-                        handleDeleteClick = { this.handleDeleteClick }
-                      />
-                  ];
-                  if (this.state.showDrillDownData) {
-                      content.push(
-                          <AddReportRules
-                            writeOnly={this.writeOnly}
-                            handleClose={this.handleDetails.bind(this)}
-                            {...this.calcRuleFilter.params.drill_kwargs}
-                            formData={this.calcRuleFilter.form}
-                            groupId={this.props.groupId}
-                          />
-                      );
-                  } else if (this.state.showAggRuleDetails) {
-                      content.push(
-                          <AddReportAggRules
-                            writeOnly={this.writeOnly}
-                            handleClose={this.handleDetails.bind(this)}
-                            aggRuleData = { this.aggRuleData }
-                            dml_allowed = { this.aggRuleData.dml_allowed }
-                            gridData={this.props.gridDataViewReport}
-                            groupId={this.props.groupId}
-                          />
-                      );
-                  } else if (this.state.showDrillDownCalcBusinessRules) {
-                      const {permission,source} = this.props.login_details;
-                      const filter = this.businessRuleFilterParam;
-                      let isRulesComponent = permission.find(function(p){return p.component.match(/Business Rules/);});
-                      console.log("businessRuleFilterParam",source,isRulesComponent,filter,this.businessRuleFilterParam);
-                      let sourceItem = source.find(function(s){return s.source_id==filter.source_id;});
-                      if (sourceItem){
-                          console.log("permission_details...",sourceItem);
-                          sourceItem={...sourceItem,...JSON.parse(sourceItem.permission_details)};
-                      } else {
-                        sourceItem={source_id: filter.source_id}
-                      }
-                      const permissions=[{"permission": isRulesComponent ? "View Business Rules" : null}];
-                      content.push(
-                          <ViewBusinessRules
-                            privileges={ permissions }
-                            selectedItem={ sourceItem }
-                            showBusinessRuleGrid={"showBusinessRuleGrid"}
-                            flagRuleDrillDown={true}
-                            sourceId={this.businessRuleFilterParam.source_id}
-                            ruleFilterParam={this.businessRuleFilterParam}
-                            origin={"FIXEDFORMAT"}
-                          />
-                      );
-                  } else if (this.state.showCellChangeHistory && this.props.change_history) {
-                      content.push(
-                        <DefAuditHistory
-                          data={ this.props.change_history }
-                          historyReference={ "" }
-                          handleClose={ this.handleCellHistoryClicked.bind(this) }
-                         />
-                      );
-                  }
-                  return content;
-              }
-              break;
-          case "showHistory":
-              if (this.gridDataViewReport) {
-                  return(
-                    <Tabs
-                      defaultActiveKey={0}
-                      activeKey={this.state.selectedAuditSheet}
-                      onSelect={(key) => {
-                          let sheetName = this.gridDataViewReport[key].sheet;
-                          this.setState({selectedAuditSheet:key},
-                          ()=>{this.props.fetchReportChangeHistory(this.state.reportId,sheetName)}
-                        );
-                          //this.renderTabs(key);
-                      }}
-                      >
-                      {
-                        this.gridDataViewReport.map((item,index) => {
-                          console.log("Inside dridData map");
-                          return(
-                              <Tab
-                                key={index}
-                                eventKey={index}
-                                title={item['sheet']}
-                              >
-                                {
-                                  (()=>{
-                                    if(this.state.selectedAuditSheet == index){
-                                      // reseting the selectedCell when chanding the tab of the report
-                                      //this.selectedCell = {};
-                                      return (
-                                          <DefAuditHistory
-                                            data={ this.changeHistory }
-                                            historyReference={ "" }
-                                            handleClose={ this.handleHistoryClick.bind(this) }
-                                           />
-                                        );
-                                    }
-                                  })()
-                                }
-                              </Tab>
-                          )
-                        })
-                      }
-                    </Tabs>
-                  );
-              }
-              break;
-          case "editParameter":
-              return(
-                      <EditParameters
-                        maintainReportParameter={true}
-                        reportDetails={this.state.selectedReport}
-                        handleCancel={this.handleEditParameterClick}
-                        handleSubmit={this.handleSaveParameterClick}
-                      />
-                    );
-              break;
-          case "showReportRepository":
-              return(
-                      <MaintainReportRulesRepository
-                        privileges={ this.component ? this.component.permissions : null }
-                        tenantRenderType={"copyRule"}
-                        reportFormat={"FIXEDFORMAT"}
-                        country={this.props.login_details.domainInfo.country}
-                        handleCancel={this.handleReportRepositoryClick}
-                        groupId={this.props.groupId}
-                        tenant_report_details={this.state.selectedReport}
-                        />
-                    );
-              break;
-          case "showReportBusinessRules":
-              return(
-                  <ReportBusinessRules
-                    data={ this.reportBusinessRules }
-                    handleClose={this.handleReportBusinessRulesClick}
-                    />
-              );
-              break;
-          default:
-              return(
-                  <ReportCatalogList
-                    dataCatalog={this.props.dataCatalog}
-                    navMenu={false}
-                    handleReportClick={this.handleReportClick}
-                    applyRules={this.props.applyRules}
-                    constantFilter={"COMPOSIT"}
-                    />
-              );
-      }
+                );
+                break;
+            }
+          }
+
+          return(
+            <div className="mid_center">
+              That's embarrassing !!!zzzzz No section information available ????
+              <span>{JSON.stringify(this.state.detailsCell[detailsId])}</span>
+            </div>
+          );
+          break;
+      case "accessDenied":
+          if (this.state.selectedReport){
+              return <AccessDenied
+                      component={"View Report Rules for Report [" + this.state.selectedReport.report_id +"] "}/>
+          }
+          break;
+      default:
+          return(
+              <ReportCatalogList
+                dataCatalog={this.props.dataCatalog}
+                navMenu={false}
+                handleReportClick={this.handleReportClick}
+                constantFilter={"COMPOSIT"}
+                reportPermissions={ this.props.login_details.report}
+                />
+          );
+    }
+  }
+
+  loadingPage(icon, color,msg){
+    return(
+      <LoadingForm
+        loadingMsg={
+            <div>
+              <div>
+                <a className="btn btn-app" style={{"border": "none"}}>
+                  <i className={ "fa " + icon + " " + color }></i>
+                  <span className={color}>..........</span>
+                </a>
+              </div>
+              <span className={color}>{msg}</span>
+              <br/>
+              <span className={color}>Please wait</span>
+            </div>
+          }
+        />
+    );
   }
 
   render(){
-    if (typeof this.props.dataCatalog !== 'undefined') {
-        if (typeof this.props.gridDataViewReport != 'undefined' ){
-          this.pages = Math.ceil(this.props.gridDataViewReport.count / 100);
-        }
-        return(
+    const { connectDropTarget, dataCatalog } = this.props;
+    const { report_description, report_id } = this.state.selectedReport;
+    const { gridDataViewReport } = this;
+    let content =[];
+    console.log("On mapState MaintainFreeFormatReportRules this state", this.state);
+    if (typeof dataCatalog !== 'undefined') {
+        return connectDropTarget(
           <div>
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
-                    {
-                        ((displayOption) => {
-                            if (!displayOption) {
-                                return(
-                                    <h2>View Report Rules <small>Available Report Rules for </small>
-                                      <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' - ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
-                                    </h2>
-                                );
-                            }
-                            return(
-                                <h2>Maintain Report Rules <small>{' Report '}</small>
-                                  <small><i className="fa fa-file-text"></i></small>
-                                  <small title={this.state.selectedReport.report_description}>{this.state.reportId }</small>
-                                </h2>
-                            );
-                        })(this.state.display)
-                    }
-                    {
-                      this.state.display!="showReportRepository" &&
-                      <div className="row">
-                        <ul className="nav navbar-right panel_toolbox">
-                          <li>
-                            <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                              <i className="fa fa-file-text-o"></i><small>{' Reports '}</small>
-                              <i className="fa fa-caret-down"></i>
-                            </a>
-                            <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                              <li style={{ "padding": "5px" }}>
-                                <Link to="/dashboard/maintain-report-rules"
-                                  onClick={()=>{ this.setState({ display: false, renderStyle: false, },
-                                                                ()=>{this.props.fetchReportTemplateList();})
-                                                }
-                                          }
-                                >
-                                    <i className="fa fa-bars"></i> All Report List
-                                </Link>
-                              </li>
-                              {
-                                this.component &&
-                                <li style={{ "padding": "5px" }}>
-                                  <Link onClick={this.handleReportRepositoryClick}>
-                                    <i className="fa fa-cloud-download"></i> Report Repository
-                                  </Link>
-                                </li>
-                              }
-                              <li>
-                                <ReportCatalogList
-                                  dataCatalog={this.props.dataCatalog}
-                                  navMenu={true}
-                                  handleReportClick={this.handleReportClick}
-                                  constantFilter={"COMPOSIT"}
-                                  />
-                              </li>
-                            </ul>
-                          </li>
-                        </ul>
-                        {
-                          this.state.display &&
-                          <ul className="nav navbar-right panel_toolbox">
-                            <label className="switch">
-                            <input type="checkbox" onChange={()=>{this.setState({renderStyle: !this.state.renderStyle})}}/>
-                              <span className="slider round" title={this.state.renderStyle ? "Deactivate Style": "Activate Style"}></span>
-                            </label>
-                          </ul>
-                        }
-                      </div>
-                    }
-                    <div className="clearfix"></div>
+                  {
+                    !this.state.displayOption &&
+                    <h2>View Report Rules <small>Available Report Rules for </small>
+                      <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' to ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
+                    </h2>
+                  }
+                  {
+                    this.state.displayOption &&
+                    <div>
+                      <h2>Maintain Report Rules <small>{' Report '}</small>
+                        <small><i className="fa fa-file-text"></i></small>
+                        <small title={report_description}>{report_id }</small>
+                      </h2>
+                      <ul className="nav navbar-right panel_toolbox">
+                        <li>
+                          <a className="close-link"
+                            onClick={()=>{this.props.leftMenuClick(true)}}
+                            title={"Back to Report List"}>
+                            <i className="fa fa-th-list"></i>
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
+                  }
+                  <div className="clearfix"></div>
                 </div>
                 <div className="x_content">
-                {
-                    this.renderDynamic(this.state.display)
-                }
+                  {
+                    (()=>{
+                      let content =[];
+                      Object.keys(this.state.boxes).map(key=>{
+                        // Add this way to avoid unmounting the entire component
+                        if(!this.state.boxes[key].isMoveBoxExternal){
+                          content.push(
+                            <div>
+                              {
+                                this.state.boxes[key].isOpen &&
+                                this.renderBoxes(key)
+                              }
+                            </div>
+                          )
+                        }
+                      })
+                      return content;
+                    })()
+                  }
+                  {this.renderDynamic(this.state.displayOption)}
                 </div>
             </div>
           </div>
@@ -797,21 +607,20 @@ class MaintainFreeFormatReportRules extends Component {
       );
     } else {
       return(
-        <h4> Loading.....</h4>
-      );
+              <div>
+                {
+                  this.loadingPage("fa-rocket", "blue","Loading Report List")
+                }
+              </div>
+            );
     }
   }
 }
 
 function mapStateToProps(state){
-  console.log("On mapState ", state, state.view_data_store, state.report_store);
+  console.log("On mapState MaintainFreeFormatReportRules ", state);
   return {
-    //data_date_heads:state.view_data_store.dates,
-    dataCatalog: state.maintain_report_rules_store.report_template_list,
     gridDataViewReport: state.freeFormatReport.report_grid,
-    gridData: state.view_data_store.gridData,
-    cell_rules: state.report_store.cell_rules,
-    change_history:state.maintain_report_rules_store.change_history,
     login_details: state.login_store,
     leftmenu: state.leftmenu_store.leftmenuclick,
   }
@@ -819,44 +628,14 @@ function mapStateToProps(state){
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchReportTemplateList:(reports,country)=>{
-        dispatch(actionFetchReportTemplate(reports,country))
-    },
-    fetchReportCatalog:(startDate,endDate)=>{
-      dispatch(actionFetchReportCatalog(startDate,endDate))
-    },
     fetchReportData:(report_id, reporting_date)=>{
       dispatch(actionFetchFreeFormatReportData(report_id, reporting_date))
-    },
-    updateReportData:(report_id, report_data)=>{
-      dispatch(actionUpdateFreeFormatReportData(report_id, report_data))
-    },
-    drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
-    },
-    fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
-      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
-    },
-    exportCSV:(table_name,business_ref,sql) => {
-      dispatch(actionExportCSV(table_name,business_ref,sql));
-    },
-    applyRules:(source_info) => {
-      dispatch(actionApplyRules(source_info));
-    },
-    exportXlsx:(report_id,reporting_date,cell_format_yn) => {
-      dispatch(actionExportXlsx(report_id,reporting_date,cell_format_yn));
-    },
-    exportRulesXlsx:(report_id) => {
-      dispatch(actionExportRulesXlsx(report_id));
     },
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
-    updateReportParameter:(id, data) => {
-      dispatch(actionUpdateRuleData(id, data));
-    },
-    deleteRuleData:(id, data) => {
-      dispatch(actionDeleteRuleData(id, data));
+    updateReportData:(report_id, report_data)=>{
+      dispatch(actionUpdateFreeFormatReportData(report_id, report_data))
     },
   }
 }
@@ -864,6 +643,6 @@ const mapDispatchToProps = (dispatch) => {
 const VisibleMaintainFreeFormatReportRules = connect(
   mapStateToProps,
   mapDispatchToProps
-)(MaintainFreeFormatReportRules);
+)(DropTarget(ItemTypes.BOX, boxTarget, collect)(MaintainFreeFormatReportRules));
 
 export default VisibleMaintainFreeFormatReportRules;

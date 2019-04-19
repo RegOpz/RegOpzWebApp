@@ -14,10 +14,11 @@ class HotTableTab extends PureComponent {
     this.mergedCells =[];
     this.hotSettings = {
       data: this.props.data.data,
+      readOnly: this.props.readOnly,
       colHeaders: true,
       rowHeaders: true,
-      width: "100%",
-      height: "500",
+      // width: "100%",
+      // height: "500",
       colWidths: this.props.data.col_widths
       // Object.keys(this.props.data.col_attr).map((key,index)=>{
       //   let colWidth = parseInt(this.props.data.col_attr[key].width*8);
@@ -46,13 +47,13 @@ class HotTableTab extends PureComponent {
       contextMenu:  this.props.showToolsMenu ?
         {
           items:{
-            'row_above': { key: 'row_above', name: " <i class= 'fa fa-level-up green ' > </i> Insert row above" },
-            'row_below': { key: 'row_below', name: " <i class= 'fa fa-level-down green ' > </i> Insert row below"},
-            'remove_row': { key: 'remove_row',name: " <i class= 'fa fa-minus red ' > </i> Remove row"},
-            'col_left': { key: 'col_left', name: " <i class= 'fa fa-long-arrow-down green ' > </i><i class= 'fa fa-columns ' > </i> Insert column left"},
-            'col_right': { key: 'col_right', name: " <i class= 'fa fa-columns ' > </i><i class= 'fa fa-long-arrow-down green ' > </i> Insert column right"},
-            'remove_col':{ key: 'remove_col',name: " <i class= 'fa fa-tablet red ' > </i> Remove column"},
-            'cut':{},
+            'row_above': { key: 'row_above', name: " <i class= 'fa fa-level-up green ' > </i> Insert row above", disabled: this.props.readOnly },
+            'row_below': { key: 'row_below', name: " <i class= 'fa fa-level-down green ' > </i> Insert row below", disabled: this.props.readOnly},
+            'remove_row': { key: 'remove_row',name: " <i class= 'fa fa-minus red ' > </i> Remove row", disabled: this.props.readOnly},
+            'col_left': { key: 'col_left', name: " <i class= 'fa fa-long-arrow-down green ' > </i><i class= 'fa fa-columns ' > </i> Insert column left", disabled: this.props.readOnly},
+            'col_right': { key: 'col_right', name: " <i class= 'fa fa-columns ' > </i><i class= 'fa fa-long-arrow-down green ' > </i> Insert column right", disabled: this.props.readOnly},
+            'remove_col':{ key: 'remove_col',name: " <i class= 'fa fa-tablet red ' > </i> Remove column", disabled: this.props.readOnly},
+            'cut':{disabled: this.props.readOnly},
             'copy': {},
             // 'freezerowcol':{
             //   name: " <i class= 'fa fa-th-list dark ' > </i> Freese Row Column",
@@ -75,9 +76,9 @@ class HotTableTab extends PureComponent {
             'freeze_column': {},
             'unfreeze_column': {},
             'hsep1': '---------',
-            'alignment':{},
+            'alignment':{disabled: this.props.readOnly},
             'hsep2': '---------',
-            'mergeCells':{}
+            'mergeCells':{disabled: this.props.readOnly}
           }
         }
         :
@@ -177,6 +178,7 @@ class HotTableTab extends PureComponent {
       // if(this.flag){
         return(
           <HotTable
+                className={"ht-container"}
                 id={"ht"+this.props.index}
                 settings={this.hotSettings}
                 ref={(HotTable)=>{this.ht=HotTable}}

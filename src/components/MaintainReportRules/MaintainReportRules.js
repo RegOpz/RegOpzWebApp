@@ -12,8 +12,6 @@ import {
 import {
   actionFetchReportTemplate,
 } from '../../actions/MaintainReportRuleAction';
-import MaintainFixedFormatReportRules from '../MaintainFixedFormatReport/MaintainFixedFormatReportRules';
-import MaintainTransactionReportRules from '../MaintainTransactionalReport/MaintainTransactionReportRules';
 import MaintainFreeFormatReportRules from '../MaintainFreeFormatReport/MaintainFreeFormatReportRules';
 
 class MaintainReportRules extends Component {
@@ -54,44 +52,11 @@ class MaintainReportRules extends Component {
   render(){
       return(
         <div >
-          <Tabs
-            defaultActiveKey={0}
-            activeKey={this.state.selectedTab}
-            onSelect={(key) => {
-                this.setState({selectedTab:key});
-            }}
-            >
-            <Tab
-              key={0}
-              eventKey={0}
-              title={"Fixed Format"}
-            >
-            <MaintainFixedFormatReportRules
-              privileges={this.props.privileges}
-              groupId={this.groupId}
-              />
-            </Tab>
-            <Tab
-              key={1}
-              eventKey={1}
-              title={"Transactional"}
-            >
-              <MaintainTransactionReportRules
-                privileges={this.props.privileges}
-                groupId={this.groupId}
-                />
-            </Tab>
-            <Tab
-              key={2}
-              eventKey={2}
-              title={"Free Format"}
-            >
-              <MaintainFreeFormatReportRules
-                privileges={this.props.privileges}
-                groupId={this.groupId}
-                />
-            </Tab>
-          </Tabs>
+          <MaintainFreeFormatReportRules
+            privileges={this.props.privileges}
+            groupId={this.groupId}
+            dataCatalog={this.props.dataCatalog}
+            />
         </div>
     );
   }

@@ -21,7 +21,7 @@ export default class ViewRole extends Component {
         const { item } = this.props;
         if (typeof item !== 'undefined' && item != null) {
             return(
-              <div className="x_panel_overflow x_panel tile fixed_height_000">
+              <div className="x_panel_overflow x_panel tile fixed_height_000 role_panel">
                 <div className="x_title role_label">
                   <h2>{ item.role }
                     <small>Role Details</small>

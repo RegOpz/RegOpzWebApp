@@ -16,7 +16,7 @@ import promiseMiddleware from 'redux-promise';
 import Favicon from 'react-favicon';
 import promiseRejectMiddleWare from './middlewares/promiseRejectMiddleWare';
 import reducers from './reducers';
-import { actionRelogin } from './actions/LoginAction';
+import { actionRelogin, actionLogout } from './actions/LoginAction';
 import Login from './components/Authentication/Login';
 import Signup from './components/Authentication/Signup';
 
@@ -91,12 +91,19 @@ class Index extends Component {
 
         if (this.props.notification.id !== nextProps.notification.id) {
             let length = nextProps.notification.messages.length;
-            this.notificationSystem.addNotification({
-                title: nextProps.notification.messages[length - 1].time,
-                message: nextProps.notification.messages[length - 1].message,
-                level: nextProps.notification.messages[length - 1].type,
-                autoDismiss: 0
-            });
+            if(nextProps.notification.messages[length - 1].type == "error" &&
+               nextProps.notification.messages[length-1].message.includes("Authentication")){
+              // alert("Inside nextProps.error");
+              // Logout if token lease has been expired
+              this.props.logout();
+            } else {
+              this.notificationSystem.addNotification({
+                  title: nextProps.notification.messages[length - 1].time,
+                  message: nextProps.notification.messages[length - 1].message,
+                  level: nextProps.notification.messages[length - 1].type,
+                  autoDismiss: 0
+              });
+            }
         }
     }
 
@@ -144,8 +151,17 @@ function mapStateToProps(state) {
     };
 }
 
+const mapDispatchToProps = (dispatch) => {
+  return {
+    logout: () => {
+      dispatch(actionLogout());
+    }
+  }
+}
+
 const VisibleIndex = connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(Index);
 
 ReactDOM.render(
@@ -153,9 +169,9 @@ ReactDOM.render(
         <Router history={hashHistory}>
             <Route path="/" component={VisibleIndex} />
             <Route path="/" name="Home" component={VisibleIndex}>
-                <Route path="dashboard" name="Dashboard" component={Dashboard} >
-                    <IndexRoute component={DashboardIndex} />
-                    <Route path="profile" component={Profile} name="Profile" />
+                <Route path="dashboard" name="Dashboard" component={authenticate(Dashboard,true)} >
+                    <IndexRoute component={authenticate(DashboardIndex,true)} />
+                    <Route path="profile" component={authenticate(Profile,true)} name="Profile" />
                     <Route path="capture-report-template" name="Capture Report Template" component={authenticate(CaptureReportTemplate)} />
                     <Route path="data-grid" name="Data Grid" component={RegOpzDataGrid} />
                     <Route path="maintain-business-rules" name="Maintain Business Rules" component={authenticate(MaintainBusinessRules)} />
@@ -172,7 +188,7 @@ ReactDOM.render(
                     <Route path="manage-roles" name="Manage Roles" component={authenticate(ManageRoles)} />
                     <Route path="manage-users" name="Manage Users" component={authenticate(ManageUsers)} />
                     <Route path="password-policy" name="Password Policy" component={authenticate(PasswordPolicy)} />
-                    <Route path="manage-users/edit-user" name="Edit User" component={EditUsers} />
+                    <Route path="manage-users/edit-user" name="Edit User" component={authenticate(EditUsers,true)} />
                     <Route path="manage-subscribers" name="Subscriber Management" component={authenticate(ManageSubscribers)} />
                     <Route path="maintain-business-rules-repo" name="Maintain Business Rules Repository" component={authenticate(MaintainBusinessRulesRepository)} />
                     <Route path="maintain-report-rules-repo" name="Maintain Report Rules Repository" component={authenticate(MaintainReportRulesRepository)} />

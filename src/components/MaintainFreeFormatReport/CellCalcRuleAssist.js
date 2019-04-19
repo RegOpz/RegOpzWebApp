@@ -60,7 +60,7 @@ class CellCalcRuleAssist extends Component {
               item.Field.toString().match(matchText)
           );
       }
-      filteredColumns.map((item,index)=>{
+      filteredColumns && filteredColumns.map((item,index)=>{
         columns.push(
           <button
             type="button"
@@ -212,9 +212,12 @@ class CellCalcRuleAssist extends Component {
 
     checkColumnInMapping(currentFormula){
       console.log(currentFormula);
-      let mappingColumns = this.props.sourceColumns.filter(item =>
-          currentFormula && currentFormula.includes(item.Field.toString())
-      );
+      let mappingColumns = false;
+      if(this.props.sourceColumns){
+        mappingColumns = this.props.sourceColumns.filter(item =>
+            currentFormula && currentFormula.includes(item.Field.toString())
+        );
+      }
       return mappingColumns;
     }
 
@@ -222,7 +225,7 @@ class CellCalcRuleAssist extends Component {
       let validationform = {};
       let currentColumns = Object.keys(this.state.validationform);
       console.log("validationform...",this.state.validationform);
-      columns.map(item=>{
+      columns && columns.map(item=>{
         if(currentColumns.indexOf(item.Field)==-1){
           validationform[item.Field]= null;
         } else {
@@ -239,7 +242,7 @@ class CellCalcRuleAssist extends Component {
             <div className="col-md-12 col-sm-12 col-xs-12">
               <div className="x_panel">
               <div className="x_title">
-                <h2>Edit Calculation Logic<small> for the rule </small><small><strong>{this.props.cell_calc_ref + " [ " + this.props.cell_id + " ]"}</strong></small></h2>
+                <h2>Logic<small> for rule </small><small><strong>{this.props.cell_calc_ref + " [ " + this.props.cell_id + " ]"}</strong></small></h2>
                   <ul className="nav navbar-right panel_toolbox">
                     <li>
                       <a

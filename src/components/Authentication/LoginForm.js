@@ -16,6 +16,10 @@ class LoginForm extends Component {
       this.onSubmit = this.onSubmit.bind(this);
   }
 
+  componentDidMount(){
+    document.getElementsByName('username')[0].focus();
+  }
+
   onChange(event) {
     this.error="";
     this.setState({ [event.target.name]: event.target.value });

@@ -10,6 +10,9 @@ import {
     hashHistory,
     browserHistory
 } from 'react-router';
+import HTML5Backend from 'react-dnd-html5-backend'
+import { DragDropContext } from 'react-dnd'
+
 class Dashboard extends Component {
     render() {
       return(
@@ -32,4 +35,4 @@ class Dashboard extends Component {
     }
 
 }
-export default Dashboard;
+export default DragDropContext(HTML5Backend)(Dashboard);

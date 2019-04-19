@@ -1,7 +1,6 @@
 import React, { Component, } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
-import { Tab, Tabs } from 'react-bootstrap';
 import { bindActionCreators, dispatch } from 'redux';
 import _ from 'lodash';
 import moment from 'moment';
@@ -11,12 +10,41 @@ import HotTableTab from './HotTableTab';
 import HotTableSection from './HotTableSection';
 import HotTableTabToolsMenu from './HotTableTabToolsMenu';
 import ModalAlert from '../ModalAlert/ModalAlert';
+// DragObjects related modules
 import {
-  actionInsertBusinessRule,
-  actionUpdateBusinessRule
-} from '../../actions/BusinessRulesAction';
+	DropTarget,
+	ConnectDropTarget,
+	DropTargetMonitor,
+} from 'react-dnd';
+import ItemTypes from '../DragObjects/ItemTypes';
+import Box from '../DragObjects/Box';
+
 require('handsontable/dist/handsontable.full.css');
 require('./RegOpzDataGrid.css');
+
+
+const boxTarget = {
+	drop(props, monitor, component) {
+		console.log("inside boxTarget",component)
+		if (!component) {
+			return
+		}
+		const item = monitor.getItem();
+		const delta = monitor.getDifferenceFromInitialOffset();
+		const left = Math.round(item.left + delta.x);
+		const top = Math.round(item.top + delta.y);
+
+		component.moveBox(item.id, left, top);
+	},
+}
+
+function collect(connect, monitor) {
+  return {
+    connectDropTarget: connect.dropTarget(),
+    isOver: monitor.isOver()
+  };
+}
+
 
 class RegOpzReportGrid extends Component {
   constructor(props) {
@@ -24,12 +52,28 @@ class RegOpzReportGrid extends Component {
     this.state = {
       selectedSheet: 0,
       editSheetName: null,
-      selectedCellRange: []
+      selectedCellRange: [],
+      display: null,
+      unpinEditTools: false,
+      bringToFrontBox: null,
+      // boxes: this.props.boxes,
+			// {
+      //   editTools:  { id: 'editTools', key: 'editTools', left: 0, top: 0,
+      //                 hideSourceOnDrag:false, isResizeAllowed:false,
+      //                 className: '', isMaximized: false,isAlwaysOnTop:true ,
+      //                 isBringToFront: false },
+      //   // editSection : {id: 'editSection', key: 'editSection', left: 10, top:60,
+      //   //                hideSourceOnDrag: false, isResizeAllowed:true,
+      //   //                className: 'col-md-6 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+      //   //                isBringToFront: false },
+      //   // editSection2 : {left: 150, top:30, boxClassName: 'col-md-6', isMaximized: false }
+      // }
     };
 
     this.selectedTab=0;
 
     this.newTab =[];
+		this.boxes = this.props.boxes
     this.key = 0;
     this.fixedColumnsLeft = 2;
     this.report_id = null; //this.props.report_id;
@@ -56,6 +100,13 @@ class RegOpzReportGrid extends Component {
     this.checkSheetName = this.checkSheetName.bind(this);
     this.handleSelectCell = this.handleSelectCell.bind(this);
     this.handleShowEditSection = this.handleShowEditSection.bind(this);
+    this.handlePinEditTools = this.handlePinEditTools.bind(this);
+		this.moveBox = this.props.moveBox;
+    this.handleBoxSize = this.props.handleBoxSize;
+    this.handleBringToFront = this.props.handleBringToFront;
+		this.handleClickToOpenBox = this.props.handleClickToOpenBox;
+		this.handleSetBoxObjects = this.props.handleSetBoxObjects;
+		// this.moveBox = this.moveBox.bind(this);
 
     console.log('Inside Constructor');
     console.log(this.props.gridData);
@@ -110,9 +161,30 @@ class RegOpzReportGrid extends Component {
       this.gridData = nextProps.gridData;
       this.report_id = nextProps.report_id;
       this.reporting_date = nextProps.reporting_date;
+			this.boxes = nextProps.boxes;
       console.log("Inside componentWillReceiveProps reggrid",this.gridData)
-      this.handleSelectCell(this.gridData[this.key].sheet,this.ht.hotInstance.getSelectedLast());
+      // this.handleSelectCell(this.gridData[this.key].sheet,this.ht.hotInstance.getSelectedLast());
   }
+
+  // moveBox(id, left, top){
+  //   let boxes = this.state.boxes;
+  //   Object.assign(boxes[id],{left: left, top: top});
+  //   console.log("Boxes for state value ",boxes);
+  //   this.setState({boxes: boxes})
+  // }
+	//
+  // handleBoxSize(id, boxSizes){
+  //   let boxes = this.state.boxes;
+  //   Object.assign(boxes[id],boxSizes);
+  //   console.log("Inside set boxes...",boxes);
+  //   this.setState(boxes);
+  // }
+
+  // handleBringToFront(id){
+  //   let boxes = this.state.boxes;
+  //   Object.keys(boxes).map(box=> boxes[box].isBringToFront= (box == id ? true: false));
+  //   this.setState({boxes: boxes });
+  // }
 
   rgb2hex(rgb){
      if(!rgb) return rgb;
@@ -588,44 +660,98 @@ class RegOpzReportGrid extends Component {
     console.log("handleSheet...", this.gridData)
   }
 
+
+  handlePinEditTools(){
+    this.setState({unpinEditTools: !this.state.unpinEditTools})
+  }
+
   handleShowEditSection(){
     let isOpen = this.state.display == "editSection";
     if(isOpen){
+			this.handleBringToFront("editSection");
       this.setState({display: null})
     } else {
+			let boxes = this.handleClickToOpenBox('editSection');
+			this.handleSetBoxObjects(boxes);
       this.setState({display: "editSection"})
+			console.log("boxes in show editSection ", this.boxes);
     }
   }
 
   handleSelectCell(sheetName, cell_selected){
-    if(this.state.display == "editSection"){
+    // if(this.state.display == "editSection"){
       this.setState({selectedCellRange: cell_selected ? cell_selected : [undefined,undefined,undefined,undefined] });
-    }
-    this.props.handleSelectCell(sheetName, cell_selected);
+    // }
+    this.props.handleSelectCell(sheetName, cell_selected, this.key);
   }
 
   render(){
-    console.log("render main call.....")
+    // console.log("render main call.....",this.boxes.editSection,this.props.additionalTools)
+    const { connectDropTarget } = this.props;
+
     if (this.gridData.length > 0) {
-      return(
+      // return connectDropTarget(
+			return (
         <div className="row">
-          <HotTableTabToolsMenu
-            setTdStyle={this.setTdStyle}
-            saveTdStyle={this.saveTdStyle}
-            showToolsMenu={ this.showToolsMenu }
-            handleSheet = { this.handleSheet }
-            handleShowEditSection = { this.handleShowEditSection }
-            />
-          <div className="">
           {
             this.state.display == "editSection" &&
-            <HotTableSection
-              ht={this.ht}
-              selectedCellRange={this.state.selectedCellRange}
-              data = {this.gridData[this.key]}
-              handleClose = { this.handleShowEditSection }
+            <div
+              title="Edit Section"
+              onDoubleClick={
+                ()=>{
+                  let boxSize = {
+                    // isMaximized: !this.state.boxes.editSection.isMaximized
+										isMaximized: !this.boxes.editSection.isMaximized
+                  }
+                  this.handleBoxSize("editSection",boxSize)
+                }
+              }>
+              <Box
+    							{...this.boxes.editSection}
+    						>
+                <HotTableSection
+                  {...this.boxes.editSection}
+                  ht={this.ht}
+                  selectedCellRange={this.state.selectedCellRange}
+                  data = {this.gridData[this.key]}
+                  handleClose = { this.handleShowEditSection }
+                  handleBoxSize = { this.handleBoxSize }
+                  handleBringToFront = { this.handleBringToFront }
+                  />
+  						</Box>
+            </div>
+          }
+          {
+            !this.state.unpinEditTools &&
+            <HotTableTabToolsMenu
+              setTdStyle={this.setTdStyle}
+              saveTdStyle={this.saveTdStyle}
+              showToolsMenu={ this.showToolsMenu }
+              unpinEditTools={ this.state.unpinEditTools }
+              handleSheet = { this.handleSheet }
+              handleShowEditSection = { this.handleShowEditSection }
+              handlePinEditTools = { this.handlePinEditTools }
+							additionalTools = { this.props.additionalTools }
               />
           }
+          {
+            this.state.unpinEditTools &&
+            <Box
+                {...this.boxes.editTools}
+              >
+              <HotTableTabToolsMenu
+                setTdStyle={this.setTdStyle}
+                saveTdStyle={this.saveTdStyle}
+                showToolsMenu={ this.showToolsMenu }
+                unpinEditTools={ this.state.unpinEditTools }
+                handleSheet = { this.handleSheet }
+                handleShowEditSection = { this.handleShowEditSection }
+                handlePinEditTools = { this.handlePinEditTools }
+								additionalTools = { this.props.additionalTools }
+                />
+            </Box>
+          }
+          <div className="">
           <div className="" role="tabpanel" data-example-id="togglable-tabs">
             <ul id="myTab" className="nav nav-tabs" role="tablist">
               {
@@ -694,6 +820,7 @@ class RegOpzReportGrid extends Component {
                       showToolsMenu={this.showToolsMenu}
                       handleSelectCell={this.handleSelectCell}
                       ref={"ht" + index}
+											readOnly={ this.props.readOnly }
                       />
 
                   </div>
@@ -719,4 +846,5 @@ class RegOpzReportGrid extends Component {
 
 }
 
+// export default DropTarget(ItemTypes.BOX, boxTarget, collect)(RegOpzReportGrid);
 export default RegOpzReportGrid;

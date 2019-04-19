@@ -178,6 +178,8 @@
 .htEdittools {
   border:1px solid #dddddd94;
   margin: 1px;
+  /* To set more priority over base elements, but less than DragObjects (which is z-index of 999,1002 and 9999) */
+  z-index: 1;
 }
 
 .htEdittools:hover {
@@ -231,4 +233,11 @@
   /*  Override the padding and margins of the react-color default values */
   padding: 0px !important;
   margin: 1px !important;
+}
+
+.ht-container {
+    width: 100%;
+    height: 90vh;
+    overflow: hidden !important;
+    z-index: 0;
 }

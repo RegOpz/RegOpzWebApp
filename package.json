@@ -53,6 +53,8 @@
     "react-data-grid": "^2.0.18",
     "react-datagrid": "^2.1.2",
     "react-datepicker": "^0.46.0",
+    "react-dnd": "^3.0.2",
+    "react-dnd-html5-backend": "^7.0.2",
     "react-dom": "^15.6.2",
     "react-favicon": "^0.0.14",
     "react-loading": "0.0.9",

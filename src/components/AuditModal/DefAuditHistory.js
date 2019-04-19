@@ -69,25 +69,29 @@ class DefAuditHistory extends Component{
   render(){
     this.handleFilter();
     return(
-          <div className="x_panel">
-            <div className="x_title">
-              <h2>Change History<small> Time Line </small><small>{this.state.historyReference}</small></h2>
-                <ul className="nav navbar-right panel_toolbox">
-                  <li>
-                    <a className="close-link" onClick={this.props.handleClose}><i className="fa fa-close"></i></a>
-                  </li>
-                </ul>
-              <div className="clearfix"></div>
-            </div>
-            <div className="x_content">
-              <div>
+            <div className="">
+              <br/>
               <div className="row">
-                <div className="col col-md-5 col-sm-5 col-xs-12">
+                <div className="col col-md-4 col-sm-4 col-xs-12"
+                  title="Filter Text">
                   <div className="input-group">
                     <input
                       className="form-control"
                       placeholder="Enter Filter Text"
                       value={this.state.filterText}
+                      draggable
+                      onDragStart = {
+                        (event)=>{
+                          event.preventDefault();
+                          event.stopPropagation();
+                        }
+                      }
+                      onDoubleClick = {
+                        (event)=>{
+                          event.preventDefault();
+                          event.stopPropagation();
+                        }
+                      }
                       onChange={(event) => {
                           this.setState({ filterText: event.target.value });
                       }}
@@ -97,37 +101,61 @@ class DefAuditHistory extends Component{
                     </span>
                   </div>
                 </div>
-                <div className="col col-md-3 col-sm-3 col-xs-12">
-                  <div className="calendar">
+                <div className="col col-md-4 col-sm-4 col-xs-6"
+                  title="Start date">
+                  <div className="calendar"
+                    draggable
+                    onDragStart = {
+                      (event)=>{
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }
+                    }
+                    onDoubleClick = {
+                      (event)=>{
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }
+                    }>
                       <DatePicker
                         dateFormat="DD-MMM-YYYY"
                         selected={this.state.startDate}
                         onChange={this.handleStartDateChange.bind(this)}
                         isClearable={true}
-                        placeholderText="Select start date"
-                        className="view_data_date_picker_input form-control"
+                        placeholderText="Start date"
+                        className="form-control col-md-4"
                     />
                   </div>
                 </div>
-                <div className="col col-md-3 col-sm-3 col-xs-12">
-                  <div className="calendar">
+                <div className="col col-md-4 col-sm-4 col-xs-6"
+                  title="End date">
+                  <div className="calendar"
+                    draggable
+                    onDragStart = {
+                      (event)=>{
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }
+                    }
+                    onDoubleClick = {
+                      (event)=>{
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }
+                    }>
                     <DatePicker
                         dateFormat="DD-MMM-YYYY"
                         selected={this.state.endDate}
                         onChange={this.handleEndDateChange.bind(this)}
                         isClearable={true}
-                        placeholderText="Select end date"
-                        className="view_data_date_picker_input form-control"
+                        placeholderText="End date"
+                        className=" form-control col-md-4"
                     />
                   </div>
                 </div>
               </div>
-              <div className="clearfix"></div>
-              </div>
               { this.renderChangeHistory(this.linkageData)}
-              </div>
-          </div>
-
+            </div>
     );
   }
   renderChangeHistory(linkageData){

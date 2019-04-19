@@ -11,6 +11,10 @@ class DomainForm extends Component{
       this.onNext = this.onNext.bind(this);
   }
 
+  componentDidMount(){
+    document.getElementsByName('domainName')[0].focus();
+  }
+
   onChange(event){
       this.error="";
       this.setState({ [event.target.name]: event.target.value });

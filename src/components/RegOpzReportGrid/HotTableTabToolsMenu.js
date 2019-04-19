@@ -8,12 +8,58 @@ require('./RegOpzDataGrid.css');
 class HotTableTabToolsMenu extends Component {
   constructor(props) {
     super(props);
+    this.additionalTools = this.props.additionalTools;
+
+    // Tool methods as props
     this.setTdStyle = this.props.setTdStyle;
     this.saveTdStyle = this.props.saveTdStyle;
     this.showToolsMenu = this.props.showToolsMenu;
+    this.unpinEditTools = this.props.unpinEditTools;
+
 
     this.fontFamilyOptions = this.fontFamilyOptions.bind(this);
     this.fontSizeOptions = this.fontSizeOptions.bind(this);
+    this.handleAdditionalTools = this.handleAdditionalTools.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps){
+    this.additionalTools = nextProps.additionalTools;
+  }
+
+  handleAdditionalTools(){
+    let additionalToolsMenu=[];
+    // structure of the additionalTools
+    // id:
+    // title:
+    // onClick:
+    // toolObj: default null, it can be an object as well
+    // this.additionalTools=[
+    //   {id: 'details', title: 'Cell Rule Details', onClick: ()=>{alert("Just testing details")}, toolObj: <i className="fa fa-gear green"></i>},
+    //   {id: 'history', title: 'Change History', onClick: ()=>{alert("Just testing change history")}, toolObj: <i className="fa fa-history dark"></i>},
+    // ]
+
+    this.additionalTools.map((t,i)=>{
+      additionalToolsMenu.push(
+        <div id={t.id} className="btn-group" title={t.title}>
+          <ul className="dropdown btn-xs btn-link htEdittools">
+            <a className="dropdown-toggle"
+              data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"
+              onClick={(event)=>{
+                if (typeof t.onClick === 'function') {
+                    t.onClick();
+                } else {
+                  alert("No onClick function defined please check.... ")
+                }
+              }}
+              >
+              {t.toolObj}
+            </a>
+          </ul>
+        </div>
+      )
+    })
+
+    return additionalToolsMenu;
   }
 
   fontFamilyOptions(){
@@ -62,8 +108,19 @@ class HotTableTabToolsMenu extends Component {
 
   render(){
         return(
-        <div className="row">
+
           <div className="col-md-12 col-xs-12 col-sm-12 " >
+            <div id="sections" className="btn-group" title={this.unpinEditTools ? "Pin tools bar" : "Float tools bar"}>
+              <ul className="dropdown btn-xs btn-link ">
+                <a className={"dropdown-toggle fa aero " + (this.unpinEditTools ? "fa-thumb-tack" : "fa-paper-plane")}
+                  data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"
+                  onClick={(event)=>{
+                    this.props.handlePinEditTools();
+                  }}
+                  >
+                </a>
+              </ul>
+            </div>
             {
               this.showToolsMenu &&
               <div className="btn-group " title="Save Changes">
@@ -422,9 +479,12 @@ class HotTableTabToolsMenu extends Component {
                 </ul>
               </div>
             }
+            {
+              this.handleAdditionalTools()
+            }
 
           </div>
-        </div>
+
         )
 
   }
