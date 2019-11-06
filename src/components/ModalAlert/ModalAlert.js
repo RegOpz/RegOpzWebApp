@@ -5,11 +5,13 @@ export default class ModalAlert extends Component {
   constructor(props) {
     super(props);
     this.state = { showModal: false };
-    this.modalTitle = "Attention!";
+    this.modalTitle = this.props.modalTitle ? this.props.modalTitle : "Attention!";
     this.isOkayToBeShown = this.props.showOkay ? this.props.showOkay : true;
     this.isDiscardToBeShown = this.props.showDiscard;
+    this.isCloseButtonTobeShown = this.props.isCloseButtonTobeShown ? this.props.isCloseButtonTobeShown : false;
     this.buttonTextOkay = this.props.buttonTextOkay ? this.props.buttonTextOkay : "Ok";
     this.buttonTextDiscard = this.props.buttonTextDiscard ? this.props.buttonTextDiscard : "Discard";
+    this.customProps = this.props.customProps ? this.props.customProps : null;
   }
 
   close() {
@@ -23,8 +25,13 @@ export default class ModalAlert extends Component {
   render(){
     return (
 
-        <Modal show={this.state.showModal}>
-          <Modal.Header>
+        <Modal show={this.state.showModal}
+          backdrop={this.isCloseButtonTobeShown ? 'false' : 'static'}
+          onHide={()=>{
+              this.close();
+            }
+          }>
+          <Modal.Header closeButton={this.isCloseButtonTobeShown}>
             <Modal.Title>{this.modalTitle}</Modal.Title>
           </Modal.Header>
 

@@ -6,10 +6,11 @@ import { Tab, Tabs } from 'react-bootstrap';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import LoadingForm from '../Authentication/LoadingForm';
 import {
-  actionFetchReportChangeHistory,
-} from '../../actions/MaintainReportRuleAction';
+  actionRepoDrillDown,
+  actionFetchRepoReportChangeHistory,
+} from '../../actions/ReportRulesRepositoryAction';
 
-class ReportChangeHistory extends Component {
+class ReportRepoChangeHistory extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -121,77 +122,77 @@ class ReportChangeHistory extends Component {
             <div className="clearfix"></div>
           </div>
           <div className="x_content dontDragMe">
-          <Tabs
-            defaultActiveKey={0}
-            activeKey={this.state.selectedAuditSheet}
-            onSelect={(key) => {
-                let sheetName = gridDataViewReport[key].sheet;
-                this.changeHistory = undefined;
-                this.setState({selectedAuditSheet:key},
-                ()=>{this.props.fetchReportChangeHistory(selectedReport.report_id,sheetName)}
-              );
-            }}
-            >
-            {
-              gridDataViewReport.map((item,index) => {
-                return(
-                    <Tab
-                      key={index}
-                      eventKey={index}
-                      title={item['sheet']}
+            <Tabs
+              defaultActiveKey={0}
+              activeKey={this.state.selectedAuditSheet}
+              onSelect={(key) => {
+                  let sheetName = gridDataViewReport[key].sheet;
+                  this.changeHistory = undefined;
+                  this.setState({selectedAuditSheet:key},
+                  ()=>{this.props.fetchReportChangeHistory(selectedReport.report_id,sheetName)}
+                );
+              }}
+              >
+              {
+                gridDataViewReport.map((item,index) => {
+                  return(
+                      <Tab
+                        key={index}
+                        eventKey={index}
+                        title={item['sheet']}
 
-                    >
-                      {
-                        (()=>{
-                          if(this.state.selectedAuditSheet == index){
-                            if(!this.changeHistory){
-                              return(
-                                  <div>
-                                    {
-                                      this.loadingPage("fa-history", "purple","Fetching Change History for " + item['sheet'])
-                                    }
-                                  </div>
-                              );
+                      >
+                        {
+                          (()=>{
+                            if(this.state.selectedAuditSheet == index){
+                              if(!this.changeHistory){
+                                return(
+                                    <div>
+                                      {
+                                        this.loadingPage("fa-history", "purple","Fetching Change History for " + item['sheet'])
+                                      }
+                                    </div>
+                                );
+                              }
+                              return (
+                                  <DefAuditHistory
+                                    data={ this.changeHistory }
+                                    historyReference={ "" }
+                                   />
+                                );
                             }
-                            return (
-                                <DefAuditHistory
-                                  data={ this.changeHistory }
-                                  historyReference={ "" }
-                                 />
-                              );
-                          }
-                        })()
-                      }
-                    </Tab>
-                )
-              })
-            }
-          </Tabs>
+                          })()
+                        }
+                      </Tab>
+                  )
+                })
+              }
+            </Tabs>
+          </div>
         </div>
       </div>
-    </div>
     );
   }
 }
 
 
 function mapStateToProps(state){
-  console.log("On map state of Maintain Report Rule ReportChangeHistory",state);
+  console.log("On map state of Maintain Report Rule ReportRepoChangeHistory",state);
   return{
-    change_history:state.maintain_report_rules_store.change_history,
+    change_history: state.report_rules_repo.changeHistory,
   }
 }
 const mapDispatchToProps = (dispatch) => {
   return {
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
-      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
+      dispatch(actionFetchRepoReportChangeHistory(report_id,sheet_id,cell_id));
     },
   }
 }
 
-const VisibleReportChangeHistory = connect(
+const VisibleReportRepoChangeHistory = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ReportChangeHistory);
+)(ReportRepoChangeHistory);
 
-export default VisibleReportChangeHistory;
+export default VisibleReportRepoChangeHistory;

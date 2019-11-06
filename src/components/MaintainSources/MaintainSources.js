@@ -120,6 +120,7 @@ class MaintainSources extends Component {
                     sourceCatalog={this.props.sourceCatalog.country}
                     navMenu={false}
                     handleSourceClick={this.handleSourceClick}
+                    handleShowDetailsClick={this.handleSourceClick}
                     />
               );
       }

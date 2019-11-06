@@ -25,7 +25,7 @@ require('./RegOpzDataGrid.css');
 
 const boxTarget = {
 	drop(props, monitor, component) {
-		console.log("inside boxTarget",component)
+		console.log("inside Regopz Report Grid boxTarget",component)
 		if (!component) {
 			return
 		}
@@ -106,6 +106,7 @@ class RegOpzReportGrid extends Component {
     this.handleBringToFront = this.props.handleBringToFront;
 		this.handleClickToOpenBox = this.props.handleClickToOpenBox;
 		this.handleSetBoxObjects = this.props.handleSetBoxObjects;
+		this.handlePinDndBox = this.props.handlePinDndBox;
 		// this.moveBox = this.moveBox.bind(this);
 
     console.log('Inside Constructor');
@@ -662,18 +663,34 @@ class RegOpzReportGrid extends Component {
 
 
   handlePinEditTools(){
+		let boxesLayouts = this.handleClickToOpenBox('editTools','No');
+		let boxes = boxesLayouts.boxes;
+		boxes.editTools.top = document.getElementById('RegOpzReportGrid').offsetTop;
+		this.handleSetBoxObjects(boxes);
     this.setState({unpinEditTools: !this.state.unpinEditTools})
   }
 
   handleShowEditSection(){
-    let isOpen = this.state.display == "editSection";
+    let isOpen = this.state.display == "editSection" || this.boxes.editSection.isOpen;
+		// setState to force refresh or RegOpzReportGrid, not great way of handling this!!!!!
+		// Lots of scope to improve this piece of code, including editSection component call
     if(isOpen){
 			this.handleBringToFront("editSection");
-      this.setState({display: null})
+      this.setState({display: null},
+										()=>{
+											// this.handlePinDndBox('editSection',"DnD");
+											this.props.handleToolsButtonClick('editSection');
+										}
+									)
     } else {
-			let boxes = this.handleClickToOpenBox('editSection');
-			this.handleSetBoxObjects(boxes);
-      this.setState({display: "editSection"})
+			// let boxes = this.handleClickToOpenBox('editSection');
+			// boxes.editSection.top = document.getElementById('RegOpzReportGrid').offsetTop + 60;
+			// this.handleSetBoxObjects(boxes);
+      this.setState({display: "editSection"},
+										()=>{
+													this.props.handleToolsButtonClick('editSection');
+											}
+										);
 			console.log("boxes in show editSection ", this.boxes);
     }
   }
@@ -694,8 +711,9 @@ class RegOpzReportGrid extends Component {
 			return (
         <div className="row">
           {
-            this.state.display == "editSection" &&
+            (this.state.display == "editSection" || this.boxes.editSection.isOpen) &&
             <div
+							id={"editSection"+this.boxes.editSection.position}
               title="Edit Section"
               onDoubleClick={
                 ()=>{
@@ -706,19 +724,36 @@ class RegOpzReportGrid extends Component {
                   this.handleBoxSize("editSection",boxSize)
                 }
               }>
-              <Box
-    							{...this.boxes.editSection}
-    						>
-                <HotTableSection
-                  {...this.boxes.editSection}
-                  ht={this.ht}
-                  selectedCellRange={this.state.selectedCellRange}
-                  data = {this.gridData[this.key]}
-                  handleClose = { this.handleShowEditSection }
-                  handleBoxSize = { this.handleBoxSize }
-                  handleBringToFront = { this.handleBringToFront }
-                  />
-  						</Box>
+							{
+								this.boxes.editSection.position == "DnD" &&
+								<Box
+	    							{...this.boxes.editSection}
+	    						>
+	                <HotTableSection
+	                  {...this.boxes.editSection}
+	                  ht={this.ht}
+	                  selectedCellRange={this.state.selectedCellRange}
+	                  data = {this.gridData[this.key]}
+	                  handleClose = { this.handleShowEditSection }
+	                  handleBoxSize = { this.handleBoxSize }
+	                  handleBringToFront = { this.handleBringToFront }
+										handlePinDndBox = { this.handlePinDndBox }
+	                  />
+	  						</Box>
+							}
+							{
+								this.boxes.editSection.position == "pinnedTop" &&
+								<HotTableSection
+									{...this.boxes.editSection}
+									ht={this.ht}
+									selectedCellRange={this.state.selectedCellRange}
+									data = {this.gridData[this.key]}
+									handleClose = { this.handleShowEditSection }
+									handleBoxSize = { this.handleBoxSize }
+									handleBringToFront = { this.handleBringToFront }
+									handlePinDndBox = { this.handlePinDndBox }
+									/>
+							}
             </div>
           }
           {
@@ -751,7 +786,7 @@ class RegOpzReportGrid extends Component {
                 />
             </Box>
           }
-          <div className="">
+          <div className="" id="RegOpzReportGrid">
           <div className="" role="tabpanel" data-example-id="togglable-tabs">
             <ul id="myTab" className="nav nav-tabs" role="tablist">
               {

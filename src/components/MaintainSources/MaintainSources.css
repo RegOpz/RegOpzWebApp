@@ -77,3 +77,11 @@ div.ReactTags__suggestions ul li.ReactTags__activeSuggestion {
 .maintain_rep_rules_accordion_holder {
   margin-top: 10px;
 }
+
+.datepicker-border-bottom {
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  border-bottom: 2px solid #cccccc;
+  text-align: center;
+}

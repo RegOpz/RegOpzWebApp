@@ -12,8 +12,7 @@ import {
 import {
   actionFetchReportCatalog,
 } from '../../actions/ReportRulesRepositoryAction';
-import MaintainFixedFormatReportRules from '../MaintainFixedFormatReportRepository/MaintainFixedFormatReportRepoRules';
-import MaintainTransactionReportRules from '../MaintainTransactionalReportRepository/MaintainTransactionReportRepoRules';
+import MaintainFreeFormatReportRepoRules from '../MaintainFreeFormatReportRepository/MaintainFreeFormatReportRepositoryRules';
 
 class MaintainReportRulesRepository extends Component {
   constructor(props){
@@ -40,7 +39,7 @@ class MaintainReportRulesRepository extends Component {
 
   componentWillMount() {
       // TODO
-      this.props.fetchReportCatalogList(this.country);
+      this.props.fetchReportRepoCatalogList(this.country);
   }
 
   componentDidUpdate() {
@@ -61,7 +60,7 @@ class MaintainReportRulesRepository extends Component {
         selectedTab: 0,
         },
         ()=>{
-          this.props.fetchReportCatalogList(this.country);
+          this.props.fetchReportRepoCatalogList(this.country);
         }
       );
     }
@@ -70,62 +69,10 @@ class MaintainReportRulesRepository extends Component {
   render(){
       return(
         <div >
-          {
-            this.props.tenantRenderType=="copyRule" &&
-            this.props.reportFormat == "FIXEDFORMAT" &&
-            <MaintainFixedFormatReportRules
-              {...this.props}
-              />
-          }
-          {
-            this.props.tenantRenderType=="copyRule" &&
-            this.props.reportFormat == "TRANSACTION" &&
-            <MaintainTransactionReportRules
-              {...this.props}
-              />
-          }
-          {
-            !this.props.tenantRenderType &&
-            <Tabs
-              defaultActiveKey={0}
-              activeKey={this.state.selectedTab}
-              onSelect={(key) => {
-                  this.setState({selectedTab:key});
-              }}
-              >
-              <Tab
-                key={0}
-                eventKey={0}
-                title={"Fixed Format"}
-              >
-              <MaintainFixedFormatReportRules
-                privileges={this.props.privileges}
-                groupId={this.groupId}
-                />
-              </Tab>
-              <Tab
-                key={1}
-                eventKey={1}
-                title={"Transactional"}
-              >
-                <MaintainTransactionReportRules
-                  privileges={this.props.privileges}
-                  groupId={this.groupId}
-                  />
-              </Tab>
-              <Tab
-                key={2}
-                eventKey={2}
-                title={"Dynamic Aggregation"}
-              >
-                <div className="x_panel">
-                  <div className="x_content">
-                    <h4><i className="fa fa-cogs"></i> <i className="fa fa-wrench"></i>  Build in progress ....</h4>
-                  </div>
-                </div>
-              </Tab>
-            </Tabs>
-          }
+          <MaintainFreeFormatReportRepoRules
+            {...this.props}
+            groupId={this.groupId}
+            />
         </div>
     );
   }
@@ -145,7 +92,7 @@ const mapDispatchToProps = (dispatch) => {
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
-    fetchReportCatalogList:(country)=>{
+    fetchReportRepoCatalogList:(country)=>{
         dispatch(actionFetchReportCatalog(country))
     },
   }

@@ -4,17 +4,16 @@ import { bindActionCreators, dispatch } from 'redux';
 import { Label, Tabs, Tab, Carousel } from 'react-bootstrap';
 import moment from 'moment';
 import _ from 'lodash';
-import AddReportRules from './AddReportRules';
-import AddReportAggRules from './AddReportAggRules';
+import AddReportRepoRules from './AddReportRepoRules';
+import AddReportRepoAggRules from './AddReportRepoAggRules';
 import LoadingForm from '../Authentication/LoadingForm';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
-import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import ViewRepoBusinessRules from '../MaintainBusinessRulesRepository/MaintainBusinessRulesRepository';
+
 import {
-  actionDrillDown
-} from '../../actions/CaptureReportAction';
-import {
-  actionFetchReportChangeHistory,
-} from '../../actions/MaintainReportRuleAction';
+  actionRepoDrillDown,
+  actionFetchRepoReportChangeHistory,
+} from '../../actions/ReportRulesRepositoryAction';
 
 // This is the checkpost for drilldown cells
 // Two posible options:
@@ -26,7 +25,7 @@ import {
 //    a. Agg rule for reference read Only
 //    b. Calc rule readonly logic and business rules access, but drilldown to actual data using report version data
 
-class ReportCellDetails extends Component {
+class ReportRepoCellDetails extends Component {
   constructor(props){
     super(props);
     this.state={
@@ -43,6 +42,7 @@ class ReportCellDetails extends Component {
     this.calcRuleData = {};
     this.aggRuleData = {};
     this.selectedCell = this.props.selectedCell;
+    this.country = this.props.country;
     // Methods
     this.loadingPage = this.loadingPage.bind(this);
     this.renderAggRules = this.renderAggRules.bind(this);
@@ -148,7 +148,7 @@ class ReportCellDetails extends Component {
         <br/>
         {
           this.state.displayAgg &&
-          <AddReportAggRules
+          <AddReportRepoAggRules
             writeOnly={this.props.writeOnly}
             requestType={this.state.displayAgg}
             reportGrid = { this.props.reportGrid }
@@ -341,11 +341,12 @@ class ReportCellDetails extends Component {
       <br/>
       {
           ["Edit","New","Copy"].includes(this.state.displayCalc) &&
-          <AddReportRules
+          <AddReportRepoRules
             writeOnly={this.props.writeOnly}
             requestType={this.state.displayCalc}
             form={this.calcRuleData}
             groupId={this.props.groupId}
+            country={ this.country }
           />
       }
       {
@@ -406,12 +407,8 @@ class ReportCellDetails extends Component {
                             }></i>
                       </span>
                       <span className="wrap-1-line">
-                        <Label>{item.aggregation_func}</Label>&nbsp;<b>of</b>&nbsp;
-                        <small>{item.aggregation_ref.replace(/,/g,', ')}</small>
-                      </span>
-                      <span className="wrap-1-line">
                         <i className="fa fa-rss"></i>&nbsp;
-                        <small>{"from data feed #"  + item.source_id }</small>
+                        <small>{"for country #"  + this.props.country }</small>
                       </span>
                       <br/>
                       <span
@@ -448,9 +445,8 @@ class ReportCellDetails extends Component {
           <table className="table table-hover">
             <thead>
               <tr>
-                <th>Source#</th>
+                <th>Country#</th>
                 <th>Calculation Ref</th>
-                <th>Calculation Logic</th>
                 <th>Business Rules</th>
                 <th>In Use</th>
               </tr>
@@ -460,7 +456,7 @@ class ReportCellDetails extends Component {
               this.cellRules.cell_rules.map((item,index)=>{
                 return(
                   <tr>
-                    <td>{item.source_id}</td>
+                    <td>{this.props.country}</td>
                     <td>
                       <small
                         className="cursor-pointer"
@@ -501,15 +497,6 @@ class ReportCellDetails extends Component {
                         </button>
                       }
                     </div>
-                    </td>
-                    <td>
-                      {
-                        item.aggregation_ref &&
-                        <span>
-                        <Label>{item.aggregation_func}</Label> <b>of</b>
-                        <small>{item.aggregation_ref.replace(/,/g,', ')}</small>
-                        </span>
-                      }
                     </td>
                     <td>
                       <small>{item.cell_business_rules.replace(/,/g,' ')}</small>
@@ -570,7 +557,7 @@ class ReportCellDetails extends Component {
     } else {
       sourceItem={source_id: source_id}
     }
-    const permissions=[{"permission": isRulesComponent ? "View Business Rules" : null}];
+    const permissions=[{"permission": isRulesComponent ? "View Business Rules Repository" : null}];
     return(
       <div className="col-md-12 col-xs-12">
         <ul className="nav navbar-right panel_toolbox">
@@ -581,12 +568,12 @@ class ReportCellDetails extends Component {
               }}><i className="fa fa-close"></i></a>
           </li>
         </ul>
-        <ViewBusinessRules
+        <ViewRepoBusinessRules
           privileges={ permissions }
           selectedItem={ sourceItem }
           showBusinessRuleGrid={"showBusinessRuleGrid"}
           flagRuleDrillDown={true}
-          sourceId={source_id}
+          country={this.props.country}
           ruleFilterParam={ruleFilterParam}
           origin={"FIXEDFORMAT"}
         />
@@ -619,12 +606,9 @@ class ReportCellDetails extends Component {
           report_id: selectedCell.reportId,
           sheet_id: selectedCell.sheetName,
           cell_id: selectedCell.cellRef,
-          source_id:'',
           cell_calc_extern_ref:'',
           cell_business_rules:'',
           cell_calc_decsription:'',
-          aggregation_ref:'',
-          aggregation_func:'',
           last_updated_by:'',
           id:null,
           in_use: 'N',
@@ -813,108 +797,108 @@ class ReportCellDetails extends Component {
       );
     }
     return(
-      <div className="box-content-wrapper">
-        <div className="box-tools">
-          <ul className="nav navbar-right panel_toolbox">
-            <li>
-              <a className="close-link"
-                title={"Close"}
-                onClick={()=>{handleClose(details.id)}}><i className="fa fa-close"></i></a>
-            </li>
-            {
-              details.position == "DnD" &&
+        <div className="box-content-wrapper">
+          <div className="box-tools">
+            <ul className="nav navbar-right panel_toolbox">
+              <li>
+                <a className="close-link"
+                  title={"Close"}
+                  onClick={()=>{handleClose(details.id)}}><i className="fa fa-close"></i></a>
+              </li>
+              {
+                details.position == "DnD" &&
+                <li>
+                  <a onClick={()=>{
+                      let boxSize = {
+                        isMaximized: !details.isMaximized
+                      }
+                      handleBoxSize(details.id,boxSize)
+                    }} title={ history.isMaximized ? "Restore" : "Maximize"}>
+                    <small><i className="fa fa-square-o"></i></small>
+                  </a>
+                </li>
+              }
               <li>
                 <a onClick={()=>{
-                    let boxSize = {
-                      isMaximized: !details.isMaximized
-                    }
-                    handleBoxSize(details.id,boxSize)
-                  }} title={ history.isMaximized ? "Restore" : "Maximize"}>
-                  <small><i className="fa fa-square-o"></i></small>
+                    let id = details.id;
+                    let position = details.position == "DnD" ? "pinnedTop": "DnD";
+                    handlePinDndBox(id,position);
+                  }} title={ details.position == "DnD" ? "Pin Window" : "Float Window"}>
+                  <small>
+                    <i className={"fa " + (details.position == "DnD" ? "fa-thumb-tack" : "fa-external-link" )}></i>
+                  </small>
                 </a>
               </li>
-            }
-            <li>
-              <a onClick={()=>{
-                  let id = details.id;
-                  let position = details.position == "DnD" ? "pinnedTop": "DnD";
-                  handlePinDndBox(id,position);
-                }} title={ details.position == "DnD" ? "Pin Window" : "Float Window"}>
-                <small>
-                  <i className={"fa " + (details.position == "DnD" ? "fa-thumb-tack" : "fa-external-link" )}></i>
-                </small>
-              </a>
-            </li>
-            <li>
-              <a className="close-link"
-                onClick={ (event)=>{
-                  this.cellRules=undefined;
-                  this.cellChangeHistory = undefined;
-                  this.setState({displayCalc: false, displayAgg: false},
-                                ()=>{
-                                    this.props.drillDown(this.selectedCell.reportId,
-                                                     this.selectedCell.sheetName,
-                                                     this.selectedCell.cellRef);
-                                    this.props.fetchReportChangeHistory(this.selectedCell.reportId,
-                                                      this.selectedCell.sheetName,
-                                                      this.selectedCell.cellRef);
-                                  }
-                                );
-                } }
-                title="Refresh"><i className= { "fa fa-refresh"}></i></a>
-            </li>
-            <li>
-              <a title="Move Box" style={{'cursor':'grabbing'}}>
-                <small>
-                  <i className="fa fa-arrows"></i>&nbsp;{this.selectedCell.sheetName + ' ' + this.selectedCell.cell}
-                </small>
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div className="x_panel">
-          <div className="x_title">
-            <h2>Cell Rules
-            <small> for <b>{selectedCell.cell}</b> of <b>{selectedCell.sheetName}</b></small>
-            </h2>
-            <div className="clearfix"></div>
+              <li>
+                <a className="close-link"
+                  onClick={ (event)=>{
+                    this.cellRules=undefined;
+                    this.cellChangeHistory = undefined;
+                    this.setState({displayCalc: false, displayAgg: false},
+                                  ()=>{
+                                      this.props.drillDown(this.selectedCell.reportId,
+                                                       this.selectedCell.sheetName,
+                                                       this.selectedCell.cellRef);
+                                      this.props.fetchReportChangeHistory(this.selectedCell.reportId,
+                                                        this.selectedCell.sheetName,
+                                                        this.selectedCell.cellRef);
+                                    }
+                                  );
+                  } }
+                  title="Refresh"><i className= { "fa fa-refresh"}></i></a>
+              </li>
+              <li>
+                <a title="Move Box" style={{'cursor':'grabbing'}}>
+                  <small>
+                    <i className="fa fa-arrows"></i>&nbsp;{this.selectedCell.sheetName + ' ' + this.selectedCell.cell}
+                  </small>
+                </a>
+              </li>
+            </ul>
           </div>
-          <div className="x_content">
-          {
-            // this.showRulesPanel &&
-            <div className="dontDragMe">
-              <Tabs
-                id={"RCDTBS"}
-                defaultActiveKey={0}
-                >
-                <Tab
-                  key={0}
-                  eventKey={0}
-                  title={<span><i className="fa fa-bullhorn"></i> Aggregation</span>}>
-                  { this.renderAggRules(this.cellRules)}
-                </Tab>
-                <Tab
-                  key={1}
-                  eventKey={1}
-                  title={<span><i className="fa fa-tags"></i> Calculations</span>}>
-                  { this.renderCalcRules(this.cellRules)}
-                </Tab>
-                <Tab
-                  key={2}
-                  eventKey={2}
-                  title={
-                    <span >
-                      <i className="fa fa-history"></i> Change History
-                    </span>
-                    }>
-                  { this.renderChangeHistory(this.cellChangeHistory) }
-                </Tab>
-              </Tabs>
+          <div className="x_panel">
+            <div className="x_title">
+              <h2>Cell Rules
+              <small> for <b>{selectedCell.cell}</b> of <b>{selectedCell.sheetName}</b></small>
+              </h2>
+              <div className="clearfix"></div>
             </div>
-            }
+            <div className="x_content">
+            {
+              // this.showRulesPanel &&
+              <div  className="dontDragMe">
+                <Tabs
+                  id={"RCDTBS"}
+                  defaultActiveKey={0}
+                  >
+                  <Tab
+                    key={0}
+                    eventKey={0}
+                    title={<span><i className="fa fa-bullhorn"></i> Aggregation</span>}>
+                    { this.renderAggRules(this.cellRules)}
+                  </Tab>
+                  <Tab
+                    key={1}
+                    eventKey={1}
+                    title={<span><i className="fa fa-tags"></i> Calculations</span>}>
+                    { this.renderCalcRules(this.cellRules)}
+                  </Tab>
+                  <Tab
+                    key={2}
+                    eventKey={2}
+                    title={
+                      <span >
+                        <i className="fa fa-history"></i> Change History
+                      </span>
+                      }>
+                    { this.renderChangeHistory(this.cellChangeHistory) }
+                  </Tab>
+                </Tabs>
+              </div>
+              }
+            </div>
           </div>
         </div>
-      </div>
     );
   }
 
@@ -922,10 +906,10 @@ class ReportCellDetails extends Component {
 }
 
 function mapStateToProps(state){
-  console.log("On mapState ReportCellDetails ", state);
+  console.log("On mapState ReportRepoCellDetails ", state);
   return {
-    cell_rules: state.report_store.cell_rules,
-    change_history:state.maintain_report_rules_store.change_history,
+    cell_rules: state.report_rules_repo.cellRules,
+    change_history: state.report_rules_repo.changeHistory,
     login_details: state.login_store,
   }
 }
@@ -933,17 +917,17 @@ function mapStateToProps(state){
 const mapDispatchToProps = (dispatch) => {
   return {
     drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+      dispatch(actionRepoDrillDown(report_id,sheet,cell));
     },
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
-      dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));
+      dispatch(actionFetchRepoReportChangeHistory(report_id,sheet_id,cell_id));
     },
   }
 }
 
-const VisibleReportCellDetails = connect(
+const VisibleReportRepoCellDetails = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ReportCellDetails);
+)(ReportRepoCellDetails);
 
-export default VisibleReportCellDetails;
+export default VisibleReportRepoCellDetails;

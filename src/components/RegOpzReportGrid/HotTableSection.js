@@ -133,7 +133,7 @@ class HotTableSection extends Component {
                       </a>
                     </li>
                     {
-                      // ! this.isBringToFront &&
+                      this.props.position == "DnD" &&
                       <li>
                         <a onClick={()=>{
                             let id = this.props.id;
@@ -145,6 +145,17 @@ class HotTableSection extends Component {
                         </a>
                       </li>
                     }
+                    <li>
+                      <a onClick={()=>{
+                          let id = this.props.id;
+                          let position = this.props.position == "DnD" ? "pinnedTop": "DnD";
+                          this.props.handlePinDndBox(id,position);
+                        }} title={ this.props.position == "DnD" ? "Pin Window" : "Float Window"}>
+                        <small>
+                          <i className={"fa " + (this.props.position == "DnD" ? "fa-thumb-tack" : "fa-external-link" )}></i>
+                        </small>
+                      </a>
+                    </li>
                     <li>
                       <a onClick={
                           ()=>{

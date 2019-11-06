@@ -36,7 +36,7 @@ class ReportCatalogList extends Component {
       this.setState ({
         startDate:moment(this.dataCatalogStartDate),
         endDate:moment(this.dataCatalogEndDate),
-        filterText: null
+        filterText: this.state.filterText
       });
   }
 
@@ -227,6 +227,7 @@ class ReportCatalogList extends Component {
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
+                        disabled= { item.report_create_status!= 'SUCCESS' }
                         onClick={
                           (event)=>{
                             this.props.handleReportClick(item)

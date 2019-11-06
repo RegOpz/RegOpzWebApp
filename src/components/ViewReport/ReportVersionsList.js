@@ -66,18 +66,9 @@ class ReportVersionsList extends Component {
     return(
       <div className="x_panel">
         <div className="x_title">
-          <h2>Available Versions <small> for the selected report</small></h2>
-          <ul className="nav navbar-right panel_toolbox">
-            <li>
-              <a className="close-link"
-                data-toggle="tooltip"
-                data-placement="top"
-                title="Close"
-                onClick={()=>{this.props.handleClose(event)}}>
-                <i className="fa fa-close"></i>
-              </a>
-            </li>
-          </ul>
+          <h2>Available Versions
+            <small>{' for report ' + this.props.selectedReport.report_id + ' Reporting Date@' + this.props.selectedReport.reporting_date}</small>
+          </h2>
           <div className="clearfix"></div>
         </div>
         <div className="x_content">
@@ -140,6 +131,7 @@ class ReportVersionsList extends Component {
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
+                        disabled = { item.report_create_status != 'SUCCESS' }
                         onClick={
                           (event)=>{
                             this.props.handleReportClick(item)

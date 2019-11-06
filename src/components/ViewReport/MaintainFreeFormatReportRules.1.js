@@ -33,14 +33,6 @@ import AccessDenied from '../Authentication/AccessDenied';
 import AuditModal from '../AuditModal/AuditModal';
 import ModalAlert from '../ModalAlert/ModalAlert';
 
-// import GridLayout from 'react-grid-layout';
-// import { Responsive as ResponsiveGridLayout, WidthProvider  } from 'react-grid-layout';
-import { Responsive, WidthProvider } from "react-grid-layout";
-const ResponsiveGridLayout = WidthProvider(Responsive);
-require('react-grid-layout/css/styles.css');
-require('react-resizable/css/styles.css');
-//
-// const ResponsiveGridLayout = WidthProvider(Responsive);
 
 // DnD related methods
 const boxTarget = {
@@ -70,7 +62,7 @@ const Boxes = {
                   id: 'editTools', key: 'editTools', left: 0, top: 0,
                   hideSourceOnDrag:false, isResizeAllowed:false,
                   className: '', isMaximized: false,isAlwaysOnTop:true ,
-                  isBringToFront: false, isOpen: false, position: 'DnD' },
+                  isBringToFront: false, isOpen: false, position: 'pinnedTop' },
   editSection:  { isMoveBoxExternal: true, moveBoxComponent: 'reportGrid',
                   id: 'editSection', key: 'editSection', left: 10, top:60,
                   hideSourceOnDrag: false, isResizeAllowed:true,
@@ -79,7 +71,7 @@ const Boxes = {
   history : { isMoveBoxExternal: false, moveBoxComponent: this ,
                  id: 'history', key: 'history', left: 10, top:60,
                  hideSourceOnDrag: false, isResizeAllowed:true,
-                 className: 'col-md-6 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                 className: 'col-md-9 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
                  isBringToFront: false, isOpen: false, position: 'DnD' },
  details : { isMoveBoxExternal: false, moveBoxComponent: this ,
                 id: 'details', key: 'details', left: 10, top:60,
@@ -94,28 +86,13 @@ const Boxes = {
   allRules : { isMoveBoxExternal: false, moveBoxComponent: this ,
                  id: 'allRules', key: 'allRules', left: 10, top:60,
                  hideSourceOnDrag: false, isResizeAllowed:true,
-                 className: 'col-md-6 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
+                 className: 'col-md-9 col-xs-12', isMaximized: false,isAlwaysOnTop:false ,
                  isBringToFront: false, isOpen: false, position: 'DnD' },
 };
 
 class MaintainFreeFormatReportRules extends Component {
-  static defaultProps = {
-    className: "layout",
-    cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
-    rowHeight: 100,
-    draggableCancel: '.dontDragMe',
-  };
-
   constructor(props){
-
     super(props)
-    this.layoutsTemplate = {
-                              lg : {i: 'i', x: 0, y: Infinity, w: 6, h: 3, maxW:12,},
-                              md : {i: 'i', x: 0, y: Infinity, w: 5, h: 3, maxW:10,},
-                              sm : {i: 'i', x: 0, y: Infinity, w: 3, h: 3, maxW:6, },
-                              xs : {i: 'i', x: 0, y: Infinity, w: 4, h: 2, maxW:4, },
-                              xxs : {i: 'i', x: 0, y: Infinity, w: 2, h: 2, maxW:2, },
-                            };
     this.state = {
       displayOption: false,
       selectedReport: {},
@@ -123,16 +100,11 @@ class MaintainFreeFormatReportRules extends Component {
       detailsCell: {},
       // DnD boxes
       boxes: {...Boxes},
-      // RGL varibales
-      breakpoint: "lg",
-      cols: 12,
-      layouts: {},
     }
 
     // Variables for local scope
     this.openBoxObj = { isOpen: true, left: 0, top: 30, position: "DnD" };
     this.gridDataViewReport = undefined;
-    this.layoutChangeOrigin = null;
 
     // Functions to be used inthe component
     this.alphaSequence = this.alphaSequence.bind(this);
@@ -159,10 +131,6 @@ class MaintainFreeFormatReportRules extends Component {
     this.handleUpdateReportData = this.handleUpdateReportData.bind(this);
     this.handleCloseAllClick = this.handleCloseAllClick.bind(this);
     this.handlePinDndBox = this.handlePinDndBox.bind(this);
-
-    this.handleLayoutsOnClcikTools = this.handleLayoutsOnClcikTools.bind(this);
-    this.onBreakpointChange = this.onBreakpointChange.bind(this);
-    this.onLayoutChange = this.onLayoutChange.bind(this);
 
     // Grid buttons
     this.buttons=[
@@ -209,8 +177,7 @@ class MaintainFreeFormatReportRules extends Component {
         // TODO
           boxes: boxes,
           selectedReport: {},
-          displayOption: false,
-          layouts: {},
+          displayOption: false
         },
         ()=>{
           // TODO:  if any post refresh right pane
@@ -229,8 +196,7 @@ class MaintainFreeFormatReportRules extends Component {
       // TODO
         boxes: boxes,
         selectedReport: {},
-        displayOption: false,
-        layouts: {},
+        displayOption: false
       },
       ()=>{
         // TODO:  if any post refresh right pane
@@ -261,45 +227,30 @@ class MaintainFreeFormatReportRules extends Component {
 
   // Pin or float DnD box as desired
   handlePinDndBox(id,position){
-    let {boxes,layouts} = this.state;
-    if(position == "DnD") {
+    let boxes = this.state.boxes;
+    if(position == "DnD" && document.getElementById(id+boxes[id].position)) {
       this.handleOpenDnDBoxes(boxes,id);
-      // boxes[id].top =  document.getElementById("RegOpzReportGrid").offsetTop;
-      let bodyRect = document.body.getBoundingClientRect()
-      let childRect = document.getElementById(id+boxes[id].position).getBoundingClientRect();
-      boxes[id].top = childRect.top - bodyRect.top - 90;
-      // alert(id+boxes[id].position + "   " +rect.top + "  " + bodyRect.top)
+      boxes[id].top =  document.getElementById(id+boxes[id].position).offsetTop;
     }
     boxes[id].position = position ? position : "DnD";
-    if(!boxes[id].isMoveBoxExternal){
-      this.handleLayoutsOnClcikTools(position == "DnD" ? 'float' : 'open',id,layouts);
-      this.layoutChangeOrigin = id;
-    }
     // Object.assign(boxes[id],{isMaximized: !boxes[id].isMaximized});
-    this.setState({boxes,layouts});
+    this.setState(boxes);
   }
 
 // Open any DnD box and bring it to front and send all other boxes to the background
-  handleClickToOpenBox(id,isPartOfLayouts){
+  handleClickToOpenBox(id){
     let boxes = this.state.boxes;
-    let layouts = this.state.layouts;
-    isPartOfLayouts = isPartOfLayouts ? isPartOfLayouts : 'Yes';
     Object.assign(boxes[id],this.openBoxObj);
     Object.keys(boxes)
           .map(box=> {
               boxes[box].isBringToFront= (box == id ? true : false);
             }
           );
-    // Now add to the lay outs
-    if(isPartOfLayouts=='Yes'){
-      this.handleLayoutsOnClcikTools('open',id,layouts);
-    }
-    return {boxes:boxes,layouts:layouts};
+    return boxes;
   }
 
   // Close all open windows by setting the isOpen flag as false
   handleCloseAllClick(){
-    let layouts= {};
     let boxes = this.state.boxes;
     Object.keys(boxes)
           .map(box=> {
@@ -310,63 +261,33 @@ class MaintainFreeFormatReportRules extends Component {
               }
             }
           );
-    this.setState({boxes,layouts});
+    this.setState({boxes});
   }
 
   // Relative position  management for DnD open boxes
   handleOpenDnDBoxes(boxes,id){
-    if(id=='none' || boxes[id].position != "DnD"){
-      let safeTop = document.getElementById('RegOpzReportGrid').offsetTop + 60
+    if(boxes[id].position != "DnD"){
+      let pinnedBoxHeight = document.getElementById(id+boxes[id].position).offsetHeight;
+      let pinnedBoxTop = document.getElementById(id+boxes[id].position).offsetTop;
+      let maxHeight = document.getElementById("MaintainFreeFormatReportRules").offsetHeight - pinnedBoxHeight;
+      let safeTop = document.getElementById('RegOpzReportGrid').offsetTop - pinnedBoxHeight + 60
       Object.keys(boxes).map((key,index)=>{
-        if(id!=key && ((boxes[key].isOpen && boxes[key].position == "DnD") || boxes[key].isAlwaysOnTop)){
+        if(id!=key && boxes[key].isOpen && boxes[key].position == "DnD"){
+          console.log("handleToolsButtonClick","dndBox"+key,key,pinnedBoxHeight,maxHeight,safeTop,pinnedBoxTop,boxes[key].top)
           if (document.getElementById("dndBox"+key)) {
-            boxes[key].top = safeTop;
-            boxes[key].left = boxes[key].isAlwaysOnTop ? 0 : boxes[key].left;
+            let boxHeight = document.getElementById("dndBox"+key).offsetHeight;
+            console.log("handleToolsButtonClick",key,pinnedBoxHeight,maxHeight,safeTop,pinnedBoxTop,boxes[key].top,boxHeight)
+            if (boxes[key].top + boxHeight > maxHeight) {
+              boxes[key].top = safeTop;
+            } else if (boxes[key].top > (pinnedBoxTop + pinnedBoxHeight) ) {
+              boxes[key].top = boxes[key].top - pinnedBoxHeight;
+            }
           }
           // alert(key+boxes[key].top)
         }
       });
     }
     // return boxes;
-  }
-
-  // Handle to open->add to layouts, close->remove from layouts, float->remove from layouts
-  handleLayoutsOnClcikTools(action,id,layouts){
-    switch(action){
-      case "open":
-        // Add to layouts
-        Object.keys(this.layoutsTemplate).map((key,idx)=>{
-          let layout = {...this.layoutsTemplate[key]}
-          layout.i = id;
-          console.log("handleLayoutsOnClcikTools template key",key,layout.x,layout.w,layout.h)
-          if(Object.keys(layouts).includes(key)){
-              // _.remove(layouts[key],{i:id});
-              layouts[key].push(layout);
-            console.log("handleLayoutsOnClcikTools template layouts",layouts)
-          } else {
-            layouts[key]=[layout];
-            console.log("handleLayoutsOnClcikTools template else layouts",layouts)
-          }
-        });
-        break;
-      case "close":
-        // Remove from layouts
-        // Fallthrough as both close and float have same action
-      case "float":
-        // Remove from layouts
-        Object.keys(layouts).map((key,idx)=>{
-            let layout = {...this.layoutsTemplate[key]}
-            layout.i = id;
-            _.remove(layouts[key],{i:id});
-            // layout.w=0;
-            // layout.h=0;
-            // layouts[key].push(layout);
-        });
-        console.log("handleLayoutsOnClcikTools template close/float layouts",layouts)
-        break;
-    }
-
-    return layouts;
   }
 
 // Method to manage DnD boxes inside any child component
@@ -397,8 +318,7 @@ class MaintainFreeFormatReportRules extends Component {
       this.setState({
           boxes: boxes,
           selectedReport: selectedReport,
-          displayOption: "showReportGrid",
-          layouts: {},
+          displayOption: "showReportGrid"
        },
         ()=>{
           const { report_id } = this.state.selectedReport;
@@ -433,7 +353,7 @@ class MaintainFreeFormatReportRules extends Component {
 
   // Generic tools button click method
   handleToolsButtonClick(id, overrideWarning) {
-    let {boxes,layouts}  = {...this.state};
+    let boxes  = {...this.state.boxes};
     if(boxes[id].isOpen && !overrideWarning) {
       this.modalAlert.isDiscardToBeShown = true;
       this.modalAlert.customProps = { id: id };
@@ -463,20 +383,13 @@ class MaintainFreeFormatReportRules extends Component {
     } else {
       if (boxes[id].isOpen && overrideWarning) {
         this.handleOpenDnDBoxes(boxes,id);
-        layouts = this.handleLayoutsOnClcikTools('close',id,layouts);
         boxes[id].isOpen = false;
-        boxes[id].position = "pinnedTop";
+        boxes[id].position = "DnD";
       } else {
-        let boxesLayouts = this.handleClickToOpenBox(id,boxes[id].isMoveBoxExternal ? 'No':'Yes');
-        console.log("boxesLayouts",boxesLayouts)
-        boxes = boxesLayouts.boxes;
-        layouts = boxesLayouts.layouts;
-        boxes[id].position = "pinnedTop";
-        // boxes[id].top = document.getElementById('RegOpzReportGrid').offsetTop + 60;
-        this.layoutChangeOrigin = id;
+        boxes = this.handleClickToOpenBox(id);
+        boxes[id].top = document.getElementById('RegOpzReportGrid').offsetTop + 60;
       }
-      console.log("handleToolsButtonClick onLayoutChange",layouts,moment().format('h:mm:ss a'));
-      this.setState({boxes,layouts});
+      this.setState({boxes});
     }
   }
 
@@ -544,7 +457,6 @@ class MaintainFreeFormatReportRules extends Component {
   }
 
   handleReportRepositoryClick(){
-
     let isOpen = this.state.displayOption === "showReportRepository";
     if(isOpen) {
       this.props.leftMenuClick(true);
@@ -562,8 +474,7 @@ class MaintainFreeFormatReportRules extends Component {
       this.handleCloseAllClick();
       this.setState({
         selectedReport: {},
-        displayOption: "showReportRepository",
-        layouts: {},
+        displayOption: "showReportRepository"
         },
         ()=>{
           //TODO save in the def catalog
@@ -654,9 +565,7 @@ class MaintainFreeFormatReportRules extends Component {
             <Box
                 {...box}
               >
-              <div>
               { this.renderDynamic(box.id)}
-              </div>
             </Box>
           </div>
         );
@@ -828,54 +737,7 @@ class MaintainFreeFormatReportRules extends Component {
     );
   }
 
-
-  // We're using the cols coming back from this to calculate where to add new items.
-  onBreakpointChange(breakpoint, cols) {
-    this.setState({
-      breakpoint: breakpoint,
-      cols: cols
-    },
-    ()=>{console.log("onBreakpointChange", this.state, this.props.cols)}
-    );
-
-  }
-
-  onLayoutChange(layout, layouts) {
-    // let layouts = this.state.layouts;
-    console.log("onLayoutChange........",JSON.stringify(layout),JSON.stringify(layouts.md),JSON.stringify(this.state.layouts.md),moment().format('h:mm:ss a'));
-    // object.assign(layouts, layout);
-    // if(this.state.layouts.lg.length == layout.length) {
-    // let {boxes} = this.state;
-    // this.handleOpenDnDBoxes(boxes,'none');
-    if(this.layoutChangeOrigin){
-      let bp = this.state.breakpoint;
-      let gridLayout = _.find(layouts[bp],{i:this.layoutChangeOrigin});
-      let stateLayout = _.find(this.state.layouts[bp],{i:this.layoutChangeOrigin});
-      gridLayout.w = stateLayout.w;
-      gridLayout.h = stateLayout.h;
-      this.layoutChangeOrigin = null;
-      console.log("onLayoutChange........ 2...",JSON.stringify(layouts.md),JSON.stringify(this.state.layouts.md),moment().format('h:mm:ss a'));
-    }
-      this.setState({layouts});
-    // }
-  }
-
-
   render(){
-    if(!this.viewOnly && !this.writeOnly){
-      return(
-        <div>
-          <div className="row form-container">
-            <div className="x_panel">
-              <div className="x_content">
-                <AccessDenied
-                        component={"Maintain Report Rules Repository"}/>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
     const { connectDropTarget, dataCatalog } = this.props;
     const { report_description, report_id } = this.state.selectedReport;
     const { gridDataViewReport } = this;
@@ -941,70 +803,53 @@ class MaintainFreeFormatReportRules extends Component {
                   }
                   <div className="clearfix"></div>
                 </div>
-                <div id="entireGridLayout" className="x_content">
-                  {
-                    (()=>{
-                      let content = []
-                      let relatedLayout = this.state.layouts[this.state.breakpoint] ?
-                                          this.state.layouts[this.state.breakpoint] : [];
-                      relatedLayout.map((key,index)=>{
-                          content.push(
-                            <div id={key.i+this.state.boxes[key.i].position} key={key.i}
-                              style={{'border':'1px solid #E6E9ED', 'overflow': 'auto',}}>
-                              {
-                                this.state.boxes[key.i].isOpen &&
-                                this.state.boxes[key.i].position == "pinnedTop" &&
-                                <div>
-                                  {
-                                    this.renderDynamic(key.i)
-                                  }
-                                </div>
-                              }
-                              </div>
-                          );
-                        }
-                      )
-                      if(content.length>0){
-                        return(
-                          <ResponsiveGridLayout
-                            {...this.props}
-                            layouts={this.state.layouts}
-                            onBreakpointChange={this.onBreakpointChange}
-                            onLayoutChange={this.onLayoutChange}
-                            >
-                            {
-                              content
-                            }
-                            </ResponsiveGridLayout>
-                        )
-                      }
-                    })()
-                  }
-
+                <div className="x_content">
                   {
                     this.state.displayOption == "showReportGrid" &&
-                    <div >
-                      {
-                        (()=>{
-                          let content =[];
-                          Object.keys(this.state.boxes).map(key=>{
-                            // Add this way to avoid unmounting the entire component
-                            if(!this.state.boxes[key].isMoveBoxExternal){
-                              let id= key + "DnD";
-                              content.push(
-                                <div id={id}>
-                                  {
-                                    this.state.boxes[key].isOpen &&
-                                    this.state.boxes[key].position == "DnD" &&
-                                    this.renderBoxes(key)
-                                  }
-                                </div>
-                              )
-                            }
-                          })
-                          return content;
-                        })()
-                      }
+                    <div>
+                    {
+                      (()=>{
+                        let content =[];
+                        Object.keys(this.state.boxes).map(key=>{
+                          // Add this way to avoid unmounting the entire component
+                          // This is to facilitate pinning the window at the top
+                          if(!this.state.boxes[key].isMoveBoxExternal){
+                            let id= key + "pinnedTop"
+                            content.push(
+                              <div id={id}>
+                                {
+                                  this.state.boxes[key].isOpen &&
+                                  this.state.boxes[key].position == "pinnedTop" &&
+                                  this.renderDynamic(key)
+                                }
+                              </div>
+                            )
+                          }
+                        })
+                        return content;
+                      })()
+                    }
+                    {
+                      (()=>{
+                        let content =[];
+                        Object.keys(this.state.boxes).map(key=>{
+                          // Add this way to avoid unmounting the entire component
+                          if(!this.state.boxes[key].isMoveBoxExternal){
+                            let id= key + "DnD";
+                            content.push(
+                              <div id={id}>
+                                {
+                                  this.state.boxes[key].isOpen &&
+                                  this.state.boxes[key].position == "DnD" &&
+                                  this.renderBoxes(key)
+                                }
+                              </div>
+                            )
+                          }
+                        })
+                        return content;
+                      })()
+                    }
                     </div>
                   }
                   {this.renderDynamic(this.state.displayOption)}

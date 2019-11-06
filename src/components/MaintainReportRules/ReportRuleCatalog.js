@@ -143,7 +143,7 @@ class ReportCatalogList extends Component {
       if(!linkageData || typeof(linkageData) == 'undefined' || linkageData == null || linkageData.length == 0) {
         return(
           <div>
-            <h4>No Report Rule found! Please try a different date range or search criteria.</h4>
+            <h4>No Report Rule found! Please try a different search criteria.</h4>
           </div>
         );
       }
@@ -226,7 +226,7 @@ class ReportCatalogList extends Component {
                     </td>
                     <td>
                       <p
-                        className="truncate-text"
+                        className="preserve-text wrap-2-lines"
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}

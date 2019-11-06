@@ -8,7 +8,7 @@ import {
   Link,
   hashHistory
 } from 'react-router';
-import { WithContext as ReactTags } from 'react-tag-input';
+import { WithOutContext as ReactTags } from 'react-tag-input';
 import _ from 'lodash';
 import RuleAssist from './RuleAssist';
 import {

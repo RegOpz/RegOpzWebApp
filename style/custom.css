@@ -4357,6 +4357,27 @@ table thead .checkbox.radio { margin-top:-7px;margin-top:-21px; }
   white-space: nowrap;
   vertical-align: top;
 }
+
+.wrap-2-lines {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   display: -webkit-box;
+   /*line-height: 16px;*/     /* fallback */
+   /*max-height: 32px;*/      /* fallback */
+   -webkit-line-clamp: 2; /* number of lines to show */
+   -webkit-box-orient: vertical;
+}
+
+.wrap-3-lines {
+   overflow: hidden;
+   text-overflow: ellipsis;
+   display: -webkit-box;
+   /*line-height: 16px;*/     /* fallback */
+   /*max-height: 32px;*/      /* fallback */
+   -webkit-line-clamp: 3; /* number of lines to show */
+   -webkit-box-orient: vertical;
+}
+
 .wrap-text {
   white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
   white-space: -webkit-pre-wrap; /*Chrome & Safari */
@@ -4485,4 +4506,18 @@ input:checked + .slider:before {
 
 .cursor-pointer {
   cursor: pointer;
+}
+
+.box-tools {
+  position: absolute;
+  top: 1px;
+  right: 18px;
+  z-index: 100;
+  background: #ffffff;
+}
+
+.box-content-wrapper {
+  max-height:-webkit-fill-available;
+  overflow:auto;
+  padding-block-end: 5px;
 }

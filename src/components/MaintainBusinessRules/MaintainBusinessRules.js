@@ -138,7 +138,9 @@ class MaintainBusinessRules extends Component {
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.cell_business_rules,this.ruleFilterParam.source_id,
                                           this.ruleFilterParam.page,this.ruleFilterParam.business_date,
                                           this.ruleFilterParam.qualified_data_version,
-                                          this.props.origin);
+                                          // this.props.origin
+                                          this.ruleFilterParam.cell_calc_ref
+                                          );
     } else {
       this.props.fetchSources();
     }
@@ -146,10 +148,14 @@ class MaintainBusinessRules extends Component {
 
   componentWillReceiveProps(nextProps){
     console.log("this.props.origin....", this.props.origin);
-    if ((this.props.origin!="FIXEDFORMAT" && this.gridData != nextProps.gridBusinessRulesData) ||
-        (this.props.origin=="FIXEDFORMAT" && this.gridData != nextProps.gridBusinessRulesData_fixed)
+    if ((!this.flagRuleDrillDown && this.gridData != nextProps.gridBusinessRulesData) ||
+        (this.flagRuleDrillDown && this.gridData != nextProps.gridBusinessRulesData_drilldown[this.ruleFilterParam.cell_calc_ref])
       ){
-      this.gridData=(this.props.origin=="FIXEDFORMAT" ? nextProps.gridBusinessRulesData_fixed : nextProps.gridBusinessRulesData);
+      this.gridData=(this.flagRuleDrillDown ?
+                      nextProps.gridBusinessRulesData_drilldown[this.ruleFilterParam.cell_calc_ref]
+                      :
+                      nextProps.gridBusinessRulesData
+                    );
       this.currentPage = undefined;
       this.setState({loading: false,
                      selectedItem: nextProps.selectedItem ? nextProps.selectedItem : this.state.selectedItem,
@@ -168,7 +174,9 @@ class MaintainBusinessRules extends Component {
       this.props.fetchDrillDownRulesReport(this.ruleFilterParam.cell_business_rules,this.ruleFilterParam.source_id,
                                           this.ruleFilterParam.page,this.ruleFilterParam.business_date,
                                           this.ruleFilterParam.qualified_data_version,
-                                          this.props.origin);
+                                          // this.props.origin
+                                          this.ruleFilterParam.cell_calc_ref
+                                          );
     }
     if(this.props.leftmenu){
      this.setState({
@@ -365,10 +373,17 @@ class MaintainBusinessRules extends Component {
   fetchDataToGrid(event){
     let fetchPage=0;
     if(this.flagRuleDrillDown){
-      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+      // this.ruleFilterParam.page
+      this.props.fetchDrillDownRulesReport(this.ruleFilterParam.cell_business_rules,this.ruleFilterParam.source_id,
                                           fetchPage,this.ruleFilterParam.business_date,
                                           this.ruleFilterParam.qualified_data_version,
-                                          this.props.origin);
+                                          // this.props.origin
+                                          this.ruleFilterParam.cell_calc_ref
+                                          );
+      // this.props.fetchDrillDownRulesReport(this.ruleFilterParam.rules,this.ruleFilterParam.source_id,
+      //                                     fetchPage,this.ruleFilterParam.business_date,
+      //                                     this.ruleFilterParam.qualified_data_version,
+      //                                     this.props.origin);
     } else {
       this.props.fetchBusinesRules(this.state.sourceId,fetchPage);
     }
@@ -860,10 +875,10 @@ class MaintainBusinessRules extends Component {
               );
               break;
           case "showToggleColumns":
-              if (this.props.gridBusinessRulesData) {
+              if (this.gridData) {
                   return(
                       <ShowToggleColumns
-                        columns={this.props.gridBusinessRulesData.cols}
+                        columns={this.gridData.cols}
                         saveSelection={this.displaySelectedColumns}
                         selectedViewColumns={this.selectedViewColumns}
                         handleClose={this.handleToggle}
@@ -872,7 +887,7 @@ class MaintainBusinessRules extends Component {
               }
               break;
           case "showAddForm":
-              if (this.props.gridBusinessRulesData) {
+              // if (this.props.gridBusinessRulesData) {
                   return(
                       <AddBusinessRule
                         businessRule={this.form_data}
@@ -882,7 +897,7 @@ class MaintainBusinessRules extends Component {
                         groupId={ this.groupId }
                         />
                   );
-              }
+              // }
               break;
           case "showReportLinkage":
               return(
@@ -1036,7 +1051,7 @@ function mapStateToProps(state){
     //data_date_heads:state.view_data_store.dates,
     dataCatalog: state.view_data_store.sources,
     gridBusinessRulesData: state.business_rules.gridBusinessRulesData,
-    gridBusinessRulesData_fixed: state.business_rules.gridBusinessRulesData_fixedformat,
+    gridBusinessRulesData_drilldown: state.business_rules,
     report_linkage:state.business_rules.report_linkage,
     report_linkage_fixed:state.business_rules.report_linkage_fixedformat,
     change_history:state.def_change_store.audit_list,

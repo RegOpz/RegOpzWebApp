@@ -1,77 +1,44 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators, dispatch } from 'redux';
-import { Link } from 'react-router';
+import axios from 'axios';
 import { actionFetchSources } from '../../actions/MaintainSourcesAction';
 import { actionLoadData, actionLoadDataFile } from '../../actions/LoadDataAction';
 import {
     actionLeftMenuClick,
 } from '../../actions/LeftMenuAction';
-import { Grid, Row, Col, Alert } from 'react-bootstrap';
+import AddSources from './AddSources/AddSources';
 import SourceCatalogList from './SourceCatalog';
 import DisplayLoadData from './DisplayLoadData';
+import LoadingForm from '../Authentication/LoadingForm';
+import ModalAlert from '../ModalAlert/ModalAlert';
+import { BASE_URL } from '../../Constant/constant';
 
 class LoadData extends Component {
     constructor(props) {
         super(props);
-        console.log('Props: ', props);
-
         this.state = {
-            selectedItem: null,
-            applyRules: false,
-            loadInfo: {},
-            displayAlertMsg: false,
-            alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
-            alertStyle: "warning"
+          // TODO
+          sourceList: [],
         };
 
+        // This methods
+        this.loadingPage = this.loadingPage.bind(this);
         this.handleSourceClick = this.handleSourceClick.bind(this);
         this.handleLoadFile = this.handleLoadFile.bind(this);
+        this.handleRemoveFeedClick = this.handleRemoveFeedClick.bind(this);
+        this.handleShowDetailsClick = this.handleShowDetailsClick.bind(this);
 
-        //this.viewOnly = _.find(this.props.privileges, { permission: "Load Data" }) ? true : false;
         this.writeOnly = _.find(this.props.privileges, { permission: "Load Data" }) ? true : false;
     }
 
     componentWillMount() {
+      // Fetch sources at the begining
         this.props.fetchSources('ALL',this.props.login_details.domainInfo.country);
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.leftmenu) {
-            this.setState({
-                selectedItem: null,
-                displayAlertMsg: false,
-            });
-        } else {
-            let { alertMsg, alertStyle } = this.state;
-            console.log('At the begining of Next Props:', nextProps, nextProps.loadDataProps);
-            if (nextProps.loadDataProps.error || nextProps.loadDataProps.message) {
-                alertMsg = nextProps.loadDataProps.message;
-                alertMsg += nextProps.loadDataProps.error ? " " + nextProps.loadDataProps.error.data.msg : "";
-                alertStyle = "danger";
-                console.log('Error Loading The Data', this.state);
-            }
-            if (nextProps.loadDataProps.loadDataFileMsg) {
-                if (nextProps.loadDataProps.loadDataFileMsg.status === 'SUCCESS') {
-                    alertMsg = "File Transferred Successfully. Now Loading Data. This might take a while. Though you can continue working.";
-                    alertStyle = "info";
-                    this.props.loadData({
-                        source_id: this.state.loadInfo.source_id,
-                        business_date: this.state.loadInfo.business_date,
-                        data_file: nextProps.loadDataProps.loadDataFileMsg.filename,
-                        file: this.state.loadInfo.file.name
-                    });
-                    console.log('Now Loading The Data');
-                }
-                else if (nextProps.loadDataProps.loadDataFileMsg.msg === 'Data Loaded Successfully') {
-                    alertMsg = "Data Loaded Successfully.";
-                    alertStyle = "success";
-                    console.log('Now waiting for Data Load to complete');
-                }
-            }
-            this.setState({ alertMsg: alertMsg, alertStyle: alertStyle }, () => { console.log('End of setState...', this.state); });
-            console.log('Next Props:', nextProps, nextProps.loadDataProps);
-        }
+      // TODO
     }
 
     componentDidUpdate() {
@@ -79,121 +46,143 @@ class LoadData extends Component {
         this.props.leftMenuClick(false);
     }
 
-    handleSourceClick(item) {
-        console.log('Handle Source Click Item: ', item);
-        this.setState({
-            selectedItem: item,
-            alertMsg: "Data File is being transferred. This might take a while. Though you can continue working.",
-            alertStyle: "warning"
-        });
+
+    loadingPage(icon, color,msg){
+      return(
+        <LoadingForm
+          loadingMsg={
+              <div>
+                <div>
+                  <a className="btn btn-app" style={{"border": "none"}}>
+                    <i className={ "fa " + icon + " " + color }></i>
+                    <span className={color}>..........</span>
+                  </a>
+                </div>
+                <span className={color}>{msg}</span>
+                <br/>
+                <span className={color}>Please wait</span>
+              </div>
+            }
+          />
+      );
     }
 
-    handleLoadFile(option) {
-        console.log('Run handleLoadFile', option);
-        // data_file: option.selectedFile.name,
-        let loadInfo = {
-            source_id: option.item.source_id,
-            business_date: option.businessDate.format('YYYYMMDD'),
-            file: option.selectedFile
-        }
-        let applyRules = option.applyRules;
+    handleSourceClick(item) {
+        console.log('Handle Source Click Item: ', item);
+        let {sourceList} = this.state;
+        let sourceListItem = {
+                                ...item,
+                                selectedFile: null,
+                                selectedFileAttr: null,
+                                businessDate: null,
+                                applyRules: false,
+                                // showAll: false,
+                              };
+        sourceList.push(sourceListItem)
+        this.setState({sourceList},
+          ()=>{
+            console.log('Selected Source Clicked Item: ', this.state.sourceList);
+          });
+    }
 
-        this.setState({ applyRules: applyRules, loadInfo: loadInfo, displayAlertMsg: true });
-        window.document.body.scrollTop = 0;
-        this.props.loadDataFile(option.selectedFile);
+    handleShowDetailsClick(item){
+      this.modalAlert.isDiscardToBeShown = false;
+      this.modalAlert.isCloseButtonTobeShown = true;
+      this.modalAlert.modalTitle = "Source Details"
+      this.modalAlert.open(
+        <div className="small" style={{'max-height':'70vh','overflow':'auto'}}>
+          <AddSources
+            formData={ item }
+            readOnly={ true }
+            requestType={ "edit" }
+            handleClose={ ()=>{} }
+           />
+         </div>
+
+        );
+    }
+
+    handleRemoveFeedClick(index) {
+        console.log('Handle Source Click Remove Item: ', index);
+        let {sourceList} = this.state;
+        sourceList.splice(index, 1);
+        this.setState({sourceList},
+          ()=>{
+            console.log('Selected Source Remove Clicked Item: ', this.state.sourceList);
+          });
+    }
+
+
+    handleLoadFile(sourceList) {
+        console.log('Run handleLoadFile', sourceList);
+        // data_file: option.selectedFile.name,
+        sourceList.map((feed,index)=>{
+          // axios call is made in this component to make it synchrounus activity
+          // of transfer file and load data as transfer file will have a n output of filename
+          // to be used as input for load data file
+          let form = new FormData();
+          form.append('data_file', feed.selectedFile);
+          let url = BASE_URL + 'view-data-management/load-data';
+          const file =  axios.post(url,form)
+                              .then(function (response) {
+                                // console.log("response of axios post for index",index,response)
+                                let data = response.data;
+                                let loadInfo = {
+                                    source_id: feed.source_id,
+                                    business_date: feed.businessDate.format('YYYYMMDD'),
+                                    file: feed.selectedFile.name,
+                                    data_file: data.filename,
+                                    business_or_validation: "ALL",
+                                }
+                                this.props.loadData(loadInfo);
+                                // return(response);
+                                // console.log("loadInfo of axios post for index",loadInfo)
+                              }.bind(this));
+                              // .catch(function (error) {
+                              //   alert(error);
+                              //   });
+        })
+        this.setState({sourceList: [],},
+          ()=>{
+            // alert("Hello")
+          }
+        );
+
     }
 
     render() {
         if (typeof this.props.sourceCatalog !== 'undefined') {
             return (
                 <div>
-                    <div className="row form-container">
-                        <div className="x_panel">
-                            <div className="x_title">
-                                <div>
-                                    <h2>Load Data <small> Load Data for Available Sources</small></h2>
-                                    <div className="row">
-                                        <ul className="nav navbar-right panel_toolbox">
-                                            <li>
-                                                <a className="user-profile dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                                                    <i className="fa fa-rss"></i><small>{' Sources '}</small>
-                                                    <i className="fa fa-caret-down"></i>
-                                                </a>
-                                                <ul className="dropdown-menu dropdown-usermenu pull-right" style={{ "zIndex": 9999 }}>
-                                                    <li style={{ "padding": "5px" }}>
-                                                        <Link to="/dashboard/load-data"
-                                                            onClick={() => { this.setState({ selectedItem: null, displayAlertMsg: false, }) }}
-                                                        >
-                                                            <i className="fa fa-bars"></i> All Sources List
-                                                        </Link>
-                                                    </li>
-                                                    <li>
-                                                        <SourceCatalogList
-                                                            sourceCatalog={this.props.sourceCatalog.country}
-                                                            navMenu={true}
-                                                            handleSourceClick={this.handleSourceClick}
-                                                        />
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        </ul>
-                                        {
-                                          !this.state.selectedItem &&
-                                          <ul className="nav navbar-right panel_toolbox">
-                                            <li>
-                                              <a className="user-profile"
-                                                aria-expanded="false"
-                                                data-toggle="tooltip"
-                                                data-placement="top"
-                                                title="Refresh List"
-                                                onClick={
-                                                    (event) => {
-                                                      this.props.fetchSources('ALL',this.props.login_details.domainInfo.country);
-                                                    }
-                                                  }
-                                                >
-                                                <i className="fa fa-refresh"></i><small>{' Refresh '}</small>
-                                              </a>
-                                            </li>
-                                          </ul>
-                                        }
-                                    </div>
-                                    <div className="clearfix"></div>
-                                </div>
-                            </div>
-                            <div className="x_content">
-                                {
-                                    this.state.displayAlertMsg &&
-                                    <Alert bsStyle={this.state.alertStyle}>
-                                        {this.state.alertMsg}
-                                    </Alert>
-                                }
-                            </div>
-                            <div className="x_content">
-                                {
-                                    this.state.selectedItem ?
-                                        <DisplayLoadData
-                                            selectedItem={this.state.selectedItem}
-                                            handleLoadFile={this.handleLoadFile}
-                                        /> :
-                                        <h4>Please Select a Source to Load Data</h4>
-                                }
-                                {
-                                    !this.state.selectedItem &&
-                                    <SourceCatalogList
-                                        sourceCatalog={this.props.sourceCatalog.country}
-                                        navMenu={false}
-                                        handleSourceClick={this.handleSourceClick}
-                                    />
-                                }
-                            </div>
-                        </div>
-                    </div>
+                  <div className="col-sm-6 col-md-6 col-xs-12">
+                    <SourceCatalogList
+                        sourceCatalog={this.props.sourceCatalog.country}
+                        navMenu={false}
+                        handleSourceClick={this.handleSourceClick}
+                        handleShowDetailsClick={this.handleShowDetailsClick}
+                    />
+                  </div>
+                  <div className="col-sm-6 col-md-6 col-xs-12">
+                    <DisplayLoadData
+                        sourceList={this.state.sourceList}
+                        handleLoadFile={this.handleLoadFile}
+                        handleRemoveFeedClick={this.handleRemoveFeedClick}
+                        handleShowDetailsClick={this.handleShowDetailsClick}
+                    />
+                  </div>
+                  <ModalAlert
+                    ref={(modalAlert) => {this.modalAlert = modalAlert}}
+                    onClickOkay={this.handleModalOkayClick}
+                  />
                 </div>
             )
         } else {
             return (
-                <h4> Loading.....</h4>
+              <div>
+                {
+                  this.loadingPage("fa-rss", "blue","Loading Source Feed List")
+                }
+              </div>
             );
         }
     }
@@ -203,7 +192,6 @@ function mapStateToProps(state) {
     console.log('State: ', state);
     return {
         sourceCatalog: state.source_feeds.sources,
-        loadDataProps: state.loadData,
         login_details: state.login_store,
         leftmenu: state.leftmenu_store.leftmenuclick,
     };

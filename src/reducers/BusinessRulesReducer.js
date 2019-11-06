@@ -15,16 +15,18 @@ import {
 
 // TODO:
 export default function(state=[], action) {
-  console.log("Action received: ",action);
+  console.log("Action received BusinessRulesReducer: ",action);
   switch(action.type) {
     case FETCH_RULES:
       return Object.assign({}, state, {
         gridBusinessRulesData: action.payload.data
       });
     case FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT:
-      return Object.assign({}, state, {
-        gridBusinessRulesData_fixedformat: action.payload.data
-      });
+      let origin = action.payload.data.origin;
+      let drilldown = {};
+      drilldown[origin] = action.payload.data;
+      console.log("Action received BusinessRulesReducer FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT : ",action.payload,action.payload.data);
+      return Object.assign({}, state, drilldown);
     case FETCH_DRILLDOWN_RULES_REPORT:
       return Object.assign({}, state, {
         gridBusinessRulesData: action.payload.data

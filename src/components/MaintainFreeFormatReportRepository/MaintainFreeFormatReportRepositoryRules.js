@@ -21,13 +21,12 @@ import {
 import ItemTypes from '../DragObjects/ItemTypes';
 import Box from '../DragObjects/Box';
 // Other components for free format report maintenance
-import ReportCatalogList from '../MaintainReportRules/ReportRuleCatalog';
-import ReportBusinessRules from '../MaintainReportRules/ReportBusinessRules';
+import ReportRepoCatalogList from '../MaintainReportRulesRepository/ReportRuleRepositoryCatalog';
+import ReportRepoBusinessRules from '../MaintainReportRulesRepository/ReportRepoBusinessRules';
 import MaintainReportRulesRepository from '../MaintainReportRulesRepository/MaintainReportRulesRepository';
 import RegOpzReportGrid from '../RegOpzReportGrid/RegOpzReportGrid';
-import HotTableSection from '../RegOpzReportGrid/HotTableSection';
-import ReportChangeHistory from './ReportChangeHistory';
-import ReportCellDetails from './ReportCellDetails';
+import ReportRepoChangeHistory from './ReportRepoChangeHistory';
+import ReportRepoCellDetails from './ReportRepoCellDetails';
 import LoadingForm from '../Authentication/LoadingForm';
 import AccessDenied from '../Authentication/AccessDenied';
 import AuditModal from '../AuditModal/AuditModal';
@@ -42,6 +41,7 @@ require('react-resizable/css/styles.css');
 //
 // const ResponsiveGridLayout = WidthProvider(Responsive);
 
+
 // DnD related methods
 const boxTarget = {
 	drop(props, monitor, component) {
@@ -52,7 +52,7 @@ const boxTarget = {
 		const item = monitor.getItem();
 		const delta = monitor.getDifferenceFromInitialOffset();
     const left = Math.round(item.left + delta.x) < 0 ? 0 : Math.round(item.left + delta.x);
-		const top = Math.round(item.top + delta.y) < 10 ? 10 : Math.round(item.top + delta.y);
+		const top = Math.round(item.top + delta.y) < -50 ? -50 : Math.round(item.top + delta.y);
 
 		component.moveBox(item.id, left, top);
 	},
@@ -98,7 +98,8 @@ const Boxes = {
                  isBringToFront: false, isOpen: false, position: 'DnD' },
 };
 
-class MaintainFreeFormatReportRules extends Component {
+class MaintainFreeFormatReportRepoRules extends Component {
+
   static defaultProps = {
     className: "layout",
     cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
@@ -107,7 +108,6 @@ class MaintainFreeFormatReportRules extends Component {
   };
 
   constructor(props){
-
     super(props)
     this.layoutsTemplate = {
                               lg : {i: 'i', x: 0, y: Infinity, w: 6, h: 3, maxW:12,},
@@ -168,9 +168,9 @@ class MaintainFreeFormatReportRules extends Component {
     this.buttons=[
       // {id: 'details', title: 'Cell Rule Details', onClick: this.handleRefreshGrid.bind(this), toolObj: <i className="fa fa-refresh green"></i>},
       { id: 'refresh', title: 'Refresh Report', onClick: this.handleReportClick, toolObj: <i className="fa fa-refresh"></i> },
-      { id: 'details', title: 'Cell Rule Details', onClick: this.handleDetailsClick, toolObj: <i className="fa fa-cog green"></i> },
-      { id: 'history', title: 'Report Change History', onClick: this.handleHistoryClick, toolObj: <i className="fa fa-history dark"></i> },
-      { id: 'allRules', title: 'All Report Rules', onClick: this.handleReportBusinessRulesClick, toolObj: <i className="fa fa-link aero"></i> },
+      { id: 'details', title: 'Cell Rule Details', onClick: this.handleDetailsClick, toolObj: <i className="fa fa-cog green"></i>},
+      { id: 'history', title: 'Report Change History', onClick: this.handleHistoryClick, toolObj: <i className="fa fa-history dark"></i>},
+      { id: 'allRules', title: 'All Report Rules', onClick: this.handleReportBusinessRulesClick, toolObj: <i className="fa fa-link aero"></i>},
       { id: 'parameters', title: 'Edit Report Parameters', onClick: this.handleEditParameterClick, toolObj: <i className="fa fa-cogs dark"></i> },
       { id: 'closeAll', title: 'Close All Open Boxes', onClick: this.handleCloseAllClick, toolObj: <i className="fa fa-power-off red"></i> },
       // { title: 'Save Report Rules', iconClass: 'fa-puzzle-piece', checkDisabled: 'No', className: "btn-info", onClick: this.handleExportRules.bind(this) },
@@ -180,11 +180,11 @@ class MaintainFreeFormatReportRules extends Component {
 
 
     // Check subscription and permissions as required to determine the role of the user and domain
-    this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules"];
-    this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules"}) : null;
+    // this.isSubscribed=JSON.parse(this.props.login_details.domainInfo.subscription_details)["Maintain Report Rules Repository"];
+    // this.component=this.isSubscribed ? _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"}) : null;
 
-    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules" }) ? true : false;
-    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules" }) ? true : false;
+    this.viewOnly = _.find(this.props.privileges, { permission: "View Report Rules Repository" }) ? true : false;
+    this.writeOnly = _.find(this.props.privileges, { permission: "Edit Report Rules Repository" }) ? true : false;
   }
 
   componentWillMount() {
@@ -299,7 +299,7 @@ class MaintainFreeFormatReportRules extends Component {
 
   // Close all open windows by setting the isOpen flag as false
   handleCloseAllClick(){
-    let layouts= {};
+    let layouts = {};
     let boxes = this.state.boxes;
     Object.keys(boxes)
           .map(box=> {
@@ -376,36 +376,28 @@ class MaintainFreeFormatReportRules extends Component {
 
   handleReportClick(selectedReport) {
     selectedReport = selectedReport ? selectedReport : this.state.selectedReport;
-    if(selectedReport.access_type=="No access"){
-      this.modalAlert.isDiscardToBeShown = false;
-      this.modalAlert.open(
-        <div className=" mid_center">
-          <h3><i className="fa fa-warning red"></i>&nbsp;</h3>
-          {"Please note that you do not have access to view report " + selectedReport.report_id + ". Contact administrator for required permission."}
-        </div>);
-      this.setState({displayOption: "accessDenied",selectedReport: selectedReport,});
-    } else {
-      // Close open DnD boxes
-      let boxes = this.state.boxes;
-      Object.keys(boxes).map((id,index)=>{
-        boxes[id].isOpen = false;
-      })
-      // Reset gridDataViewReport data, so that last instance of the data is not rendered,
-      // and assign the value subsequently through nextProps
-      // selectedReport = selectedReport ? selectedReport : this.state.selectedReport;
-      this.gridDataViewReport=undefined;
-      this.setState({
-          boxes: boxes,
-          selectedReport: selectedReport,
-          displayOption: "showReportGrid",
-          layouts: {},
-       },
-        ()=>{
-          const { report_id } = this.state.selectedReport;
-          this.props.fetchReportData(report_id)
-        }
-      );
-    }
+
+    // Close open DnD boxes
+    let boxes = this.state.boxes;
+    Object.keys(boxes).map((id,index)=>{
+      boxes[id].isOpen = false;
+    })
+    // Reset gridDataViewReport data, so that last instance of the data is not rendered,
+    // and assign the value subsequently through nextProps
+    // selectedReport = selectedReport ? selectedReport : this.state.selectedReport;
+    this.gridDataViewReport=undefined;
+    this.setState({
+        boxes: boxes,
+        selectedReport: selectedReport,
+        displayOption: "showReportGrid",
+        layouts: {},
+     },
+      ()=>{
+        const { report_id } = this.state.selectedReport;
+        this.props.fetchReportData(report_id,undefined,"master")
+      }
+    );
+
   }
 
   handleSelectCell(sheetName, cell_selected, sheetIndexKey){
@@ -545,31 +537,21 @@ class MaintainFreeFormatReportRules extends Component {
 
   handleReportRepositoryClick(){
 
-    let isOpen = this.state.displayOption === "showReportRepository";
-    if(isOpen) {
-      this.props.leftMenuClick(true);
-      // this.setState({
-      //   selectedReport: {},
-      //   displayOption: false
-      //   },
-      //   ()=>{
-      //     // this.props.fetchReportTemplateList();
-      //   }
-      // );
-    } else {
-      //this.props.fetchReportChangeHistory(this.state.reportId);
-      //console.log("Repot Linkage",this.props.change_history);
-      this.handleCloseAllClick();
-      this.setState({
+    let boxes = this.state.boxes;
+    Object.keys(boxes).map((id,index)=>{
+      boxes[id].isOpen = false;
+    })
+    this.setState({
+      // TODO
+        boxes: boxes,
         selectedReport: {},
-        displayOption: "showReportRepository",
+        displayOption: false,
         layouts: {},
-        },
-        ()=>{
-          //TODO save in the def catalog
-        }
-      );
-    }
+      },
+      ()=>{
+        // TODO:  if any post refresh right pane
+      }
+    );
   }
 
   isSectionDefined(){
@@ -612,7 +594,7 @@ class MaintainFreeFormatReportRules extends Component {
   }
 
   handleUpdateReportData(report_data){
-    this.props.updateReportData(this.state.selectedReport.report_id, report_data);
+    this.props.updateReportData(this.state.selectedReport.report_id, report_data,"master");
   }
 
   handleModalOkayClick(event){
@@ -706,7 +688,7 @@ class MaintainFreeFormatReportRules extends Component {
           break;
       case "history":
           return(
-            <ReportChangeHistory
+            <ReportRepoChangeHistory
               history={ this.state.boxes.history }
               selectedReport={ this.state.selectedReport }
               gridDataViewReport={ this.gridDataViewReport }
@@ -720,7 +702,7 @@ class MaintainFreeFormatReportRules extends Component {
       case "allRules":
           let reportId  = this.state.selectedReport.report_id;
           return(
-            <ReportBusinessRules
+            <ReportRepoBusinessRules
               reportId={ reportId }
               allRules={ this.state.boxes.allRules }
               handleClose={this.handleReportBusinessRulesClick}
@@ -738,13 +720,14 @@ class MaintainFreeFormatReportRules extends Component {
           );
           break;
       case "details":
-          console.log("details for the selected cell...",this.state)
+          console.log("reportrepository details for the selected cell...",this.state)
           if(this.state.detailsCell[detailsId] && this.state.detailsCell[detailsId].section){
             switch(this.state.detailsCell[detailsId].section.section_type){
               case "FIXEDFORMAT":
                 return(
-                  <ReportCellDetails
+                  <ReportRepoCellDetails
                     groupId={ this.props.groupId }
+                    country={ this.state.selectedReport.country }
                     viewOnly={ this.viewOnly }
                     writeOnly={ this.writeOnly }
                     reportGrid={ this.reportGrid }
@@ -769,35 +752,28 @@ class MaintainFreeFormatReportRules extends Component {
 
           return(
             <div className="mid_center">
-              That's embarrassing !!!zzzzz No section information available ????
+              Repository, That's embarrassing !!!zzzzz No section information available ????
               <span>{JSON.stringify(this.state.detailsCell[detailsId])}</span>
             </div>
           );
           break;
-      case "showReportRepository":
-          this.component= _.find(this.props.login_details.permission,{component:"Maintain Report Rules Repository"});
-          return(
-                  <MaintainReportRulesRepository
-                    privileges={ this.component ? this.component.permissions : null }
-                    tenantRenderType={"copyRule"}
-                    reportFormat={"COMPOSIT"}
-                    country={this.props.login_details.domainInfo.country}
-                    handleCancel={this.handleReportRepositoryClick}
-                    groupId={this.props.groupId}
-                    tenant_report_details={this.state.selectedReport}
-                    />
-                );
-          break;
       case "accessDenied":
           if (this.state.selectedReport){
               return <AccessDenied
-                      component={"View Report Rules for Report [" + this.state.selectedReport.report_id +"] "}/>
+                      component={"View Repository Report Rules for Report [" + this.state.selectedReport.report_id +"] "}/>
           }
           break;
       default:
-          console.log(this.props.login_details.report,this.props.dataCatalog)
+          let a = <ReportRepoCatalogList
+            dataCatalog={this.props.dataCatalog}
+            navMenu={false}
+            handleReportClick={this.handleReportClick}
+            constantFilter={"COMPOSIT"}
+            reportPermissions={ this.props.login_details.report}
+            />
+          console.log("default display option ",a)
           return(
-              <ReportCatalogList
+              <ReportRepoCatalogList
                 dataCatalog={this.props.dataCatalog}
                 navMenu={false}
                 handleReportClick={this.handleReportClick}
@@ -827,7 +803,6 @@ class MaintainFreeFormatReportRules extends Component {
         />
     );
   }
-
 
   // We're using the cols coming back from this to calculate where to add new items.
   onBreakpointChange(breakpoint, cols) {
@@ -860,8 +835,8 @@ class MaintainFreeFormatReportRules extends Component {
     // }
   }
 
-
   render(){
+    console.log("On mapState MaintainFreeFormatReportRepoRules this state 1111", this.state, this.state.boxes.allRules.isOpen);
     if(!this.viewOnly && !this.writeOnly){
       return(
         <div>
@@ -880,62 +855,51 @@ class MaintainFreeFormatReportRules extends Component {
     const { report_description, report_id } = this.state.selectedReport;
     const { gridDataViewReport } = this;
     let content =[];
-    console.log("On mapState MaintainFreeFormatReportRules this state", this.state);
+
+    console.log("On mapState MaintainFreeFormatReportRepoRules this state", dataCatalog,this.state, this.state.layouts,this.props.onLayoutChange);
     if (typeof dataCatalog !== 'undefined') {
+        // alert(document.getElementById("MaintainFreeFormatReportRepoRules").offsetWidth)
         return connectDropTarget(
-          <div id="MaintainFreeFormatReportRules">
+          <div id="MaintainFreeFormatReportRepoRules">
             <div className="row form-container">
               <div className="x_panel">
                 <div className="x_title">
                   {
                     !this.state.displayOption &&
                     <div>
-                      <h2>View Report Rules <small>Available Report Rules for </small>
-                        <small>{moment(this.state.startDate).format("DD-MMM-YYYY") + ' to ' + moment(this.state.endDate).format("DD-MMM-YYYY")}</small>
+                      <h2>View Report Repository Rules <small>Available Report Rules</small>
                       </h2>
-                      <ul className="nav navbar-right panel_toolbox">
-                        <li>
-                          <a className="close-link"
-                            onClick={()=>{this.handleReportRepositoryClick()}}
-                            title={"Report Repository"}>
-                            <i className="fa fa-folder-open dark"></i>
-                          </a>
-                        </li>
-                        <li>
-                          <a className="close-link"
-                            onClick={()=>{this.props.leftMenuClick(true)}}
-                            title={"Refresh List"}>
-                            <i className="fa fa-refresh"></i>
-                          </a>
-                        </li>
-                      </ul>
+                      {
+                        this.props.tenantRenderType !="copyRule" &&
+                        <ul className="nav navbar-right panel_toolbox">
+                          <li>
+                            <a className="close-link"
+                              onClick={()=>{this.props.leftMenuClick(true)}}
+                              title={"Refresh List"}>
+                              <i className="fa fa-refresh"></i>
+                            </a>
+                          </li>
+                        </ul>
+                      }
                     </div>
                   }
                   {
                     this.state.displayOption &&
                     <div>
-                      <h2>Maintain Report Rules <small>{' Report '}</small>
+                      <h2>{
+                          (this.props.tenantRenderType=="copyRule" ? "Copy " : "Maintain ") +
+                          "Report Repository Rules "}<small>{' Report '}</small>
                         <small><i className="fa fa-file-text"></i></small>
                         <small title={report_description}>{report_id }</small>
                       </h2>
                       <ul className="nav navbar-right panel_toolbox">
                         <li>
                           <a className="close-link"
-                            onClick={()=>{this.props.leftMenuClick(true)}}
-                            title={"Back to Report List"}>
-                            <i className="fa fa-th-list"></i>
+                            onClick={()=>{this.handleReportRepositoryClick()}}
+                            title={"Back to Report Repository List"}>
+                            <i className="fa fa-folder-open dark"></i>
                           </a>
                         </li>
-                        {
-                          this.state.displayOption != "showReportRepository" &&
-                          <li>
-                            <a className="close-link"
-                              onClick={()=>{this.handleReportRepositoryClick()}}
-                              title={"Report Repository"}>
-                              <i className="fa fa-folder-open dark"></i>
-                            </a>
-                          </li>
-                        }
                       </ul>
                     </div>
                   }
@@ -950,7 +914,7 @@ class MaintainFreeFormatReportRules extends Component {
                       relatedLayout.map((key,index)=>{
                           content.push(
                             <div id={key.i+this.state.boxes[key.i].position} key={key.i}
-                              style={{'border':'1px solid #E6E9ED', 'overflow': 'auto',}}>
+                              style={{'border':'1px solid #E6E9ED',}}>
                               {
                                 this.state.boxes[key.i].isOpen &&
                                 this.state.boxes[key.i].position == "pinnedTop" &&
@@ -1035,7 +999,7 @@ class MaintainFreeFormatReportRules extends Component {
 }
 
 function mapStateToProps(state){
-  console.log("On mapState MaintainFreeFormatReportRules ", state);
+  console.log("On mapState MaintainFreeFormatReportRepoRules ", state);
   return {
     gridDataViewReport: state.freeFormatReport.report_grid,
     login_details: state.login_store,
@@ -1045,21 +1009,21 @@ function mapStateToProps(state){
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    fetchReportData:(report_id, reporting_date)=>{
-      dispatch(actionFetchFreeFormatReportData(report_id, reporting_date))
+    fetchReportData:(report_id, reporting_date,domain_type)=>{
+      dispatch(actionFetchFreeFormatReportData(report_id, reporting_date,undefined,undefined,undefined,domain_type))
     },
     leftMenuClick:(isLeftMenu) => {
       dispatch(actionLeftMenuClick(isLeftMenu));
     },
-    updateReportData:(report_id, report_data)=>{
-      dispatch(actionUpdateFreeFormatReportData(report_id, report_data))
+    updateReportData:(report_id, report_data, domain_type)=>{
+      dispatch(actionUpdateFreeFormatReportData(report_id, report_data, domain_type))
     },
   }
 }
 
-const VisibleMaintainFreeFormatReportRules = connect(
+const VisibleMaintainFreeFormatReportRepoRules = connect(
   mapStateToProps,
   mapDispatchToProps
-)(DropTarget(ItemTypes.BOX, boxTarget, collect)(MaintainFreeFormatReportRules));
+)(DropTarget(ItemTypes.BOX, boxTarget, collect)(MaintainFreeFormatReportRepoRules));
 
-export default VisibleMaintainFreeFormatReportRules;
+export default VisibleMaintainFreeFormatReportRepoRules;

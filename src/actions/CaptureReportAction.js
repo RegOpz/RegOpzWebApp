@@ -6,7 +6,8 @@ export let DRILL_DOWN = 'DRILL_DOWN';
 
 // TODO:
 export function actionFetchReportData(report_id, reporting_date, version,report_snapshot,report_parameters) {
-  let url = BASE_URL + "view-report/report/" + report_id;
+  // let url = BASE_URL + "view-report/report/" + report_id;
+  let url = BASE_URL + "free-format-report/report/" + report_id;
   if(reporting_date){
     url+="?reporting_date="+reporting_date;
   }

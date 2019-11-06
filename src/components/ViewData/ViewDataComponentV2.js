@@ -148,8 +148,18 @@ class ViewDataComponentV2 extends Component {
 
   componentWillReceiveProps(nextProps){
     if(this.gridData != nextProps.gridData){
-      console.log("nextProps gridData ...",this.gridData, nextProps.gridData,this.state,nextProps.selectedItem);
-      this.gridData=nextProps.gridData;
+      if(nextProps.gridData){
+        console.log("nextProps gridData ...",nextProps.gridData);
+        // console.log("nextProps gridData ...",nextProps.gridData.cell_details.cell_calc_ref,this.dataFilterParam.params.drill_kwargs.cell_calc_ref);
+      }
+      if(!this.flagDataDrillDown ||
+          ( this.flagDataDrillDown &&
+            this.dataFilterParam.params.drill_kwargs.cell_calc_ref == nextProps.gridData.cell_details.cell_calc_ref
+          )
+        ){
+          this.gridData=nextProps.gridData;
+        }
+      // this.gridData=nextProps.gridData;
       let pages = Math.ceil(this.gridData.count / this.state.pageSize);
       this.setState({isFetched: true,
                      pages: pages,
@@ -157,15 +167,26 @@ class ViewDataComponentV2 extends Component {
                      display: nextProps.showBusinessRuleGrid ? nextProps.showBusinessRuleGrid : this.state.display,
                    });
     }
-    this.reportLinkage=nextProps.report_linkage;
-    this.changeHistory=nextProps.change_history;
-    //this.flagDataDrillDown = false;
-    if(nextProps.flagDataDrillDown && this.dataFilterParam.params.drill_kwargs.cell_calc_ref != nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref ){
-      console.log("Inside componentWillReceiveProps of ViewDataComponentV2",nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref);
-      this.flagDataDrillDown = nextProps.flagDataDrillDown;
-      this.dataFilterParam=nextProps.dataFilterParam;
-      this.props.fetchDrillDownReport(this.dataFilterParam);
+    if(this.flagDataDrillDown){
+      if(typeof this.reportLinkage == 'undefined'){
+        this.reportLinkage=nextProps.report_linkage;
+      }
+      if(typeof this.changeHistory == 'undefined'){
+        this.changeHistory=nextProps.change_history;
+      }
+
+    } else {
+      this.reportLinkage=nextProps.report_linkage;
+      this.changeHistory=nextProps.change_history;
     }
+
+    //this.flagDataDrillDown = false;
+    // if(nextProps.flagDataDrillDown && this.dataFilterParam.params.drill_kwargs.cell_calc_ref != nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref ){
+    //   console.log("Inside componentWillReceiveProps of ViewDataComponentV2",nextProps.dataFilterParam.params.drill_kwargs.cell_calc_ref);
+    //   this.flagDataDrillDown = nextProps.flagDataDrillDown;
+    //   this.dataFilterParam=nextProps.dataFilterParam;
+    //   this.props.fetchDrillDownReport(this.dataFilterParam);
+    // }
     if(this.props.leftmenu){
       this.setState({
         display: false,
@@ -909,11 +930,28 @@ class ViewDataComponentV2 extends Component {
           case "showHistory":
               if (this.props.change_history) {
                   return(
-                      <DefAuditHistory
-                        data={ this.changeHistory }
-                        historyReference={ "" }
-                        handleClose={this.handleHistoryClick}
-                        />
+                    <div className="x_panel">
+                      <div className="x_title">
+                        <h2>Data Change History</h2>
+                        <ul className="nav navbar-right panel_toolbox">
+                          <li>
+                            <a className="close-link"
+                              title="Close Change History"
+                              onClick={(event)=>{
+                                this.handleHistoryClick(event);
+                              }}><i className="fa fa-close"></i></a>
+                          </li>
+                        </ul>
+                        <div className="clearfix"></div>
+                      </div>
+                      <div className="x_content">
+                        <DefAuditHistory
+                          data={ this.changeHistory }
+                          historyReference={ "" }
+                          handleClose={this.handleHistoryClick}
+                          />
+                      </div>
+                    </div>
                   );
               }
               break;

@@ -178,8 +178,8 @@
 .htEdittools {
   border:1px solid #dddddd94;
   margin: 1px;
-  /* To set more priority over base elements, but less than DragObjects (which is z-index of 999,1002 and 9999) */
-  z-index: 1;
+  /* To set more priority over base elements, but less than DragObjects (which is z-index of 999,1002 and 1010) */
+  /* z-index: 1; */
 }
 
 .htEdittools:hover {

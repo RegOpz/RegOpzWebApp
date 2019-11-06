@@ -19,6 +19,23 @@ export default function authenticate(ComposedComponent,ignoreComponentPermission
       };
 
       this.showWarnTimeout = false;
+      this.events = [
+        'load',
+        'mousemove',
+        'mousedown',
+        'click',
+        'scroll',
+        'keypress',
+        'keydown',
+        'focus',
+        // 'wheel',
+        // 'DOMMouseScroll',
+        // 'mouseWheel',
+        // 'touchstart',
+        // 'touchmove',
+        // 'MSPointerDown',
+        // 'MSPointerMove'
+      ];
       // Methods
       this.clearTimeoutFunc = this.clearTimeoutFunc.bind(this);
       this.setTimeout = this.setTimeout.bind(this);
@@ -31,30 +48,19 @@ export default function authenticate(ComposedComponent,ignoreComponentPermission
 
      // Auto logout code injection
      componentDidMount() {
-         this.events = [
-           'load',
-           'mousemove',
-           'mousedown',
-           'click',
-           'scroll',
-           'keypress',
-           'keydown',
-           'focus',
-           // 'wheel',
-           // 'DOMMouseScroll',
-           // 'mouseWheel',
-           // 'touchstart',
-           // 'touchmove',
-           // 'MSPointerDown',
-           // 'MSPointerMove'
-         ];
-
          for (var i in this.events) {
            window.addEventListener(this.events[i], this.resetTimeout);
          }
 
          this.setTimeout();
        }
+
+     componentWillUnmount() {
+         for (var i in this.events) {
+           window.removeEventListener(this.events[i], this.resetTimeout);
+         }
+         this.clearTimeoutFunc();
+      }
 
        clearTimeoutFunc() {
          if (this.warnTimeout) clearTimeout(this.warnTimeout);
@@ -114,6 +120,8 @@ export default function authenticate(ComposedComponent,ignoreComponentPermission
        destroy() {
         //clear the session
          this.props.logoutAPI();
+         // Force reload the window to clean store values
+         window.location.reload();
          // browserHistory.push('/');
          // window.location.assign('/');
        };
@@ -128,7 +136,7 @@ export default function authenticate(ComposedComponent,ignoreComponentPermission
 
       render(){
         // const name=componentMaptoName[getDisplayName(ComposedComponent).replace("Connect(",'').replace(")",'')];
-        console.log("ComposedComponent......", this.props.route.name);
+        // console.log("ComposedComponent......", this.props.route.name);
         const name=this.props.route.name;
         const subscribedComponents=JSON.parse(this.props.login_details.domainInfo.subscription_details);
         // console.log("Render function,Authentication.....",name,ComposedComponent,getDisplayName(ComposedComponent));

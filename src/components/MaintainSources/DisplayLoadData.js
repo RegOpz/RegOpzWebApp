@@ -1,274 +1,203 @@
 import React, { Component } from 'react';
 import DatePicker from 'react-datepicker';
 import { Panel, Button } from 'react-bootstrap';
+import _ from 'lodash';
+import ModalAlert from '../ModalAlert/ModalAlert';
+import moment from 'moment';
 
 class DisplayLoadData extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            selectedFile: null,
-            businessDate: null,
-            applyRules: false,
-            fileContents: [],
-            chunkSize: 1024,
-            offset: 0,
-            startIndex: 0,
-            contentLength: 0,
+            reRender: true,
         }
 
-        this.fileReader = new FileReader();
-        this.fileReader.onload = this.loadFileContents.bind(this);
+        this.sourceList = this.props.sourceList;
 
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.renderSourceList = this.renderSourceList.bind(this);
         this.handleFileChange = this.handleFileChange.bind(this);
         this.handleBusinessDateChange = this.handleBusinessDateChange.bind(this);
         this.handleApplyRuleCheckBox = this.handleApplyRuleCheckBox.bind(this);
-        this.handlePageChangeEvent = this.handlePageChangeEvent.bind(this);
+        this.handleOnSubmit = this.handleOnSubmit.bind(this);
     }
 
-    handlePageChangeEvent(type) {
-        let offset = this.state.offset;
-        let chunkSize = this.state.chunkSize;
-        let selectedFile = this.state.selectedFile;
-
-        switch (type) {
-            case 'NEXT':
-                offset += chunkSize;
-                break;
-
-            default:
-                if (offset >= chunkSize)
-                    offset -= chunkSize;
-                break;
-        }
-
-        let slice = selectedFile.slice(offset, offset + chunkSize);
-        this.fileReader.readAsArrayBuffer(slice);
-        this.setState({ offset: offset });
+    componentWillReceiveProps(nextProps){
+      this.sourceList = nextProps.sourceList;
     }
 
-    handleSubmit() {
-        console.log("Inside handleSubmit");
-        if (this.state.businessDate && this.state.selectedFile) {
-            let options = {
-                item: this.props.selectedItem,
-                selectedFile: this.state.selectedFile,
-                businessDate: this.state.businessDate,
-                applyRules: this.state.applyRules,
-            }
-            this.props.handleLoadFile(options);
-        }
-    }
-
-    handleFileChange(event) {
+    handleFileChange(feed,event) {
         console.log('Run handleFileChange');
         let file = event.target.files[0];
-
-        let slice = file.slice(0, 0 + this.state.chunkSize);
-        this.fileReader.readAsArrayBuffer(slice);
-        this.setState({ offset: 0, selectedFile: file });
+        let isAlreadyAdded = _.find(this.sourceList,
+                                    { selectedFileAttr:
+                                        { name: file.name, size: file.size, type: file.type, lastModified: file.lastModified }
+                                      }
+                                    )
+        if(isAlreadyAdded){
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+              <div className="mid_center">
+                <h1><small><i className="fa fa-warning amber"></i></small></h1>
+                Please note that
+                <br/><b className="red">{file.name}</b>
+                &nbsp;already selected for source
+                &nbsp;<b className="blue">{isAlreadyAdded.source_file_name}</b>
+                <br/> Please check!
+              </div>
+            );
+          feed.selectedFile = null;
+          feed.selectedFileAttr = null;
+          event.target.value = null;
+        } else {
+          feed.selectedFile = file;
+          feed.selectedFileAttr = { name: file.name, size: file.size, type: file.type, lastModified: file.lastModified };
+          this.setState({ reRender: true });
+        }
     }
 
-    loadFileContents() {
-        let view = new Uint8Array(this.fileReader.result);
-        let encodedString = String.fromCharCode.apply(null, view);
+    handleBusinessDateChange(feed,date) {
 
-        let lines = encodedString.split(/\r?\n/);
-
-
-        let offset = this.state.offset;
-        let chunkSize = this.state.chunkSize;
-
-        if (encodedString.length === 0 && offset >= chunkSize) {
-            offset -= chunkSize;
-            this.setState({ offset: offset });
+        let isAlreadyAdded = _.find(this.sourceList, { source_id: feed.source_id, businessDate: date })
+        if(isAlreadyAdded){
+          this.modalAlert.isDiscardToBeShown = false;
+          this.modalAlert.open(
+              <div className="mid_center">
+                <h1><small><i className="fa fa-warning amber"></i></small></h1>
+                Please note that souce feed already added for
+                <br/><b className="red">{date.format('DD-MMM-YYYY')}</b>
+                &nbsp;for source
+                &nbsp;<b className="blue">{feed.source_file_name}</b>
+                <br/> Please check!
+              </div>
+            );
+        } else {
+          feed.businessDate = date;
+          this.setState({ reRender: true });
         }
-        else {
-            this.setState({ fileContents: lines });
-        }
-    }
 
-    handleBusinessDateChange(date) {
-        this.setState({ businessDate: date });
     }
 
     handleApplyRuleCheckBox(e) {
-        let applyRules = this.state.applyRules;
-        this.setState({ applyRules: !applyRules });
+        feed.applyRules = !feed.applyRules;
+        this.setState({ reRender: true });
+    }
+
+    handleOnSubmit(event){
+      // alert("alert handleOnSubmit")
+      event.preventDefault(); // to prevent unnecessary page refresh due to submit form event
+      this.props.handleLoadFile(this.sourceList);
+    }
+
+    renderSourceList(){
+      return(
+        <div>
+          {
+            !this.sourceList.length &&
+            <span>Please select required source feed from the list for processing</span>
+          }
+          {
+            this.sourceList.length > 0 &&
+            <table className="table table-hover">
+              <thead>
+                <th>#</th>
+                <th>Feed Details</th>
+                <th><i className="fa fa-edit"></i></th>
+              </thead>
+              <tbody>
+                {
+                  this.sourceList.map((feed,index)=>{
+                    return(
+                      <tr className="">
+                        <td>
+                          <b>{index+1}</b>
+                        </td>
+                        <td>
+                          <div>
+                            <div className="wrap-2-line ">
+                              <i className="fa fa-rss-square dark"  style={{'cursor':'pointer'}}
+                                title={"Show Details"}
+                                onClick={
+                                  ()=>{
+                                    this.props.handleShowDetailsClick(feed);
+                                    // feed.showAll = !feed.showAll;
+                                    // this.setState({reRender: true})
+                                  }
+                                }></i>
+                              &nbsp;{feed.source_file_name}&nbsp;for &nbsp;
+                              <DatePicker
+                                  dateFormat="DD-MMM-YYYY"
+                                  selected={feed.businessDate}
+                                  onChange={(date)=>{this.handleBusinessDateChange(feed,date);}}
+                                  onChangeRaw={(e) => {e.target.value=null}}
+                                  placeholderText="dd-mon-yyyy"
+                                  showYearDropdown
+                                  showMonthDropdown
+                                  required="required"
+                                  className="form col-md-6 col-xs-6 datepicker-border-bottom "
+                              />
+                              <input
+                                  type="file"
+                                  className={ (feed.selectedFile ? "" : "red")}
+                                  required="required"
+                                  onChange={(event)=>{this.handleFileChange(feed,event);}}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <a type="button"
+                            style={{'cursor':'pointer'}}
+                            className="amber"
+                            title={"Remove feed"}
+                            onClick={
+                              ()=>{this.props.handleRemoveFeedClick(index)}
+                            }>
+                            <i className="fa fa-trash amber"></i>
+                          </a>
+                        </td>
+                      </tr>
+                    )
+                  })
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      )
     }
     render() {
         return (
-            <div className="x_panel">
-                <div className="x_title">
-                    <div>
-                        <h2>Selected Source <small>Details of the Source Feed </small>
-                            <small><i className="fa fa-file-text"></i></small>
-                            <small>{this.props.selectedItem.source_file_name}</small>
-                        </h2>
-                        <div className="clearfix"></div>
-                    </div>
-                </div>
-                <div className="x_content">
-                    <form className="form-horizontal form-label-left" onSubmit={this.handleSubmit}>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Country </label>
-                            <div className="col-md-6 col-sm-6 col-xs-12">
-                                <input
-                                    value={this.props.selectedItem.country}
-                                    type="text"
-                                    className="form-control col-md-7 col-xs-12"
-                                    readOnly="readonly"
-                                />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Source Description </label>
-                            <div className="col-md-6 col-sm-6 col-xs-12">
-                                <textarea
-                                    value={this.props.selectedItem.source_description}
-                                    type="text"
-                                    className="form-control col-md-7 col-xs-12"
-                                    readOnly="readonly"
-                                />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Source File Reference </label>
-                            <div className="col-md-6 col-sm-6 col-xs-12">
-                                <input
-                                    value={this.props.selectedItem.source_file_name}
-                                    type="text"
-                                    className="form-control col-md-7 col-xs-12"
-                                    readOnly="readonly"
-                                />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Source Table </label>
-                            <div className="col-md-6 col-sm-6 col-xs-12">
-                                <input
-                                    value={this.props.selectedItem.source_table_name}
-                                    type="text"
-                                    className="form-control col-md-7 col-xs-12"
-                                    readOnly="readonly"
-                                />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">File Delimiter</label>
-                            <div className="col-md-1 col-sm-1 col-xs-2">
-                                <input
-                                    value={this.props.selectedItem.source_file_delimiter}
-                                    type="text"
-                                    className="form-control"
-                                    readOnly="readonly"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Load Data From File <span className="required">*</span></label>
-                            <input
-                                type="file"
-                                className="col-md-6 col-sm-6 col-xs-12"
-                                required="required"
-                                onChange={this.handleFileChange}
-                            />
-                        </div>
-
-                        {
-                            this.state.selectedFile &&
-                            this.state.fileContents &&
-                            <div className="x_panel">
-                                <div className="x_title">
-                                    <div>
-                                        <h2>File Content Review <small> Data Lines </small>
-                                        </h2>
-                                        <div className="clearfix"></div>
-                                    </div>
-                                </div>
-                                <div className="x_content">
-                                    <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
-                                        <div className="row">
-                                            <table className="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#Line</th>
-                                                        <th>Data in File</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {
-                                                        this.state.fileContents.map((line, index) => {
-                                                            if (index < 10) {
-                                                                return (
-                                                                    <tr key={index}>
-                                                                        <td><b>{index + 1}</b></td>
-                                                                        <td>{line}</td>
-                                                                    </tr>
-                                                                )
-                                                            }
-                                                        })
-                                                    }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div className="row text-center">
-                                            <Button onClick={() => { this.handlePageChangeEvent('PREV') }}>
-                                                Previous
-                                            </Button>
-                                            <Button onClick={() => { this.handlePageChangeEvent('NEXT') }}>
-                                                Next
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Business Date <span className="required">*</span></label>
-                            <div className="col-md-6 col-sm-6 col-xs-12">
-                                <DatePicker
-                                    dateFormat="DD-MMM-YYYY"
-                                    selected={this.state.businessDate}
-                                    onChange={this.handleBusinessDateChange}
-                                    placeholderText="Business Date,dd-mon-yyyy"
-                                    required="required"
-                                    className="view_data_date_picker_input form-control"
-                                />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name"></label>
-                            <input
-                                type="checkbox"
-                                id="loadData"
-                                name="loadData"
-                                value="loadData"
-                                className="control-label col-md-offset-3"
-                                disabled
-                                checked="checked" /><b> Load Data</b>
-                        </div>
-                        <div className="form-group">
-                            <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name"></label>
-                            <input
-                                type="checkbox"
-                                id="applyrules"
-                                name="applyrules"
-                                value="applyrules"
-                                className="control-label col-md-offset-3"
-                                onChange={this.handleApplyRuleCheckBox}
-                            /><b> Apply Rules after Load Data</b>
-                        </div>
-                        <div className="form-group">
-                            <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                                <button type="button" className="btn btn-success" onClick={this.handleSubmit}>Submit</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
+          <div>
+            <form onSubmit={this.handleOnSubmit}>
+              <div className="x_panel">
+                  <div className="x_title">
+                      <div>
+                          <h2>Selected Sources <small>Details of the Source Feed </small>
+                              &nbsp;
+                              <span>
+                                {
+                                  this.sourceList.length > 0 &&
+                                  <button type="submit" className="btn btn-xs btn-success">
+                                    <i className="fa fa-bolt"></i>&nbsp;Process Feeds
+                                  </button>
+                                }
+                              </span>
+                          </h2>
+                          <div className="clearfix"></div>
+                      </div>
+                  </div>
+                  <div className="x_content">
+                    {
+                      this.renderSourceList()
+                    }
+                  </div>
+              </div>
+            </form>
+            <ModalAlert
+              ref={(modalAlert) => {this.modalAlert = modalAlert}}
+              onClickOkay={this.handleModalOkayClick}
+            />
+          </div>
         );
     }
 }

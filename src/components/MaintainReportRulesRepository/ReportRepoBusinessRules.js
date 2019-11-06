@@ -5,12 +5,12 @@ import { Label, Tabs, Tab } from 'react-bootstrap';
 import ReactTable from 'react-table';
 
 import {
-  actionDrillDown
-} from '../../actions/CaptureReportAction';
+  actionFetchReportBusinessRules,
+} from '../../actions/ReportRulesRepositoryAction';
 
 require('react-table/react-table.css');
 
-class ReportBusinessRules extends Component {
+class ReportRepoBusinessRules extends Component {
   constructor(props){
     super(props);
     this.state={
@@ -38,60 +38,59 @@ class ReportBusinessRules extends Component {
   render(){
     const { handleClose, handleBoxSize, handleBringToFront, allRules, handlePinDndBox } = this.props;
     return(
-      <div className="box-content-wrapper">
-        <div className="box-tools">
-          <ul className="nav navbar-right panel_toolbox">
-            <li>
-              <a className="close-link"
-                title="Close"
-                onClick={handleClose}><i className="fa fa-close"></i></a>
-            </li>
-            {
-              allRules.position == "DnD" &&
+        <div className="box-content-wrapper">
+          <div className="box-tools">
+            <ul className="nav navbar-right panel_toolbox">
+              <li>
+                <a className="close-link"
+                  title="Close"
+                  onClick={handleClose}><i className="fa fa-close"></i></a>
+              </li>
+              {
+                allRules.position == "DnD" &&
+                <li>
+                  <a onClick={()=>{
+                        let boxSize = {
+                          isMaximized: !allRules.isMaximized
+                        }
+                        handleBoxSize(allRules.id,boxSize)
+                    }} title={ history.isMaximized ? "Restore" : "Maximize"}>
+                    <small><i className="fa fa-square-o"></i></small>
+                  </a>
+                </li>
+              }
               <li>
                 <a onClick={()=>{
-                      let boxSize = {
-                        isMaximized: !allRules.isMaximized
-                      }
-                      handleBoxSize(allRules.id,boxSize)
-                  }} title={ history.isMaximized ? "Restore" : "Maximize"}>
-                  <small><i className="fa fa-square-o"></i></small>
+                    let id = allRules.id;
+                    let position = allRules.position == "DnD" ? "pinnedTop": "DnD";
+                    handlePinDndBox(id,position);
+                  }} title={ allRules.position == "DnD" ? "Pin Window" : "Float Window"}>
+                  <small>
+                    <i className={"fa " + (allRules.position == "DnD" ? "fa-thumb-tack" : "fa-external-link" )}></i>
+                  </small>
                 </a>
               </li>
-            }
-            <li>
-              <a onClick={()=>{
-                  let id = allRules.id;
-                  let position = allRules.position == "DnD" ? "pinnedTop": "DnD";
-                  handlePinDndBox(id,position);
-                }} title={ allRules.position == "DnD" ? "Pin Window" : "Float Window"}>
-                <small>
-                  <i className={"fa " + (allRules.position == "DnD" ? "fa-thumb-tack" : "fa-external-link" )}></i>
-                </small>
-              </a>
-            </li>
-            <li>
-              <a title="Move Box" style={{'cursor':'grabbing'}}>
-                <small>
-                  <i className="fa fa-arrows"></i>&nbsp;All Rules
-                </small>
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div className="x_panel">
-          <div className="x_title">
-            <h2>Business Rules
-              <small>{" for Report "}</small>
-            </h2>
-            <div className="clearfix"></div>
+              <li>
+                <a title="Move Box" style={{'cursor':'grabbing'}}>
+                  <small>
+                    <i className="fa fa-arrows"></i>&nbsp;All Rules
+                  </small>
+                </a>
+              </li>
+            </ul>
           </div>
-          <div className="x_content dontDragMe">
+          <div className="x_panel">
+            <div className="x_title">
+              <h2>Business Rules
+                <small>{" for Report "}</small>
+              </h2>
+              <div className="clearfix"></div>
+            </div>
+            <div className="x_content dontDragMe">
               { this.renderReportLinkage(this.linkageData)}
               </div>
           </div>
         </div>
-
     );
   }
   renderReportLinkage(linkageData) {
@@ -139,7 +138,7 @@ class ReportBusinessRules extends Component {
         </div>
       )
     else{
-      let columns = ['source_id','sheet_id','cell_id','cell_calc_ref','in_use','cell_business_rules','aggregation_ref','aggregation_func'];
+      let columns = ['sheet_id','cell_id','cell_calc_ref','in_use','cell_business_rules'];
       console.log("Columns of the object.keys() ",columns)
       let reactTableViewColumns=[];
       if (columns){
@@ -153,9 +152,9 @@ class ReportBusinessRules extends Component {
         <ReactTable
           data={calcRules}
           filterable={true}
-          className="-highlight -striped"
+          className="-highlight -striped dontDragMe"
           columns={reactTableViewColumns}
-          pivotBy={['source_id','sheet_id','cell_id']}
+          pivotBy={['sheet_id','cell_id']}
           defaultFilterMethod = {(filter, row, column) => {
             const id = filter.pivotId || filter.id
             let matchText = RegExp(`(${filter.value.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
@@ -176,7 +175,6 @@ class ReportBusinessRules extends Component {
                                 <th>Cell</th>
                                 <th>InUse</th>
                                 <th>Rules</th>
-                                <th>Formula</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -210,11 +208,6 @@ class ReportBusinessRules extends Component {
                                       })(cell_business_rules)
                                     }
                                   </p>
-                                </td>
-                                <td>
-                                <p>
-                                {row.original.aggregation_func + " ( " + row.original.aggregation_ref + " )"}
-                                </p>
                                 </td>
                               </tr>
                             </tbody>
@@ -298,25 +291,25 @@ class ReportBusinessRules extends Component {
 }
 
 function mapStateToProps(state){
-  console.log("On mapState ReportBusinessRules", state, state.view_data_store, state.report_store);
+  console.log("On mapState ReportRepoBusinessRules", state, state.view_data_store, state.report_store);
   return {
     //data_date_heads:state.view_data_store.dates,
-    cell_rules: state.report_store.cell_rules,
+    cell_rules: state.report_rules_repo.cellRules,
   }
 }
 
 const mapDispatchToProps = (dispatch) => {
   return {
     drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+      dispatch(actionFetchReportBusinessRules(report_id,sheet,cell));
     },
   }
 }
 
-const VisibleReportBusinessRules = connect(
+const VisibleReportRepoBusinessRules = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ReportBusinessRules);
+)(ReportRepoBusinessRules);
 
 
-export default VisibleReportBusinessRules;
+export default VisibleReportRepoBusinessRules;

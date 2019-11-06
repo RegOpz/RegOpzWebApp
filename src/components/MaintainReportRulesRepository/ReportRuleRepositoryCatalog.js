@@ -5,7 +5,7 @@ import DatePicker from 'react-datepicker';
 import moment from 'moment';
 require('react-datepicker/dist/react-datepicker.css');
 
-class ReportCatalogList extends Component {
+class ReportRepoCatalogList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -18,6 +18,7 @@ class ReportCatalogList extends Component {
     this.dataCatalog = this.props.dataCatalog;
     this.constantFilter = this.props.constantFilter ? this.props.constantFilter : null;
     this.linkageData = [];
+    this.reportPermissions = this.props.reportPermissions;
   }
 
   componentWillReceiveProps(nextProps) {
@@ -25,63 +26,24 @@ class ReportCatalogList extends Component {
       this.constantFilter = nextProps.constantFilter ? nextProps.constantFilter : null;
   }
 
-  handleStartDateChange(date) {
-    // if ( moment(date) < moment(this.dataCatalogStartDate) || moment(date) < moment(this.dataCatalogEndDate).subtract(4,'months')){
-    //   console.log("start date",moment().subtract(1,'months'),date,this.dataCatalogStartDate);
-    //   let dates={
-    //     startDate: moment(date).format("YYYYMMDD"),
-    //     endDate: moment(this.state.endDate ? this.state.endDate : this.dataCatalogEndDate ).format("YYYYMMDD")
-    //   }
-    // }
-    this.setState({ startDate: date });
-  }
-
-  handleEndDateChange(date) {
-    // if ( moment(date) > moment(this.dataCatalogEndDate) || moment(date) > moment(this.dataCatalogStartDate).add(4,'months')){
-    //   console.log("end date",moment(),date,this.dataCatalogEndDate);
-    //   let dates={
-    //     startDate: moment(this.state.startDate? this.state.startDate : this.dataCatalogStartDate).format("YYYYMMDD"),
-    //     endDate: moment(date).format("YYYYMMDD")
-    //   }
-    // }
-    this.setState({ endDate: date });
-  }
 
   handleFilter() {
       if (typeof this.dataCatalog !== 'undefined' && this.dataCatalog !== null) {
           let dataCatalog = this.dataCatalog, linkageData = [];
-          const { startDate, endDate, filterText } = this.state;
-
-          if (startDate !== null) {
-              dataCatalog.forEach(item => {
-                  let report_list = item.report.filter(item => moment(item.date_of_change) > moment(startDate));
-                  if (report_list.length > 0) {
-                      linkageData.push({
-                          country: item.country,
-                          report: report_list
-                      });
-                  }
-              });
-              dataCatalog = linkageData, linkageData = [];
-          }
-
-          if (endDate !== null) {
-              dataCatalog.forEach(item => {
-                  let report_list = item.report.filter(item => moment(item.date_of_change) < moment(endDate));
-                  if (report_list.length > 0) {
-                      linkageData.push({
-                          country: item.country,
-                          report: report_list
-                      });
-                  }
-              });
-              dataCatalog = linkageData, linkageData = [];
-          }
+          const { filterText } = this.state;
 
           if (filterText !== null || this.constantFilter !== null) {
-              let newFilterText = (filterText ? filterText : "")
-              console.log("Filtertext.....", newFilterText)
-              let matchText = RegExp(`(${newFilterText.toString().toLowerCase().replace(/[,+&\:\ ]$/,'').replace(/[,+&\:\ ]/g,'|')})`,'i');
+              let newFilterText = (filterText ? filterText.replace(/ +/g,' ')
+                                                          .replace(/^ +/,'')
+                                                          .replace(/\\/g,'\\\\')
+                                                : "")
+              console.log("Filtertext.....", newFilterText, this.constantFilter, dataCatalog)
+              let matchText = RegExp(`(${newFilterText.toString()
+                                                      .toLowerCase()
+                                                      .replace(/[,+&\:\ ]+$/,'')
+                                                      .replace(/[,+&\:\ ]/g,'|')})`,
+                                      'i');
+              console.log("matchText....",matchText)
               dataCatalog.forEach(item => {
                   let report_list = item.report.filter(item =>
                       item.report_type.toString().match(this.constantFilter) &&
@@ -112,23 +74,7 @@ class ReportCatalogList extends Component {
     return(
       <div className="x_panel">
         <div className="x_content">
-          <DatePicker
-            dateFormat="DD-MMM-YYYY"
-            selected={this.state.startDate}
-            onChange={this.handleStartDateChange.bind(this)}
 
-            placeholderText="Select start date"
-            className="view_data_date_picker_input form-control"
-            />
-
-          <DatePicker
-              dateFormat="DD-MMM-YYYY"
-              selected={this.state.endDate}
-              onChange={this.handleEndDateChange.bind(this)}
-
-              placeholderText="Select end date"
-              className="view_data_date_picker_input form-control "
-              />
           <div className="input-group">
               <input
                 id="filter"
@@ -156,7 +102,7 @@ class ReportCatalogList extends Component {
       if(!linkageData || typeof(linkageData) == 'undefined' || linkageData == null || linkageData.length == 0) {
         return(
           <div>
-            <h4>No Report Rule found! Please try a different date range or search criteria.</h4>
+            <h4>No Report Rule found! Please try a different search criteria.</h4>
           </div>
         );
       }
@@ -209,21 +155,25 @@ class ReportCatalogList extends Component {
                 <tr>
                   <th>Report ID</th>
                   <th>Report Description</th>
-                  <th>Last Updated by</th>
-                  <th>Last Updated on</th>
+
                 </tr>
               </thead>
               <tbody>
               {linkageData.map((item,index) => {
                 return (
                   <tr key={index}
-                    >
+                    className={ "" }
+                    onClick={
+                      (event)=>{
+                        this.props.handleReportClick(item)
+                      }
+                    }>
                     <td>
                       <button
-                        className="btn btn-link btn-xs"
+                        className={"btn btn-link btn-xs "}
                         onClick={
                           (event)=>{
-                            this.props.handleReportClick(item)
+                            // this.props.handleReportClick(item)
                           }
                         }
                         >
@@ -235,21 +185,14 @@ class ReportCatalogList extends Component {
                     </td>
                     <td>
                       <p
-                        className="truncate-text"
+                        className="preserve-text wrap-2-lines"
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.report_description}
-                        onClick={
-                          (event)=>{
-                            this.props.handleReportClick(item)
-                          }
-                        }
                         >
                         {item.report_description}
                       </p>
                     </td>
-                    <td>{item.last_updated_by}</td>
-                    <td>{moment(item.date_of_change).format("DD-MMM-YYYY, h:mm:ss a")}</td>
                   </tr>
                 )
               })}
@@ -293,7 +236,7 @@ class ReportCatalogList extends Component {
                           title={item.report_description}
                           onClick={
                             (event)=>{
-                              this.props.handleReportClick(item)
+                              // this.props.handleReportClick(item)
                             }
                           }
                           >
@@ -316,4 +259,4 @@ class ReportCatalogList extends Component {
   }
 }
 
-export default ReportCatalogList;
+export default ReportRepoCatalogList;

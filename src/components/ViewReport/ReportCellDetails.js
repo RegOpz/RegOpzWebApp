@@ -9,6 +9,7 @@ import AddReportAggRules from './AddReportAggRules';
 import LoadingForm from '../Authentication/LoadingForm';
 import DefAuditHistory from '../AuditModal/DefAuditHistory';
 import ViewBusinessRules from '../MaintainBusinessRules/MaintainBusinessRules';
+import ViewData from '../ViewData/ViewDataComponentV2';
 import {
   actionDrillDown
 } from '../../actions/CaptureReportAction';
@@ -35,14 +36,18 @@ class ReportCellDetails extends Component {
       displayCalcType: "Tabular",
       displayAgg: false,
       displayAggType: "Tabular",
+      qualifiedDataVersion: null,
     }
 
     // Local
     this.cellRules = undefined;
     this.cellChangeHistory = undefined;
     this.calcRuleData = {};
+    this.businessRuleFilter = {};
+    this.dataCubeFilter = {};
     this.aggRuleData = {};
     this.selectedCell = this.props.selectedCell;
+    this.selectedReport = this.props.selectedReport;
     // Methods
     this.loadingPage = this.loadingPage.bind(this);
     this.renderAggRules = this.renderAggRules.bind(this);
@@ -62,7 +67,8 @@ class ReportCellDetails extends Component {
 
 
   componentWillMount(){
-    this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cellRef);
+    this.props.drillDown(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cellRef,
+                        this.selectedReport.report_snapshot,this.selectedReport.report_type);
     this.props.fetchReportChangeHistory(this.selectedCell.reportId,this.selectedCell.sheetName,this.selectedCell.cellRef);
   }
 
@@ -117,14 +123,11 @@ class ReportCellDetails extends Component {
                   <div>
                     <div>
                       <a className="btn btn-app" style={{"border": "none"}}
-                        onClick={
-                          ()=>{this.handleAddAggRule("New");}
-                        }
-                        title="Add Rule">
-                        <i className={ "fa fa-bullhorn green"}></i>
+                        title="No Aggregation Rule">
+                        <i className={ "fa fa-bullhorn red"}></i>
                       </a>
                     </div>
-                    <span className={"green"}>Create Aggregation Rule</span>
+                    <span className={"red"}>No Aggregation Rule Defined!</span>
                   </div>
                 </div>
               </div>
@@ -220,16 +223,6 @@ class ReportCellDetails extends Component {
                               this.handleAddAggRule("Edit",item);
                             }
                           }>{item.comp_agg_ref}</small>
-                          <button
-                            type="button"
-                            className="btn btn-link btn-xs red"
-                            onClick={
-                              (event)=>{
-                                // TODO
-                              }
-                            }>
-                            <i className="fa fa-trash" data-toggle="tooltip" title="Delete"></i>
-                          </button>
                       </td>
                       <td>{item.rounding_option}</td>
                       <td>{item.reporting_scale}</td>
@@ -352,6 +345,10 @@ class ReportCellDetails extends Component {
         this.state.displayCalc=="BusinessRules" &&
         this.renderCalcBusinessRules()
       }
+      {
+        this.state.displayCalc=="DataCube" &&
+        this.renderDataCube()
+      }
       </div>
     )
   }
@@ -442,6 +439,8 @@ class ReportCellDetails extends Component {
 
   }
   renderCalcRulesTablular(){
+    let cellRules = this.cellRules.cell_rules;
+    let qd = this.cellRules.report_snapshot.qualified_data;
     return(
       <div className="dataTables_wrapper form-inline dt-bootstrap no-footer">
         <div className="row">
@@ -457,7 +456,7 @@ class ReportCellDetails extends Component {
             </thead>
             <tbody>
             {
-              this.cellRules.cell_rules.map((item,index)=>{
+              cellRules.map((item,index)=>{
                 return(
                   <tr>
                     <td>{item.source_id}</td>
@@ -471,33 +470,36 @@ class ReportCellDetails extends Component {
                         }
                         >{item.cell_calc_ref}</small>
                       <div>
-
                       {
                         // this.props.addRulesBtn &&
                         <button
                           type="button"
-                          className="btn btn-link green btn-xs"
+                          className="btn btn-link dark btn-xs"
                           onClick={
                             (event)=>{
-                              this.handleAddCalcRule("Copy",item);
+                              let calcDataCubeFilter = {
+                                      form: item,
+                                      params:{
+                                        drill_kwargs: {
+                                          index: index,
+                                          report_id: item.report_id,
+                                          sheet_id: item.sheet_id,
+                                          cell_id: item.cell_id,
+                                          reporting_date: this.selectedReport.reporting_date,
+                                          source_id: item.source_id,
+                                          cell_calc_ref: item.cell_calc_ref,
+                                          dml_allowed: item.dml_allowed,
+                                          version: this.selectedReport.version,
+                                          filter: '[]',
+                                          page: 0
+                                        }
+                                      }
+                                    }
+                              this.dataCubeFilter = calcDataCubeFilter;
+                              this.setState({displayCalc: "DataCube", qualifiedDataVersion: ''});
                             }
                           }>
-                          <i className="fa fa-copy" data-toggle="tooltip" title="Copy Rule"></i>
-                        </button>
-                      }
-                      {
-                        // this.props.addRulesBtn &&
-                        // item.dml_allowed == 'Y' &&
-                        // item.in_use == 'Y' &&
-                        <button
-                          type="button"
-                          className="btn btn-link red btn-xs"
-                          onClick={
-                            (event)=>{
-                              // TODO handledelete to be implemented later
-                            }
-                          }>
-                          <i className="fa fa-trash" data-toggle="tooltip" title="Delete Rule"></i>
+                          <i className="fa fa-cube" data-toggle="tooltip" title="Data Drilldown"></i>
                         </button>
                       }
                     </div>
@@ -512,24 +514,67 @@ class ReportCellDetails extends Component {
                       }
                     </td>
                     <td>
-                      <small>{item.cell_business_rules.replace(/,/g,' ')}</small>
-
+                      <small><i className="fa fa-shield blue"></i>&nbsp;{item.cell_business_rules.replace(/,/g,' ')}</small>
                       {
+                        qd &&
+                        Object.keys(qd).includes(item.source_id.toString()) &&
                         <div>
-                        {
-                          <button className="btn btn-link btn-xs"
-                            data-toggle="tooltip"
-                            title={"Rule Details"}
-                            onClick={
-                              (event)=>{
-                                this.handleAddCalcRule("BusinessRules",item);
+                          <select
+                            id="businessRulesVersion"
+                            value = {JSON.stringify(this.state.qualifiedDataVersion)}
+                            className="form-control"
+                            required="requried"
+                            disabled={false}
+                            onChange={
+                              (event) => {
+                              //   if(event.target.value){
+                                let value = event.target.value ? JSON.parse(event.target.value) :  event.target.value;
+                                // let value = JSON.parse(event.target.value);
+                                this.setState({displayCalc: false, qualifiedDataVersion: value});
                               }
                             }
                           >
-                            <i className="fa fa-shield"></i>
-                          </button>
-                        }
+                            <option key={9999999} target={"Choose option"} value={''}>Select Date</option>
+                            {
+                              Object.keys(qd[item.source_id]).map(function(key,index){
+                                let version = qd[item.source_id][key];
+                                return(
+                                  <option key={index} target={key} value={JSON.stringify({businessDate: key, version: version})}>{moment(key.toString()).format("DD-MMM-YY")}</option>
+                                )
+                              })
+                            }
+                          </select>
 
+                          <button className="btn btn-default blue btn-xs"
+                          data-toggle="tooltip"
+                          disabled = { !this.state.qualifiedDataVersion }
+                          title={"Show Business Rules \n for the selected date"}
+                          onClick={
+                            (event)=>{
+                              let qdSelected = this.state.qualifiedDataVersion;
+                              let calcBusinessRuleFilter = {
+                                      report_id: item.report_id,
+                                      sheet_id: item.sheet_id,
+                                      cell_id: item.cell_id,
+                                      reporting_date: this.selectedReport.reporting_date,
+                                      source_id: item.source_id,
+                                      cell_calc_ref: item.cell_calc_ref,
+                                      cell_business_rules: item.cell_business_rules,
+                                      page: 0,
+                                      business_date: qdSelected.businessDate,
+                                      qualified_data_version: qdSelected.version,
+                                      report_snapshot: this.selectedReport.report_snapshot,
+                                    }
+                              this.businessRuleFilter = calcBusinessRuleFilter;
+                              this.setState({displayCalc: "BusinessRules"});
+                            }
+                          }
+                          >
+                            <small>
+                            <i className="fa fa-camera"></i>
+
+                            </small>
+                          </button>
                         </div>
                       }
                     </td>
@@ -560,9 +605,9 @@ class ReportCellDetails extends Component {
   renderCalcBusinessRules(){
     const {permission,source} = this.props.login_details;
     let isRulesComponent = permission.find(function(p){return p.component.match(/Business Rules/);});
-    const { source_id } = this.calcRuleData;
+    const { source_id } = this.businessRuleFilter;
     let ruleFilterParam = {page:0};
-    Object.assign(ruleFilterParam,this.calcRuleData);
+    Object.assign(ruleFilterParam,this.businessRuleFilter);
 
     let sourceItem = source.find(function(s){return s.source_id==source_id;});
     if (sourceItem){
@@ -588,7 +633,45 @@ class ReportCellDetails extends Component {
           flagRuleDrillDown={true}
           sourceId={source_id}
           ruleFilterParam={ruleFilterParam}
-          origin={"FIXEDFORMAT"}
+          origin={"COMPOSIT"}
+        />
+      </div>
+    );
+  }
+
+  renderDataCube(){
+    const {permission,source} = this.props.login_details;
+    const filters=this.dataCubeFilter.params.drill_kwargs;
+    let isDataComponent = permission.find(function(p){return p.component.match(/View Data/);});
+    let sourceItem = source.find(function(s){return s.source_id==filters.source_id;});
+    if (!sourceItem){
+      sourceItem={source_id: filters.source_id,
+                  source_file_name: 'Check source',
+                  source_table_name: 'Check source',
+                  access_type: 'No access',
+                  access_condition: ''
+                };
+    } else {
+      sourceItem = {...sourceItem,...JSON.parse(sourceItem.permission_details)}
+    }
+    const permissions=[{"permission": isDataComponent ? "View Data" : null}];
+    return(
+      <div className="col-md-12 col-xs-12">
+        <ul className="nav navbar-right panel_toolbox">
+          <li>
+            <a className="close-link"
+              onClick={()=>{
+                this.setState({displayCalc: false});
+              }}><i className="fa fa-close"></i></a>
+          </li>
+        </ul>
+        <ViewData
+          showDataGrid={true}
+          selectedItem={ sourceItem }
+          flagDataDrillDown={true}
+          sourceId={this.state.sourceId}
+          businessDate={this.state.businessDate}
+          dataFilterParam={this.dataCubeFilter}
         />
       </div>
     );
@@ -730,16 +813,11 @@ class ReportCellDetails extends Component {
                     <div>
                       <div>
                         <a className="btn btn-app" style={{"border": "none"}}
-                          onClick={
-                            (event) => {
-                                this.handleAddCalcRule("New");
-                             }
-                          }
-                          title="Add Calculation">
-                          <i className={ "fa fa-tag blue"}></i>
+                          title="No Calculation Rules">
+                          <i className={ "fa fa-tag red"}></i>
                         </a>
                       </div>
-                      <span className={"blue"}>Create New Calculation</span>
+                      <span className={"red"}>No Calculation Rules Defined!</span>
                     </div>
                   </div>
                 </div>
@@ -770,18 +848,6 @@ class ReportCellDetails extends Component {
                 title={"Slide View"}>
                   <small>
                     <i className="fa fa-square"></i>
-                  </small>
-                </a>
-              </li>
-              <li>
-                <a onClick={
-                  (event) => {
-                      this.handleAddCalcRule("New");
-                   }
-                }
-                title={"Create New Calculation"}>
-                  <small>
-                    <i className="fa fa-tag green"></i>
                   </small>
                 </a>
               </li>
@@ -854,7 +920,10 @@ class ReportCellDetails extends Component {
                                 ()=>{
                                     this.props.drillDown(this.selectedCell.reportId,
                                                      this.selectedCell.sheetName,
-                                                     this.selectedCell.cellRef);
+                                                     this.selectedCell.cellRef,
+                                                     this.selectedReport.report_snapshot,
+                                                     this.selectedReport.report_type
+                                                   );
                                     this.props.fetchReportChangeHistory(this.selectedCell.reportId,
                                                       this.selectedCell.sheetName,
                                                       this.selectedCell.cellRef);
@@ -932,8 +1001,11 @@ function mapStateToProps(state){
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    drillDown:(report_id,sheet,cell) => {
-      dispatch(actionDrillDown(report_id,sheet,cell));
+    // drillDown:(report_id,sheet,cell) => {
+    //   dispatch(actionDrillDown(report_id,sheet,cell));
+    // },
+    drillDown:(report_id,sheet,cell,report_snapshot,report_type) => {
+      dispatch(actionDrillDown(report_id,sheet,cell,report_snapshot,report_type));
     },
     fetchReportChangeHistory:(report_id,sheet_id,cell_id) => {
       dispatch(actionFetchReportChangeHistory(report_id,sheet_id,cell_id));

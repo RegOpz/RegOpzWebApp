@@ -56,15 +56,17 @@ export function actionFetchDrillDownReport(drill_info) {
 // TODO:
 export function actionFetchDrillDownRulesReport(rules, source_id, page,business_date,qualified_data_version,origin) {
   console.log('In the action drilldown fetch rules ', rules, source_id, page,business_date,qualified_data_version,origin);
-  let type=FETCH_DRILLDOWN_RULES_REPORT;
+  let type= origin ? FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT : FETCH_DRILLDOWN_RULES_REPORT;
   let url = BASE_URL + `business-rules/drill-down-rules?source_id=${source_id}&rules=${rules}&page=${page}`;
   url += "&business_date=" + business_date + "&qualified_data_version=" + qualified_data_version;
-  if(origin == "FIXEDFORMAT"){
-    type = FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT;
-  }
+  url += "&origin=" + origin;
+  // if(origin){
+  //   type = FETCH_FIXEDFORMAT_DRILLDOWN_RULES_REPORT;
+  // }
+  const request = axios.get(url);
   return {
     type: type,
-    payload: axios.get(url),
+    payload: request,
   }
 }
 

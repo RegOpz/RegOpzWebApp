@@ -6,10 +6,10 @@ export let UPDATE_CAPTURED_FREE_FORMAT_REPORT = 'UPDATE_CAPTURED_FREE_FORMAT_REP
 export let VALIDATE_SECTION_FREE_FORMAT_REPORT = 'VALIDATE_SECTION_FREE_FORMAT_REPORT';
 
 // TODO:
-export function actionFetchFreeFormatReportData(report_id, reporting_date, version,report_snapshot,report_parameters) {
-  let url = BASE_URL + "free-format-report/report/" + report_id;
+export function actionFetchFreeFormatReportData(report_id, reporting_date, version,report_snapshot,report_parameters,domain_type) {
+  let url = BASE_URL + "free-format-report/report/" + report_id + "?";
   if(reporting_date){
-    url+="?reporting_date="+reporting_date;
+    url+="&reporting_date="+reporting_date;
   }
   if(version){
     url+="&version="+version.toString();
@@ -19,6 +19,9 @@ export function actionFetchFreeFormatReportData(report_id, reporting_date, versi
   }
   if(report_parameters){
     url+="&report_parameters="+encodeURIComponent(report_parameters);
+  }
+  if(domain_type){
+    url+= "&domain_type="+encodeURIComponent(domain_type);
   }
 
   const request = axios.get(url);
@@ -30,8 +33,11 @@ export function actionFetchFreeFormatReportData(report_id, reporting_date, versi
 }
 
 // Update only the report def of free format report
-export function actionUpdateFreeFormatReportData(report_id,reportData) {
+export function actionUpdateFreeFormatReportData(report_id,reportData,domain_type) {
   let url = BASE_URL + "free-format-report/capture-template-hot/" + report_id;
+  if(domain_type){
+    url+= "?domain_type="+encodeURIComponent(domain_type);
+  }
   const request = axios.post(url,reportData);
   //console.log(request);
   return {

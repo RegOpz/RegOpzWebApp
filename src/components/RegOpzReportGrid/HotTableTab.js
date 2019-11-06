@@ -33,7 +33,7 @@ class HotTableTab extends PureComponent {
       ,
       // className: ' htbody',
       // stretchH: "all",
-      mergeCells: true,
+      // mergeCells: true,
       manualColumnFreeze: true,
       manualRowMove: true,
       manualColumnMove: true,
@@ -86,7 +86,7 @@ class HotTableTab extends PureComponent {
       ,
       manualRowResize: true,
       manualColumnResize: true,
-      mergeCells: this.props.data.merged_cells,
+      mergeCells: this.props.data.merged_cells ? this.props.data.merged_cells : true,
       // cell:this.cell,
       // beforeRender: function(isForced){
       //   if(!isForced) return(<h4>Loading....</h4>)

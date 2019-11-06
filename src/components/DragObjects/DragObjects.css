@@ -2,6 +2,7 @@
     box-shadow: 0 10px 10px 0 rgba(0, 0, 0, 0.30), 0 6px 3px 0 rgba(0, 0, 0, 0.23);
     z-index: 999;
     padding: 0;
+    padding-block-end: 10px;
     background:  white;
     position: absolute;
     cursor: move;
@@ -24,5 +25,5 @@
 }
 
 .dnd-always-on-top {
-  z-index: 9999 !important;
+  z-index: 1010 !important;
 }

@@ -55,6 +55,10 @@ class SourceCatalogList extends Component {
     this.handleFilter();
     return(
       <div className="x_panel">
+        <div className="x_title">
+          <h2>Available sources<small>&nbsp;select required feed</small></h2>
+          <div className="clearfix"></div>
+        </div>
         <div className="x_content">
           <div className="input-group">
               <input
@@ -121,7 +125,7 @@ class SourceCatalogList extends Component {
     if(!linkageData || typeof(linkageData) == 'undefined' || linkageData == null || linkageData.length == 0) {
       return(
         <div>
-          <h4>No Source found! Please try a different search criteria.</h4>
+          No source found! Please try a different search criteria.
         </div>
       )
     }
@@ -136,8 +140,7 @@ class SourceCatalogList extends Component {
                   <th>#ID</th>
                   <th>Source File</th>
                   <th>Description</th>
-                  <th>Last Updated by</th>
-                  <th>Last Updated on</th>
+                  <th><i className="fa fa-support"></i></th>
                 </tr>
               </thead>
               <tbody>
@@ -149,13 +152,15 @@ class SourceCatalogList extends Component {
                         this.props.handleSourceClick(item)
                       }
                     }>
-                    <td>{item.source_id}</td>
+                    <td>
+                      {item.source_id}
+                    </td>
                     <td>
                       <button
                         className="btn btn-link btn-xs"
                         onClick={
                           (event)=>{
-                            this.props.handleSourceClick(item)
+                            // this.props.handleSourceClick(item)
                           }
                         }
                         >
@@ -167,7 +172,7 @@ class SourceCatalogList extends Component {
                     </td>
                     <td>
                       <p
-                        className="truncate-text"
+                        className="preserve-text wrap-2-line"
                         data-toggle="tooltip"
                         data-placement="top"
                         title={item.source_description}
@@ -175,8 +180,18 @@ class SourceCatalogList extends Component {
                         <small>{item.source_description}</small>
                       </p>
                     </td>
-                    <td>{item.last_updated_by}</td>
-                    <td>{moment().format("DD-MMM-YYYY, h:mm:ss a")}</td>
+                    <td>
+                      <button className="btn btn-link btn-xs"
+                        title={"Show details"}
+                        onClick={
+                          (event)=>{
+                            event.stopPropagation()
+                            this.props.handleShowDetailsClick(item)
+                          }
+                        }>
+                        <i className="fa fa-rss-square blue"></i>
+                      </button>
+                    </td>
                   </tr>
                 )
               })}

@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { WithOutContext as ReactTags } from 'react-tag-input';
 
-class AddReportRulesStep3 extends Component {
+class AddReportRepoRulesStep3 extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -31,7 +31,7 @@ class AddReportRulesStep3 extends Component {
                 type="text"
                 placeholder="Enter a Comment"
                 required="required"
-                className="form-control col-md-9 col-xs-12"
+                className="form-control col-md-9 col-xs-12 dontDragMe"
                 value={this.props.audit_form.comment}
                 readOnly={viewOnly}
                 maxLength="1000"
@@ -68,4 +68,4 @@ class AddReportRulesStep3 extends Component {
   }
 
 
-export default AddReportRulesStep3;
+export default AddReportRepoRulesStep3;

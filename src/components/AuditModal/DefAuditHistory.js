@@ -76,7 +76,7 @@ class DefAuditHistory extends Component{
                   title="Filter Text">
                   <div className="input-group">
                     <input
-                      className="form-control"
+                      className="form-control dontDragMe"
                       placeholder="Enter Filter Text"
                       value={this.state.filterText}
                       draggable

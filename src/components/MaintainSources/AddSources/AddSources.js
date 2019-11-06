@@ -16,7 +16,7 @@ import {
 import SourceTable from './SourceTable';
 import { Button } from 'react-bootstrap';
 
-
+import LoadingForm from '../../Authentication/LoadingForm';
 import './AddSources.css';
 
 class AddSources extends Component {
@@ -59,6 +59,7 @@ class AddSources extends Component {
         this.readFile = this.readFile.bind(this);
         this.setFileDelimiter = this.setFileDelimiter.bind(this);
         this.addDefaultRows = this.addDefaultRows.bind(this);
+        this.loadingPage = this.loadingPage.bind(this);
     }
 
     componentWillMount() {
@@ -228,12 +229,37 @@ class AddSources extends Component {
         this.setState({ fileDelimiter: value });
     }
 
+
+    loadingPage(icon, color,msg){
+      return(
+        <LoadingForm
+          loadingMsg={
+              <div>
+                <div>
+                  <a className="btn btn-app" style={{"border": "none"}}>
+                    <i className={ "fa " + icon + " " + color }></i>
+                    <span className={color}>..........</span>
+                  </a>
+                </div>
+                <span className={color}>{msg}</span>
+                <br/>
+                <span className={color}>Please wait</span>
+              </div>
+            }
+          />
+      );
+    }
+
     render() {
         console.log('field list', this.props.source_table_columns);
         if (typeof (this.props.source_table_columns) == 'undefined') {
             return (
-                <h1>Loading...</h1>
-            )
+              <div>
+                {
+                  this.loadingPage("fa-cube", "blue","Loading Source Feed Details")
+                }
+              </div>
+            );
         } else {
             console.log('in else', this.props.source_table_columns);
             console.log('Before render ', this.state.requestType, this.state.form.country, this.state.form);
@@ -291,6 +317,7 @@ class AddSources extends Component {
                                             type="text"
                                             maxLength="1000"
                                             required="required"
+                                            readOnly={this.state.readOnly}
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
                                                 (event) => {
@@ -310,6 +337,7 @@ class AddSources extends Component {
                                             value={this.state.form.source_file_name}
                                             type="text"
                                             required="required"
+                                            readOnly={this.state.readOnly}
                                             className="form-control col-md-7 col-xs-12"
                                             onChange={
                                                 (event) => {
@@ -328,6 +356,7 @@ class AddSources extends Component {
                                             placeholder="Enter source File Data Delimiter"
                                             value={this.state.form.source_file_delimiter}
                                             type="text"
+                                            readOnly={this.state.readOnly}
                                             required="required"
                                             maxLength="1"
                                             className="form-control col-md-7 col-xs-12"
@@ -349,10 +378,10 @@ class AddSources extends Component {
                                 </div>
                                 <div className="form-group">
                                     <label className="control-label col-md-3 col-sm-3 col-xs-12" htmlFor="first-name">Country <span className="required">*</span></label>
-                                    <div className="col-md-1 col-sm-12 col-xs-12">
+                                    <div className="col-md-2 col-sm-12 col-xs-12">
                                         <input
                                             value={this.props.login_details.domainInfo.country}
-                                            className="form-control col-md-7 col-xs-6"
+                                            className="form-control col-md-6 col-xs-6"
                                             type="text"
                                             readOnly={ true }
                                             placeholder="Country"
@@ -370,45 +399,52 @@ class AddSources extends Component {
                                         />
                                     </div>
                                 </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="import-file" className="control-label col-md-3 col-sm-3 col-xs-12">Select File for Header Line</label>
-                                    <div className="col-md-1 col-sm-12 col-xs-12">
-                                        <input
-                                            type="file"
-                                            onChange={this.readFile}
-                                        />
-                                        <input
-                                            type="text"
-                                            className="form-control col-md-7 col-xs-6"
-                                            onChange={this.setFileDelimiter}
-                                            value={this.state.fileDelimiter}
-                                            placeholder="Enter a delimiter..."
-                                            style={{ margin: '7px 0', width: '100px', height: '25px' }}
-                                        />
-                                    </div>
-                                </div>
-
+                                {
+                                  !this.state.readOnly &&
+                                  <div className="form-group">
+                                      <label htmlFor="import-file" className="control-label col-md-3 col-sm-3 col-xs-12">Select File for Header Line</label>
+                                      <div className="col-md-1 col-sm-12 col-xs-12">
+                                          <input
+                                              type="file"
+                                              onChange={this.readFile}
+                                          />
+                                          <input
+                                              type="text"
+                                              className="form-control col-md-7 col-xs-6"
+                                              onChange={this.setFileDelimiter}
+                                              value={this.state.fileDelimiter}
+                                              placeholder="Enter a delimiter..."
+                                              style={{ margin: '7px 0', width: '100px', height: '25px' }}
+                                          />
+                                      </div>
+                                  </div>
+                                }
                                 <div className="x_title">
                                     <h2 style={{ width: '100%' }}>
                                         Source Table Definition
                                         <small>Column list</small>
-                                          <button type="button" className="btn btn-primary" style={{ float: 'right' }} onClick={() => { this.handleCancel() }}>
-                                              Cancel
-                                          </button>
-                                          <button type="submit" className="btn btn-success" style={{ float: 'right' }}>Submit</button>
-                                        <Button
-                                            bsStyle="success"
-                                            onClick={() => { this.addRowToSourceTable(); }}
-                                            style={{ float: 'right' }}
-                                        >
-                                            + New Field
-                                        </Button>
+                                        {
+                                          !this.state.readOnly &&
+                                          <span>
+                                            <button type="submit" className="btn btn-success " style={{ float: 'right' }}>Submit</button>
+                                            <button type="button" className="btn btn-primary " style={{ float: 'right' }} onClick={() => { this.handleCancel() }}>
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="btn btn-dark "
+                                                onClick={() => { this.addRowToSourceTable(); }}
+                                                style={{ float: 'right' }}
+                                            >
+                                                <i className="fa fa-plus"></i> New Field
+                                            </button>
+                                          </span>
+                                        }
                                     </h2>
                                     <div className="clearfix"></div>
                                 </div>
                                 {
-                                    <table className="table">
+                                    <table className="table table-hover">
                                         <thead>
                                             <tr>
                                                 <th>Field</th>
@@ -424,7 +460,7 @@ class AddSources extends Component {
                                             {
                                                 this.state.requestType != "add" && this.props.source_table_columns.map(function (col, colindex) {
                                                     return (
-                                                        <tr>
+                                                        <tr key={colindex.toString()}>
                                                             <td>{col.Field}</td>
                                                             <td>{col.Type}</td>
                                                             <td>{col.Null}</td>
@@ -432,13 +468,7 @@ class AddSources extends Component {
                                                             <td>{col.Default}</td>
                                                             <td>{col.Extra}</td>
                                                             <td>
-                                                                <button
-                                                                    type="button"
-                                                                    className="btn btn-circle btn-success btn-xs"
-                                                                    disabled
-                                                                >
-                                                                    <i className="fa fa-check"></i>
-                                                                </button>
+                                                                <i className="fa fa-lock aero"></i>
                                                             </td>
                                                         </tr>
                                                     )
@@ -463,15 +493,27 @@ class AddSources extends Component {
                                     </table>
                                 }
 
-                                <div className="form-group">
-                                    <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
-                                        <div className="clearfix"></div>
-                                        <button type="button" className="btn btn-primary" onClick={() => { this.handleCancel() }}>
-                                            Cancel
-                                        </button>
-                                        <button type="submit" className="btn btn-success">Submit</button>
-                                    </div>
-                                </div>
+                                {
+                                  !this.state.readOnly &&
+                                  <div className="form-group">
+                                      <div className="col-md-9 col-sm-9 col-xs-12 col-md-offset-3">
+                                          <div className="clearfix"></div>
+                                            <button
+                                                type="button"
+                                                className="btn btn-dark "
+                                                onClick={() => { this.addRowToSourceTable(); }}
+
+                                            >
+                                                <i className="fa fa-plus"></i> New Field
+                                            </button>
+                                          <button type="button" className="btn btn-primary " onClick={() => { this.handleCancel() }}>
+                                              Cancel
+                                          </button>
+
+                                          <button type="submit" className="btn btn-success ">Submit</button>
+                                      </div>
+                                  </div>
+                                }
                             </form>
                         </div>
                     </div>
